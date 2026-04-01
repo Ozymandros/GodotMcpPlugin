@@ -3,9 +3,9 @@ name: CI
 
 on:
   push:
-    branches: [master, main]
+    branches: [master, main, develop]
   pull_request:
-    branches: [master, main]
+    branches: [master, main, develop]
   workflow_dispatch:
 
 permissions:
@@ -28,14 +28,18 @@ jobs:
           dotnet-version: "10.0.x"
           dotnet-quality: "preview"
 
+
       - name: Restore
-        run: dotnet restore Godot-MCP-SK-Plugin.slnx
+        run: dotnet restore GodotMcp.sln
 
       - name: Build
-        run: dotnet build Godot-MCP-SK-Plugin.slnx --no-restore -c Release
+        run: dotnet build GodotMcp.sln --no-restore -c Release
 
       - name: Test
-        run: dotnet test Godot-MCP-SK-Plugin.slnx --no-build -c Release --verbosity normal --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+        run: dotnet test GodotMcp.sln --no-build -c Release --verbosity normal --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+
+      - name: Restore sample host
+        run: dotnet restore samples/GodotMcp.Sample/GodotMcp.Sample.csproj
 
       - name: Build sample host
         run: dotnet build samples/GodotMcp.Sample/GodotMcp.Sample.csproj --no-restore -c Release

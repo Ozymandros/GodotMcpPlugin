@@ -1,6 +1,18 @@
 ## Godot-MCP-SK-Plugin
 
-A .NET 10 Semantic Kernel plugin that connects SK agents/apps to `godot-mcp` over stdio and dynamically exposes Godot automation tools as Kernel functions.
+<!-- CI & Quality -->
+[![CI](https://github.com/Ozymandros/GodotMcpPlugin/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/Ozymandros/GodotMcpPlugin/actions/workflows/ci.yml)
+[![Release](https://github.com/Ozymandros/GodotMcpPlugin/actions/workflows/release.yml/badge.svg?branch=master)](https://github.com/Ozymandros/GodotMcpPlugin/actions/workflows/release.yml)
+[![CodeQL](https://github.com/Ozymandros/GodotMcpPlugin/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/Ozymandros/GodotMcpPlugin/actions/workflows/codeql.yml)
+
+<!-- Package -->
+[![NuGet](https://img.shields.io/nuget/v/GodotMcp.SemanticKernel.Plugin.svg)](https://www.nuget.org/packages/GodotMcp.SemanticKernel.Plugin)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/GodotMcp.SemanticKernel.Plugin.svg)](https://www.nuget.org/packages/GodotMcp.SemanticKernel.Plugin)
+
+<!-- Project -->
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
+A .NET 10 Semantic Kernel plugin that connects SK agents/apps to the `GodotMCP.Server` (a .NET global tool that exposes Godot 4.x automation over the Model Context Protocol (MCP) using stdio JSON-RPC) and dynamically exposes Godot automation tools as Kernel functions.
 
 ### Key Features
 
@@ -247,7 +259,7 @@ Create `Godot-tools.json`:
 ## Project Structure
 
 ```
-godot-mcp-SK-Plugin/
+Godot-MCP-SK-Plugin/
 ├── src/
 │   ├── GodotMcp.Core/              # Domain models, interfaces, and exceptions
 │   │   ├── Interfaces/             # Core abstractions (IMcpClient, IParameterConverter, etc.)
