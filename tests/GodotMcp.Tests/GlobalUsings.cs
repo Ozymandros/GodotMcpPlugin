@@ -1,0 +1,10 @@
+﻿global using System;
+global using System.Collections.Generic;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using Xunit;
+global using NSubstitute;
+global using Microsoft.Extensions.Logging;
+global using GodotMcp.Core.Interfaces;
+global using GodotMcp.Core.Models;
+global using GodotMcp.Core.Exceptions;

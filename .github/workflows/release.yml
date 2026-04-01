@@ -1,0 +1,94 @@
+# Release: build, pack NuGet, and publish
+name: Release
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to attach assets to (e.g., v1.0.0). Required for manual runs."
+        required: true
+        type: string
+
+permissions:
+  packages: write
+  contents: write
+
+jobs:
+  test:
+    name: Test (release)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet restore Godot-MCP-SK-Plugin.slnx
+      - run: dotnet build Godot-MCP-SK-Plugin.slnx -c Release --no-restore
+      - run: dotnet test Godot-MCP-SK-Plugin.slnx --no-build -c Release
+
+  pack:
+    name: Pack NuGet
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore Godot-MCP-SK-Plugin.slnx
+
+      - name: Build
+        run: dotnet build src/GodotMcp.Plugin/GodotMcp.Plugin.csproj -c Release --no-restore
+
+      - name: Pack
+        run: dotnet pack src/GodotMcp.Plugin/GodotMcp.Plugin.csproj -c Release -o nupkg --no-build --no-restore
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg
+          path: nupkg/*.nupkg
+
+  publish-nuget:
+    name: Publish to NuGet.org
+    needs: pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nupkg
+
+      - name: Validate NuGet API key
+        shell: bash
+        run: |
+          if [ -z "${{ secrets.NUGET_API_KEY }}" ]; then
+            echo "NUGET_API_KEY secret is missing or empty."
+            echo "Add it in your repo settings: Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - name: Push to NuGet
+        run: dotnet nuget push "*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+
+  release-assets:
+    name: Attach to GitHub Release
+    needs: pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: nupkg
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: "*.nupkg"
+          generate_release_notes: true
+          tag_name: ${{ github.event.release.tag_name || inputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

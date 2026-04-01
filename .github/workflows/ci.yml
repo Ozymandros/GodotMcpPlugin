@@ -1,0 +1,41 @@
+# CI: build and test on multiple platforms
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+  pull_request:
+    branches: [master, main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    name: Build & Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+          dotnet-quality: "preview"
+
+      - name: Restore
+        run: dotnet restore Godot-MCP-SK-Plugin.slnx
+
+      - name: Build
+        run: dotnet build Godot-MCP-SK-Plugin.slnx --no-restore -c Release
+
+      - name: Test
+        run: dotnet test Godot-MCP-SK-Plugin.slnx --no-build -c Release --verbosity normal --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+
+      - name: Build sample host
+        run: dotnet build samples/GodotMcp.Sample/GodotMcp.Sample.csproj --no-restore -c Release

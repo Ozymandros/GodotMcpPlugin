@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <Include>[GodotMcp.Core*]*,[GodotMcp.Infrastructure*]*,[GodotMcp.Plugin*]*</Include>
+          <ExcludeByFile>**/obj/**,**/*.g.cs,**/*AssemblyInfo.cs</ExcludeByFile>
+          <Exclude>[*.Tests]*,[xunit.*]*,[NSubstitute*]*</Exclude>
+          <SkipAutoProps>true</SkipAutoProps>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
