@@ -11,4 +11,8 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Include="samples\GodotMcp.Sample\GodotMcp.Sample.csproj" />
+  </ItemGroup>
+
 </Project>
