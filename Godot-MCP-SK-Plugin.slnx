@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="godot-mcp-SK-Plugin.csproj" />
+  <Project Path="Godot-MCP-SK-Plugin.csproj" />
   <Project Path="tests/GodotMcp.Tests/GodotMcp.Tests.csproj" />
 </Solution>
