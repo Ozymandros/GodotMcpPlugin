@@ -9,7 +9,7 @@
 
 		<!-- NuGet Package Metadata -->
 		<PackageId>GodotMcp.SemanticKernel.Plugin</PackageId>
-		<Version>1.1.0</Version>
+		<Version>1.1.1</Version>
 		<Authors>Godot MCP Contributors</Authors>
 		<Description>A Semantic Kernel plugin that bridges SK applications with Godot Editor automation through the Model Context Protocol (MCP). Enables AI agents to interact with Godot environments via stdio transport.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
@@ -24,8 +24,21 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\GodotMcp.Core\GodotMcp.Core.csproj" />
-		<ProjectReference Include="..\GodotMcp.Infrastructure\GodotMcp.Infrastructure.csproj" />
+		<!--
+		  Ensure Core/Infrastructure assemblies are included in THIS nupkg (single-package mode).
+		  These referenced project assemblies are copied to $(TargetDir) when building the plugin.
+		-->
+		<None Include="$(TargetDir)GodotMcp.Core.dll" Pack="true" PackagePath="lib/$(TargetFramework)/" />
+		<None Include="$(TargetDir)GodotMcp.Infrastructure.dll" Pack="true" PackagePath="lib/$(TargetFramework)/" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\GodotMcp.Core\GodotMcp.Core.csproj">
+			<PrivateAssets>all</PrivateAssets>
+		</ProjectReference>
+		<ProjectReference Include="..\GodotMcp.Infrastructure\GodotMcp.Infrastructure.csproj">
+			<PrivateAssets>all</PrivateAssets>
+		</ProjectReference>
 	</ItemGroup>
 
 	<ItemGroup>

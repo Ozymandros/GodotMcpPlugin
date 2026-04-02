@@ -4,11 +4,12 @@
     <!-- Use the project reference when building from source in this repository. This avoids
          restoring a packaged NuGet during CI and local development. For packaged scenarios,
          consumers can reference the published NuGet package instead. -->
+    <ProjectReference Include="..\..\src\GodotMcp.Core\GodotMcp.Core.csproj" />
+    <ProjectReference Include="..\..\src\GodotMcp.Infrastructure\GodotMcp.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\GodotMcp.Plugin\GodotMcp.Plugin.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GodotMcp.SemanticKernel.Plugin" Version="1.1.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.4" />
   </ItemGroup>
 

@@ -1,5 +1,7 @@
 <Solution>
   <Project Path="Godot-MCP-SK-Plugin.csproj" />
-  <Project Path="samples/GodotMcp.Sample/GodotMcp.Sample.csproj" />
+  <Project Path="src/GodotMcp.Core/GodotMcp.Core.csproj" />
+  <Project Path="src/GodotMcp.Infrastructure/GodotMcp.Infrastructure.csproj" />
+  <Project Path="src/GodotMcp.Plugin/GodotMcp.Plugin.csproj" />
   <Project Path="tests/GodotMcp.Tests/GodotMcp.Tests.csproj" />
 </Solution>

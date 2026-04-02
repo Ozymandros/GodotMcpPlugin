@@ -121,7 +121,7 @@ public sealed partial class GodotPlugin(
     /// function mapper for later invocation.
     /// </remarks>
     /// <exception cref="NetworkException">Thrown when connection to the godot-mcp server fails</exception>
-    /// <exception cref="TimeoutException">Thrown when the connection or discovery operation times out</exception>
+    /// <exception cref="GodotMcp.Core.Exceptions.TimeoutException">Thrown when the connection or discovery operation times out</exception>
     /// <example>
     /// <code>
     /// var plugin = serviceProvider.GetRequiredService&lt;GodotPlugin&gt;();
@@ -161,7 +161,7 @@ public sealed partial class GodotPlugin(
     /// </remarks>
     /// <exception cref="GodotMcpException">Thrown when the tool is not found or validation fails</exception>
     /// <exception cref="NetworkException">Thrown when communication with the godot-mcp server fails</exception>
-    /// <exception cref="TimeoutException">Thrown when the operation times out</exception>
+    /// <exception cref="GodotMcp.Core.Exceptions.TimeoutException">Thrown when the operation times out</exception>
     /// <exception cref="McpServerException">Thrown when the godot-mcp server returns an error</exception>
     /// <example>
     /// <para><strong>Creating a GameObject:</strong></para>
@@ -288,12 +288,12 @@ public sealed partial class GodotPlugin(
     /// rather than through a single generic router.
     /// </para>
     /// <para>
-    /// For more control over registration, use <see cref="GodotMcpKernelExtensions.RegisterGodotTools"/>
+    /// For more control over registration, use <see cref="GodotMcp.Plugin.Extensions.GodotMcpKernelExtensions.RegisterGodotTools(Microsoft.SemanticKernel.Kernel,GodotMcp.Plugin.GodotPlugin,GodotMcp.Core.Interfaces.IFunctionMapper,string)"/>
     /// on an existing kernel instance.
     /// </para>
     /// </remarks>
     /// <exception cref="NetworkException">Thrown when connection to the godot-mcp server fails</exception>
-    /// <exception cref="TimeoutException">Thrown when initialization times out</exception>
+    /// <exception cref="GodotMcp.Core.Exceptions.TimeoutException">Thrown when initialization times out</exception>
     /// <example>
     /// <code>
     /// var kernel = await GodotPlugin.CreateKernelWithGodotAsync(serviceProvider);
