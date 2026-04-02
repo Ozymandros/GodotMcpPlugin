@@ -12,7 +12,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include=".github\releases\v1.1.0.md" />
     <None Include="samples\GodotMcp.Sample\GodotMcp.Sample.csproj" />
   </ItemGroup>
 
