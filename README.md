@@ -12,7 +12,7 @@
 <!-- Project -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A .NET 10 Semantic Kernel plugin that connects SK agents/apps to the `GodotMCP.Server` (a .NET global tool that exposes Godot 4.x automation over the Model Context Protocol (MCP) using stdio JSON-RPC) and dynamically exposes Godot automation tools as Kernel functions.
+A .NET 10 Semantic Kernel plugin that connects SK agents/apps to **`GodotMCP.Server` 1.2.x** (the .NET global tool `godot-mcp`) using the official **[ModelContextProtocol](https://www.nuget.org/packages/ModelContextProtocol)** .NET SDK over stdio (`initialize`, `tools/list`, `tools/call`), and dynamically exposes Godot automation tools as Kernel functions.
 
 ### Key Features
 

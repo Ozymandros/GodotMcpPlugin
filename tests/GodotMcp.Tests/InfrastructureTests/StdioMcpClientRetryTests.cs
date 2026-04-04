@@ -1,26 +1,28 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+﻿using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using GodotMcp.Infrastructure.Client;
 using GodotMcp.Infrastructure.Configuration;
+using ModelContextProtocol;
+using ModelContextProtocol.Protocol;
+using NSubstitute.ExceptionExtensions;
 
 namespace GodotMcp.Tests.InfrastructureTests;
 
 /// <summary>
-/// Unit tests for StdioMcpClient retry logic
-/// Validates: Requirements 14.4, 2.1, 6.5, 8.5
+/// Unit tests for <see cref="StdioMcpClient"/> retry logic with mocked MCP session.
 /// </summary>
 public sealed class StdioMcpClientRetryTests : IAsyncDisposable
 {
-    private readonly IProcessManager _mockProcessManager;
-    private readonly IRequestHandler _mockRequestHandler;
     private readonly ILogger<StdioMcpClient> _logger;
+    private readonly ILoggerFactory _loggerFactory;
     private readonly List<StdioMcpClient> _clientsToDispose = new();
 
     public StdioMcpClientRetryTests()
     {
-        _mockProcessManager = Substitute.For<IProcessManager>();
-        _mockRequestHandler = Substitute.For<IRequestHandler>();
         _logger = NullLogger<StdioMcpClient>.Instance;
+        _loggerFactory = NullLoggerFactory.Instance;
     }
 
     public async ValueTask DisposeAsync()
@@ -38,34 +40,37 @@ public sealed class StdioMcpClientRetryTests : IAsyncDisposable
         }
     }
 
+    private static CallToolResult JsonResult(object payload) => new()
+    {
+        Content = [new TextContentBlock { Text = JsonSerializer.Serialize(payload) }]
+    };
+
     private StdioMcpClient CreateClient(
+        IMcpProtocolClientFactory factory,
         GodotMcpOptions options,
         Func<TimeSpan, CancellationToken, Task>? delayAsync = null)
     {
-        var client = new StdioMcpClient(
-            _mockProcessManager,
-            _mockRequestHandler,
-            _logger,
-            Options.Create(options),
-            delayAsync);
+        var client = delayAsync is null
+            ? new StdioMcpClient(factory, _loggerFactory, _logger, Options.Create(options))
+            : new StdioMcpClient(factory, _loggerFactory, _logger, Options.Create(options), delayAsync);
         _clientsToDispose.Add(client);
         return client;
     }
 
-    private async Task SetupConnectedClient(StdioMcpClient client)
+    private static async Task SetupConnectedClient(
+        StdioMcpClient client,
+        IMcpProtocolClientFactory factory,
+        IMcpProtocolSession session)
     {
-        var processInfo = new ProcessInfo(1234, "godot-mcp", DateTime.UtcNow);
-        
-        _mockProcessManager.EnsureProcessRunningAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(processInfo));
-
+        factory
+            .ConnectAsync(Arg.Any<GodotMcpOptions>(), Arg.Any<ILoggerFactory>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(session));
         await client.ConnectAsync();
     }
 
     [Fact]
     public async Task InvokeToolAsync_OnNetworkException_RetriesUpToMaxAttempts()
     {
-        // Arrange
         var options = new GodotMcpOptions
         {
             ExecutablePath = "godot-mcp",
@@ -73,166 +78,71 @@ public sealed class StdioMcpClientRetryTests : IAsyncDisposable
             RequestTimeoutSeconds = 10,
             MaxRetryAttempts = 3,
             BackoffStrategy = BackoffStrategy.Linear,
-            InitialRetryDelayMs = 10, // Short delay for test
+            InitialRetryDelayMs = 10,
             EnableProcessPooling = false,
             MaxIdleTimeSeconds = 300,
             EnableMessageLogging = false
         };
-        var client = CreateClient(options);
-        await SetupConnectedClient(client);
 
-        var parameters = new Dictionary<string, object?>();
-        var requestJson = """{"jsonrpc":"2.0","id":"1","method":"test","params":{}}""";
+        var mockFactory = Substitute.For<IMcpProtocolClientFactory>();
+        var mockSession = Substitute.For<IMcpProtocolSession>();
+        var client = CreateClient(mockFactory, options);
+        await SetupConnectedClient(client, mockFactory, mockSession);
 
         var callCount = 0;
-        _mockRequestHandler.SerializeRequest(Arg.Any<McpRequest>())
+        mockSession
+            .CallToolAsync(Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
                 callCount++;
-                return requestJson;
+                return Task.FromException<CallToolResult>(new McpException("transient", new IOException("io")));
             });
 
-        // Simulate stream that always throws IOException (NetworkException)
-        var mockStdin = new MemoryStream();
-        mockStdin.Close(); // Closed stream will throw when written to
+        await Assert.ThrowsAsync<NetworkException>(() => client.InvokeToolAsync("test", new Dictionary<string, object?>()));
 
-        _mockProcessManager.StandardInput.Returns(mockStdin);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<NetworkException>(
-            () => client.InvokeToolAsync("test", parameters));
-
-        // Should have tried initial attempt + 3 retries = 4 total attempts
         Assert.Equal(4, callCount);
     }
 
     [Fact]
     public async Task InvokeToolAsync_OnTimeoutException_RetriesUpToMaxAttempts()
     {
-        // Arrange
         var options = new GodotMcpOptions
         {
             ExecutablePath = "godot-mcp",
             ConnectionTimeoutSeconds = 5,
-            RequestTimeoutSeconds = 1, // Short timeout
+            RequestTimeoutSeconds = 1,
             MaxRetryAttempts = 2,
-            BackoffStrategy = BackoffStrategy.Linear,
-            InitialRetryDelayMs = 10, // Short delay for test
-            EnableProcessPooling = false,
-            MaxIdleTimeSeconds = 300,
-            EnableMessageLogging = false
-        };
-        var client = CreateClient(options);
-        await SetupConnectedClient(client);
-
-        var parameters = new Dictionary<string, object?>();
-        var requestJson = """{"jsonrpc":"2.0","id":"1","method":"test","params":{}}""";
-
-        var callCount = 0;
-        _mockRequestHandler.SerializeRequest(Arg.Any<McpRequest>())
-            .Returns(_ =>
-            {
-                callCount++;
-                return requestJson;
-            });
-
-        var mockStdin = new MemoryStream();
-        
-        // Create a custom stream that blocks on read to simulate timeout
-        var mockStdout = new BlockingStream();
-
-        _mockProcessManager.StandardInput.Returns(mockStdin);
-        _mockProcessManager.StandardOutput.Returns(mockStdout);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<Core.Exceptions.TimeoutException>(
-            () => client.InvokeToolAsync("test", parameters));
-
-        // Should have tried initial attempt + 2 retries = 3 total attempts
-        Assert.Equal(3, callCount);
-    }
-
-    /// <summary>
-    /// Custom stream that blocks indefinitely on read operations to simulate timeout
-    /// </summary>
-    private class BlockingStream : Stream
-    {
-        public override bool CanRead => true;
-        public override bool CanSeek => false;
-        public override bool CanWrite => false;
-        public override long Length => throw new NotSupportedException();
-        public override long Position { get => 0; set => throw new NotSupportedException(); }
-
-        public override void Flush() { }
-
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            // Block indefinitely
-            Thread.Sleep(Timeout.Infinite);
-            return 0;
-        }
-
-        public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
-        {
-            // Wait until cancelled (simulates timeout)
-            await Task.Delay(Timeout.Infinite, cancellationToken);
-            return 0;
-        }
-
-        public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
-        public override void SetLength(long value) => throw new NotSupportedException();
-        public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
-    }
-
-    [Fact]
-    public async Task InvokeToolAsync_OnProtocolException_DoesNotRetry()
-    {
-        // Arrange
-        var options = new GodotMcpOptions
-        {
-            ExecutablePath = "godot-mcp",
-            ConnectionTimeoutSeconds = 5,
-            RequestTimeoutSeconds = 10,
-            MaxRetryAttempts = 3,
             BackoffStrategy = BackoffStrategy.Linear,
             InitialRetryDelayMs = 10,
             EnableProcessPooling = false,
             MaxIdleTimeSeconds = 300,
             EnableMessageLogging = false
         };
-        var client = CreateClient(options);
-        await SetupConnectedClient(client);
 
-        var parameters = new Dictionary<string, object?>();
-        var requestJson = """{"jsonrpc":"2.0","id":"1","method":"test","params":{}}""";
-        var invalidResponseJson = """invalid json""";
+        var mockFactory = Substitute.For<IMcpProtocolClientFactory>();
+        var mockSession = Substitute.For<IMcpProtocolSession>();
+        var client = CreateClient(mockFactory, options);
+        await SetupConnectedClient(client, mockFactory, mockSession);
 
-        _mockRequestHandler.SerializeRequest(Arg.Any<McpRequest>()).Returns(requestJson);
-        _mockRequestHandler.DeserializeResponse(invalidResponseJson)
-            .Returns(_ => throw new ProtocolException("Invalid JSON"));
+        var callCount = 0;
+        mockSession
+            .CallToolAsync(Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns<Task<CallToolResult>>(async call =>
+            {
+                callCount++;
+                var ct = call.Arg<CancellationToken>();
+                await Task.Delay(TimeSpan.FromHours(1), ct);
+                return new CallToolResult();
+            });
 
-        var mockStdin = new MemoryStream();
-        var mockStdout = new MemoryStream();
-        var responseBytes = System.Text.Encoding.UTF8.GetBytes(invalidResponseJson + "\n");
-        mockStdout.Write(responseBytes, 0, responseBytes.Length);
-        mockStdout.Position = 0;
+        await Assert.ThrowsAsync<GodotMcp.Core.Exceptions.TimeoutException>(() => client.InvokeToolAsync("test", new Dictionary<string, object?>()));
 
-        _mockProcessManager.StandardInput.Returns(mockStdin);
-        _mockProcessManager.StandardOutput.Returns(mockStdout);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<ProtocolException>(
-            () => client.InvokeToolAsync("test", parameters));
-
-        // Should only try once (no retries for protocol errors)
-        _mockRequestHandler.Received(1).SerializeRequest(Arg.Any<McpRequest>());
-        _mockRequestHandler.Received(1).DeserializeResponse(invalidResponseJson);
+        Assert.Equal(3, callCount);
     }
 
     [Fact]
     public async Task InvokeToolAsync_OnMcpServerException_DoesNotRetry()
     {
-        // Arrange
         var options = new GodotMcpOptions
         {
             ExecutablePath = "godot-mcp",
@@ -245,43 +155,28 @@ public sealed class StdioMcpClientRetryTests : IAsyncDisposable
             MaxIdleTimeSeconds = 300,
             EnableMessageLogging = false
         };
-        var client = CreateClient(options);
-        await SetupConnectedClient(client);
 
-        var parameters = new Dictionary<string, object?>();
-        var requestJson = """{"jsonrpc":"2.0","id":"1","method":"test","params":{}}""";
-        var responseJson = """{"jsonrpc":"2.0","id":"1","error":{"code":-32600,"message":"Invalid Request"}}""";
-        var errorResponse = new McpResponse(
-            "1", 
-            false, 
-            null, 
-            new McpError(-32600, "Invalid Request"));
+        var mockFactory = Substitute.For<IMcpProtocolClientFactory>();
+        var mockSession = Substitute.For<IMcpProtocolSession>();
+        var client = CreateClient(mockFactory, options);
+        await SetupConnectedClient(client, mockFactory, mockSession);
 
-        _mockRequestHandler.SerializeRequest(Arg.Any<McpRequest>()).Returns(requestJson);
-        _mockRequestHandler.DeserializeResponse(responseJson).Returns(errorResponse);
+        mockSession
+            .CallToolAsync(Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new CallToolResult
+            {
+                IsError = true,
+                Content = [new TextContentBlock { Text = "Invalid Request" }]
+            }));
 
-        var mockStdin = new MemoryStream();
-        var mockStdout = new MemoryStream();
-        var responseBytes = System.Text.Encoding.UTF8.GetBytes(responseJson + "\n");
-        mockStdout.Write(responseBytes, 0, responseBytes.Length);
-        mockStdout.Position = 0;
+        await Assert.ThrowsAsync<McpServerException>(() => client.InvokeToolAsync("test", new Dictionary<string, object?>()));
 
-        _mockProcessManager.StandardInput.Returns(mockStdin);
-        _mockProcessManager.StandardOutput.Returns(mockStdout);
-
-        // Act & Assert
-        var exception = await Assert.ThrowsAsync<McpServerException>(
-            () => client.InvokeToolAsync("test", parameters));
-
-        // Should only try once (no retries for server errors)
-        _mockRequestHandler.Received(1).SerializeRequest(Arg.Any<McpRequest>());
-        _mockRequestHandler.Received(1).DeserializeResponse(responseJson);
+        await mockSession.Received(1).CallToolAsync(Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
     public async Task InvokeToolAsync_RespectsMaxRetryAttempts()
     {
-        // Arrange - Test with different MaxRetryAttempts values
         var testCases = new[] { 0, 1, 2, 5 };
 
         foreach (var maxRetries in testCases)
@@ -298,42 +193,30 @@ public sealed class StdioMcpClientRetryTests : IAsyncDisposable
                 MaxIdleTimeSeconds = 300,
                 EnableMessageLogging = false
             };
-            var client = CreateClient(options);
-            await SetupConnectedClient(client);
 
-            var parameters = new Dictionary<string, object?>();
-            var requestJson = """{"jsonrpc":"2.0","id":"1","method":"test","params":{}}""";
+            var mockFactory = Substitute.For<IMcpProtocolClientFactory>();
+            var mockSession = Substitute.For<IMcpProtocolSession>();
+            var client = CreateClient(mockFactory, options);
+            await SetupConnectedClient(client, mockFactory, mockSession);
 
             var callCount = 0;
-            _mockRequestHandler.SerializeRequest(Arg.Any<McpRequest>())
+            mockSession
+                .CallToolAsync(Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
                 .Returns(_ =>
                 {
                     callCount++;
-                    return requestJson;
+                    return Task.FromException<CallToolResult>(new McpException("transient", new IOException("io")));
                 });
 
-            var mockStdin = new MemoryStream();
-            mockStdin.Close(); // Closed stream will throw
+            await Assert.ThrowsAsync<NetworkException>(() => client.InvokeToolAsync("test", new Dictionary<string, object?>()));
 
-            _mockProcessManager.StandardInput.Returns(mockStdin);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<NetworkException>(
-                () => client.InvokeToolAsync("test", parameters));
-
-            // Should have tried initial attempt + maxRetries
-            var expectedAttempts = maxRetries + 1;
-            Assert.Equal(expectedAttempts, callCount);
-
-            // Reset for next iteration
-            callCount = 0;
+            Assert.Equal(maxRetries + 1, callCount);
         }
     }
 
     [Fact]
     public async Task InvokeToolAsync_LinearBackoff_CalculatesCorrectDelays()
     {
-        // Arrange
         var options = new GodotMcpOptions
         {
             ExecutablePath = "godot-mcp",
@@ -353,32 +236,17 @@ public sealed class StdioMcpClientRetryTests : IAsyncDisposable
             return Task.CompletedTask;
         }
 
-        var client = CreateClient(options, DelayRecorder);
-        await SetupConnectedClient(client);
+        var mockFactory = Substitute.For<IMcpProtocolClientFactory>();
+        var mockSession = Substitute.For<IMcpProtocolSession>();
+        var client = CreateClient(mockFactory, options, DelayRecorder);
+        await SetupConnectedClient(client, mockFactory, mockSession);
 
-        var parameters = new Dictionary<string, object?>();
-        var requestJson = """{"jsonrpc":"2.0","id":"1","method":"test","params":{}}""";
+        mockSession
+            .CallToolAsync(Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Task.FromException<CallToolResult>(new McpException("x", new IOException("io"))));
 
-        _mockRequestHandler.SerializeRequest(Arg.Any<McpRequest>())
-            .Returns(_ =>
-            {
-                return requestJson;
-            });
+        await Assert.ThrowsAsync<NetworkException>(() => client.InvokeToolAsync("test", new Dictionary<string, object?>()));
 
-        var mockStdin = new MemoryStream();
-        mockStdin.Close(); // Closed stream will throw
-
-        _mockProcessManager.StandardInput.Returns(mockStdin);
-
-        // Act
-        await Assert.ThrowsAsync<NetworkException>(
-            () => client.InvokeToolAsync("test", parameters));
-
-        // Assert - Linear backoff: delay = InitialRetryDelayMs * attempt
-        // Attempt 1: immediate
-        // Attempt 2: after 100ms (1 * 100)
-        // Attempt 3: after 200ms (2 * 100)
-        // Attempt 4: after 300ms (3 * 100)
         Assert.Equal(3, observedDelays.Count);
         Assert.Equal(TimeSpan.FromMilliseconds(100), observedDelays[0]);
         Assert.Equal(TimeSpan.FromMilliseconds(200), observedDelays[1]);
@@ -388,7 +256,6 @@ public sealed class StdioMcpClientRetryTests : IAsyncDisposable
     [Fact]
     public async Task InvokeToolAsync_ExponentialBackoff_CalculatesCorrectDelays()
     {
-        // Arrange
         var options = new GodotMcpOptions
         {
             ExecutablePath = "godot-mcp",
@@ -408,32 +275,17 @@ public sealed class StdioMcpClientRetryTests : IAsyncDisposable
             return Task.CompletedTask;
         }
 
-        var client = CreateClient(options, DelayRecorder);
-        await SetupConnectedClient(client);
+        var mockFactory = Substitute.For<IMcpProtocolClientFactory>();
+        var mockSession = Substitute.For<IMcpProtocolSession>();
+        var client = CreateClient(mockFactory, options, DelayRecorder);
+        await SetupConnectedClient(client, mockFactory, mockSession);
 
-        var parameters = new Dictionary<string, object?>();
-        var requestJson = """{"jsonrpc":"2.0","id":"1","method":"test","params":{}}""";
+        mockSession
+            .CallToolAsync(Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(_ => Task.FromException<CallToolResult>(new McpException("x", new IOException("io"))));
 
-        _mockRequestHandler.SerializeRequest(Arg.Any<McpRequest>())
-            .Returns(_ =>
-            {
-                return requestJson;
-            });
+        await Assert.ThrowsAsync<NetworkException>(() => client.InvokeToolAsync("test", new Dictionary<string, object?>()));
 
-        var mockStdin = new MemoryStream();
-        mockStdin.Close(); // Closed stream will throw
-
-        _mockProcessManager.StandardInput.Returns(mockStdin);
-
-        // Act
-        await Assert.ThrowsAsync<NetworkException>(
-            () => client.InvokeToolAsync("test", parameters));
-
-        // Assert - Exponential backoff: delay = InitialRetryDelayMs * 2^(attempt-1)
-        // Attempt 1: immediate
-        // Attempt 2: after 100ms (100 * 2^0 = 100)
-        // Attempt 3: after 200ms (100 * 2^1 = 200)
-        // Attempt 4: after 400ms (100 * 2^2 = 400)
         Assert.Equal(3, observedDelays.Count);
         Assert.Equal(TimeSpan.FromMilliseconds(100), observedDelays[0]);
         Assert.Equal(TimeSpan.FromMilliseconds(200), observedDelays[1]);
@@ -443,7 +295,6 @@ public sealed class StdioMcpClientRetryTests : IAsyncDisposable
     [Fact]
     public async Task InvokeToolAsync_SucceedsAfterRetry_ReturnsSuccessfully()
     {
-        // Arrange
         var options = new GodotMcpOptions
         {
             ExecutablePath = "godot-mcp",
@@ -456,94 +307,65 @@ public sealed class StdioMcpClientRetryTests : IAsyncDisposable
             MaxIdleTimeSeconds = 300,
             EnableMessageLogging = false
         };
-        var client = CreateClient(options);
-        await SetupConnectedClient(client);
 
-        var parameters = new Dictionary<string, object?>();
-        var requestJson = """{"jsonrpc":"2.0","id":"1","method":"test","params":{}}""";
-        var responseJson = """{"jsonrpc":"2.0","id":"1","result":{"status":"success"}}""";
-        var expectedResponse = new McpResponse("1", true, new { status = "success" });
+        var mockFactory = Substitute.For<IMcpProtocolClientFactory>();
+        var mockSession = Substitute.For<IMcpProtocolSession>();
+        var client = CreateClient(mockFactory, options);
+        await SetupConnectedClient(client, mockFactory, mockSession);
 
         var attemptCount = 0;
-        _mockRequestHandler.SerializeRequest(Arg.Any<McpRequest>())
+        mockSession
+            .CallToolAsync(Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
                 attemptCount++;
-                return requestJson;
+                if (attemptCount < 3)
+                {
+                    return Task.FromException<CallToolResult>(new McpException("transient", new IOException("io")));
+                }
+
+                return Task.FromResult(JsonResult(new { status = "success" }));
             });
-        _mockRequestHandler.DeserializeResponse(responseJson).Returns(expectedResponse);
 
-        // Create streams that fail first 2 times, succeed on 3rd
-        var successStdin = new MemoryStream();
-        var successStdout = new MemoryStream();
-        var responseBytes = System.Text.Encoding.UTF8.GetBytes(responseJson + "\n");
-        successStdout.Write(responseBytes, 0, responseBytes.Length);
-        successStdout.Position = 0;
+        var response = await client.InvokeToolAsync("test", new Dictionary<string, object?>());
 
-        _mockProcessManager.StandardInput.Returns(_ =>
-        {
-            if (attemptCount < 3)
-            {
-                // Return closed stream for first 2 attempts
-                var failStream = new MemoryStream();
-                failStream.Close();
-                return failStream;
-            }
-            // Return working stream on 3rd attempt
-            return successStdin;
-        });
-
-        _mockProcessManager.StandardOutput.Returns(successStdout);
-
-        // Act
-        var response = await client.InvokeToolAsync("test", parameters);
-
-        // Assert
         Assert.NotNull(response);
         Assert.True(response.Success);
-        Assert.Equal(3, attemptCount); // Should have tried 3 times before succeeding
+        Assert.Equal(3, attemptCount);
     }
 
     [Fact]
     public async Task InvokeToolAsync_WithZeroRetries_FailsImmediately()
     {
-        // Arrange
         var options = new GodotMcpOptions
         {
             ExecutablePath = "godot-mcp",
             ConnectionTimeoutSeconds = 5,
             RequestTimeoutSeconds = 10,
-            MaxRetryAttempts = 0, // No retries
+            MaxRetryAttempts = 0,
             BackoffStrategy = BackoffStrategy.Linear,
             InitialRetryDelayMs = 10,
             EnableProcessPooling = false,
             MaxIdleTimeSeconds = 300,
             EnableMessageLogging = false
         };
-        var client = CreateClient(options);
-        await SetupConnectedClient(client);
 
-        var parameters = new Dictionary<string, object?>();
-        var requestJson = """{"jsonrpc":"2.0","id":"1","method":"test","params":{}}""";
+        var mockFactory = Substitute.For<IMcpProtocolClientFactory>();
+        var mockSession = Substitute.For<IMcpProtocolSession>();
+        var client = CreateClient(mockFactory, options);
+        await SetupConnectedClient(client, mockFactory, mockSession);
 
         var callCount = 0;
-        _mockRequestHandler.SerializeRequest(Arg.Any<McpRequest>())
+        mockSession
+            .CallToolAsync(Arg.Any<string>(), Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(_ =>
             {
                 callCount++;
-                return requestJson;
+                return Task.FromException<CallToolResult>(new McpException("transient", new IOException("io")));
             });
 
-        var mockStdin = new MemoryStream();
-        mockStdin.Close(); // Closed stream will throw
+        await Assert.ThrowsAsync<NetworkException>(() => client.InvokeToolAsync("test", new Dictionary<string, object?>()));
 
-        _mockProcessManager.StandardInput.Returns(mockStdin);
-
-        // Act & Assert
-        await Assert.ThrowsAsync<NetworkException>(
-            () => client.InvokeToolAsync("test", parameters));
-
-        // Should only try once (no retries)
         Assert.Equal(1, callCount);
     }
 }
