@@ -105,6 +105,8 @@ public sealed partial class GodotPlugin(
     IParameterConverter parameterConverter,
     ILogger<GodotPlugin> logger)
 {
+    private const string Version = "1.1.1";
+
     private readonly IMcpClient _mcpClient = mcpClient;
     private readonly IFunctionMapper _functionMapper = functionMapper;
     private readonly IParameterConverter _parameterConverter = parameterConverter;

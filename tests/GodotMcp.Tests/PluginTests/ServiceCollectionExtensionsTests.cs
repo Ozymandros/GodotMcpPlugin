@@ -5,8 +5,6 @@ using Microsoft.Extensions.Options;
 using GodotMcp.Infrastructure.Client;
 using GodotMcp.Infrastructure.Configuration;
 using GodotMcp.Infrastructure.Conversion;
-using GodotMcp.Infrastructure.Process;
-using GodotMcp.Infrastructure.Serialization;
 using GodotMcp.Plugin;
 using GodotMcp.Plugin.Extensions;
 using GodotMcp.Plugin.Mapping;
@@ -42,8 +40,7 @@ public class ServiceCollectionExtensionsTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Assert - Verify all required services can be resolved
-        Assert.NotNull(serviceProvider.GetService<IProcessManager>());
-        Assert.NotNull(serviceProvider.GetService<IRequestHandler>());
+        Assert.NotNull(serviceProvider.GetService<IMcpProtocolClientFactory>());
         Assert.NotNull(serviceProvider.GetService<IParameterConverter>());
         Assert.NotNull(serviceProvider.GetService<IFunctionMapper>());
         Assert.NotNull(serviceProvider.GetService<IMcpClient>());
@@ -195,8 +192,7 @@ public class ServiceCollectionExtensionsTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Assert - Verify all required services can be resolved
-        Assert.NotNull(serviceProvider.GetService<IProcessManager>());
-        Assert.NotNull(serviceProvider.GetService<IRequestHandler>());
+        Assert.NotNull(serviceProvider.GetService<IMcpProtocolClientFactory>());
         Assert.NotNull(serviceProvider.GetService<IParameterConverter>());
         Assert.NotNull(serviceProvider.GetService<IFunctionMapper>());
         Assert.NotNull(serviceProvider.GetService<IMcpClient>());
@@ -244,18 +240,14 @@ public class ServiceCollectionExtensionsTests
         services.AddGodotMcp(configuration);
 
         // Assert - Check service descriptors for singleton lifetime
-        var processManagerDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IProcessManager));
-        var requestHandlerDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IRequestHandler));
+        var protocolFactoryDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IMcpProtocolClientFactory));
         var parameterConverterDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IParameterConverter));
         var functionMapperDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IFunctionMapper));
         var mcpClientDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(IMcpClient));
         var pluginDescriptor = services.FirstOrDefault(s => s.ServiceType == typeof(GodotPlugin));
 
-        Assert.NotNull(processManagerDescriptor);
-        Assert.Equal(ServiceLifetime.Singleton, processManagerDescriptor.Lifetime);
-        
-        Assert.NotNull(requestHandlerDescriptor);
-        Assert.Equal(ServiceLifetime.Singleton, requestHandlerDescriptor.Lifetime);
+        Assert.NotNull(protocolFactoryDescriptor);
+        Assert.Equal(ServiceLifetime.Singleton, protocolFactoryDescriptor.Lifetime);
         
         Assert.NotNull(parameterConverterDescriptor);
         Assert.Equal(ServiceLifetime.Singleton, parameterConverterDescriptor.Lifetime);
@@ -288,18 +280,14 @@ public class ServiceCollectionExtensionsTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Act - Resolve services multiple times
-        var processManager1 = serviceProvider.GetService<IProcessManager>();
-        var processManager2 = serviceProvider.GetService<IProcessManager>();
-        
-        var requestHandler1 = serviceProvider.GetService<IRequestHandler>();
-        var requestHandler2 = serviceProvider.GetService<IRequestHandler>();
+        var factory1 = serviceProvider.GetService<IMcpProtocolClientFactory>();
+        var factory2 = serviceProvider.GetService<IMcpProtocolClientFactory>();
         
         var plugin1 = serviceProvider.GetService<GodotPlugin>();
         var plugin2 = serviceProvider.GetService<GodotPlugin>();
 
         // Assert - Same instances should be returned (singleton behavior)
-        Assert.Same(processManager1, processManager2);
-        Assert.Same(requestHandler1, requestHandler2);
+        Assert.Same(factory1, factory2);
         Assert.Same(plugin1, plugin2);
     }
 
@@ -308,9 +296,8 @@ public class ServiceCollectionExtensionsTests
     #region Service Resolution Tests
 
     [Fact]
-    public void AddGodotMcp_ResolvesProcessManagerWithCorrectImplementation()
+    public void AddGodotMcp_ResolvesMcpProtocolClientFactoryWithCorrectImplementation()
     {
-        // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         
@@ -321,36 +308,11 @@ public class ServiceCollectionExtensionsTests
             })
             .Build();
 
-        // Act
         services.AddGodotMcp(configuration);
         var serviceProvider = services.BuildServiceProvider();
-        var processManager = serviceProvider.GetRequiredService<IProcessManager>();
+        var factory = serviceProvider.GetRequiredService<IMcpProtocolClientFactory>();
 
-        // Assert
-        Assert.IsType<ProcessManager>(processManager);
-    }
-
-    [Fact]
-    public void AddGodotMcp_ResolvesRequestHandlerWithCorrectImplementation()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["GodotMcp:ExecutablePath"] = "godot-mcp"
-            })
-            .Build();
-
-        // Act
-        services.AddGodotMcp(configuration);
-        var serviceProvider = services.BuildServiceProvider();
-        var requestHandler = serviceProvider.GetRequiredService<IRequestHandler>();
-
-        // Assert
-        Assert.IsType<JsonRpcRequestHandler>(requestHandler);
+        Assert.IsType<McpSdkProtocolClientFactory>(factory);
     }
 
     [Fact]
@@ -618,15 +580,13 @@ public class ServiceCollectionExtensionsTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Assert - Verify keyed services can be resolved
-        var processManager = serviceProvider.GetKeyedService<IProcessManager>("editor-1");
-        var requestHandler = serviceProvider.GetKeyedService<IRequestHandler>("editor-1");
+        var protocolFactory = serviceProvider.GetKeyedService<IMcpProtocolClientFactory>("editor-1");
         var parameterConverter = serviceProvider.GetKeyedService<IParameterConverter>("editor-1");
         var functionMapper = serviceProvider.GetKeyedService<IFunctionMapper>("editor-1");
         var mcpClient = serviceProvider.GetKeyedService<IMcpClient>("editor-1");
         var plugin = serviceProvider.GetKeyedService<GodotPlugin>("editor-1");
 
-        Assert.NotNull(processManager);
-        Assert.NotNull(requestHandler);
+        Assert.NotNull(protocolFactory);
         Assert.NotNull(parameterConverter);
         Assert.NotNull(functionMapper);
         Assert.NotNull(mcpClient);

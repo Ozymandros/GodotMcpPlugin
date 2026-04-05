@@ -1,8 +1,8 @@
 # Tool Contracts
 
-This plugin is discovery-first: it reads tool definitions from `godot-mcp` via `tools/list` and maps them to Semantic Kernel functions at runtime.
+This plugin is discovery-first: it connects with the official .NET MCP client (`ModelContextProtocol` NuGet, aligned with **GodotMCP.Server 1.2.x**), performs MCP `initialize`, then uses **`tools/list`** and **`tools/call`** for discovery and invocation. Tool names and parameters match the server’s advertised tool surface.
 
-The current local `GD_MCP-Server` surface includes these JSON-RPC methods:
+The current **GodotMCP.Server** tool names (examples) include:
 
 ## Core
 - `health_check()`

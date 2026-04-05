@@ -1,11 +1,10 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using GodotMcp.Infrastructure.Client;
 using GodotMcp.Infrastructure.Configuration;
 using GodotMcp.Infrastructure.Conversion;
-using GodotMcp.Infrastructure.Process;
-using GodotMcp.Infrastructure.Serialization;
 using GodotMcp.Plugin.Mapping;
 
 namespace GodotMcp.Plugin.Extensions;
@@ -25,8 +24,7 @@ public static class ServiceCollectionExtensions
     /// <remarks>
     /// This method registers all required services for the Godot MCP plugin:
     /// - Configuration options with validation
-    /// - Process manager for godot-mcp lifecycle
-    /// - Request handler for JSON-RPC serialization
+    /// - MCP stdio client (ModelContextProtocol SDK) for godot-mcp lifecycle
     /// - Parameter converter for type conversion
     /// - Function mapper for MCP tool to SK function mapping
     /// - MCP client for stdio communication
@@ -139,12 +137,6 @@ public static class ServiceCollectionExtensions
         // Always ensure logging is registered (AddLogging is idempotent)
         services.AddLogging();
 
-        // Register IProcessManager as singleton with ProcessManager implementation
-        services.AddSingleton<IProcessManager, ProcessManager>();
-
-        // Register IRequestHandler as singleton with JsonRpcRequestHandler implementation
-        services.AddSingleton<IRequestHandler, JsonRpcRequestHandler>();
-
         // Register IParameterConverter as singleton with default Godot converters
         services.AddSingleton<IParameterConverter>(sp =>
         {
@@ -157,7 +149,8 @@ public static class ServiceCollectionExtensions
         // Register IFunctionMapper as singleton with FunctionMapper implementation
         services.AddSingleton<IFunctionMapper, FunctionMapper>();
 
-        // Register IMcpClient as singleton with StdioMcpClient implementation
+        // Official MCP stdio client (GodotMCP.Server 1.2.x / tools/call)
+        services.AddSingleton<IMcpProtocolClientFactory, McpSdkProtocolClientFactory>();
         services.AddSingleton<IMcpClient, StdioMcpClient>();
 
         // Register GodotPlugin as singleton
@@ -177,21 +170,6 @@ public static class ServiceCollectionExtensions
         // Always ensure logging is registered (AddLogging is idempotent)
         services.AddLogging();
 
-        // Register IProcessManager as keyed singleton with factory
-        services.AddKeyedSingleton<IProcessManager>(serviceKey, (sp, key) =>
-        {
-            var logger = sp.GetRequiredService<ILogger<ProcessManager>>();
-            var options = sp.GetRequiredService<IOptions<GodotMcpOptions>>();
-            return new ProcessManager(logger, options);
-        });
-
-        // Register IRequestHandler as keyed singleton with factory
-        services.AddKeyedSingleton<IRequestHandler>(serviceKey, (sp, key) =>
-        {
-            var logger = sp.GetRequiredService<ILogger<JsonRpcRequestHandler>>();
-            return new JsonRpcRequestHandler(logger);
-        });
-
         // Register IParameterConverter as keyed singleton with factory
         services.AddKeyedSingleton<IParameterConverter>(serviceKey, (sp, key) =>
         {
@@ -208,14 +186,14 @@ public static class ServiceCollectionExtensions
             return new FunctionMapper(logger);
         });
 
-        // Register IMcpClient as keyed singleton with factory that resolves keyed dependencies
+        services.AddKeyedSingleton<IMcpProtocolClientFactory>(serviceKey, (_, _) => new McpSdkProtocolClientFactory());
         services.AddKeyedSingleton<IMcpClient>(serviceKey, (sp, key) =>
         {
-            var processManager = sp.GetRequiredKeyedService<IProcessManager>(key);
-            var requestHandler = sp.GetRequiredKeyedService<IRequestHandler>(key);
+            var factory = sp.GetRequiredKeyedService<IMcpProtocolClientFactory>(key);
+            var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
             var logger = sp.GetRequiredService<ILogger<StdioMcpClient>>();
             var options = sp.GetRequiredService<IOptions<GodotMcpOptions>>();
-            return new StdioMcpClient(processManager, requestHandler, logger, options);
+            return new StdioMcpClient(factory, loggerFactory, logger, options);
         });
 
         // Register GodotPlugin as keyed singleton with factory that resolves keyed dependencies
