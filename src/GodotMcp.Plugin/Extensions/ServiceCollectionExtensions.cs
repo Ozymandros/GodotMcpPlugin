@@ -29,7 +29,7 @@ public static class ServiceCollectionExtensions
     /// - Function mapper for MCP tool to SK function mapping
     /// - MCP client for stdio communication
     /// - Godot plugin for Semantic Kernel integration
-    /// 
+    ///
     /// Configuration is read from the "GodotMcp" section by default.
     /// Use the serviceKey parameter to register multiple plugin instances with different configurations.
     /// </remarks>
@@ -52,7 +52,7 @@ public static class ServiceCollectionExtensions
         // Register configuration with validation
         var configSection = configuration.GetSection(GodotMcpOptions.SectionName);
         services.Configure<GodotMcpOptions>(options => configSection.Bind(options));
-        
+
         // Enable validation on start
         services.AddOptions<GodotMcpOptions>().ValidateOnStart();
 

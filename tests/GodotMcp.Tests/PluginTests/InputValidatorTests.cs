@@ -30,7 +30,7 @@ public class InputValidatorTests
         var registeredTools = new[] { "Godot_create_scene" };
 
         // Act & Assert
-        var exception = Assert.Throws<GodotMcpException>(() => 
+        var exception = Assert.Throws<GodotMcpException>(() =>
             InputValidator.ValidateToolName(toolName!, registeredTools));
         Assert.Contains("cannot be null or empty", exception.Message);
     }
@@ -43,7 +43,7 @@ public class InputValidatorTests
         var registeredTools = new[] { "Godot_create_scene" };
 
         // Act & Assert
-        var exception = Assert.Throws<GodotMcpException>(() => 
+        var exception = Assert.Throws<GodotMcpException>(() =>
             InputValidator.ValidateToolName(toolName, registeredTools));
         Assert.Contains("cannot be null or empty", exception.Message);
     }
@@ -56,7 +56,7 @@ public class InputValidatorTests
         var registeredTools = new[] { "Godot_create_scene" };
 
         // Act & Assert
-        var exception = Assert.Throws<GodotMcpException>(() => 
+        var exception = Assert.Throws<GodotMcpException>(() =>
             InputValidator.ValidateToolName(toolName, registeredTools));
         Assert.Contains("not registered", exception.Message);
     }
@@ -81,7 +81,7 @@ public class InputValidatorTests
             });
 
         // Act & Assert
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             InputValidator.ValidateParameters(parameters, toolDefinition));
         Assert.Null(exception);
     }
@@ -105,7 +105,7 @@ public class InputValidatorTests
             });
 
         // Act & Assert
-        var exception = Assert.Throws<GodotMcpException>(() => 
+        var exception = Assert.Throws<GodotMcpException>(() =>
             InputValidator.ValidateParameters(parameters, toolDefinition));
         Assert.Contains("Required parameter", exception.Message);
         Assert.Contains("missing", exception.Message);
@@ -129,7 +129,7 @@ public class InputValidatorTests
             });
 
         // Act & Assert
-        var exception = Assert.Throws<GodotMcpException>(() => 
+        var exception = Assert.Throws<GodotMcpException>(() =>
             InputValidator.ValidateParameters(parameters, toolDefinition));
         Assert.Contains("Required parameter", exception.Message);
         Assert.Contains("cannot be null", exception.Message);
@@ -154,7 +154,7 @@ public class InputValidatorTests
             });
 
         // Act & Assert
-        var exception = Assert.Throws<GodotMcpException>(() => 
+        var exception = Assert.Throws<GodotMcpException>(() =>
             InputValidator.ValidateParameters(parameters, toolDefinition));
         Assert.Contains("Unknown parameter", exception.Message);
     }
@@ -177,7 +177,7 @@ public class InputValidatorTests
             });
 
         // Act & Assert
-        var exception = Assert.Throws<GodotMcpException>(() => 
+        var exception = Assert.Throws<GodotMcpException>(() =>
             InputValidator.ValidateParameters(parameters, toolDefinition));
         Assert.Contains("invalid type", exception.Message);
     }
@@ -200,7 +200,7 @@ public class InputValidatorTests
             });
 
         // Act & Assert
-        var exception = Assert.Throws<GodotMcpException>(() => 
+        var exception = Assert.Throws<GodotMcpException>(() =>
             InputValidator.ValidateParameters(parameters, toolDefinition));
         Assert.Contains("invalid type", exception.Message);
     }
@@ -223,7 +223,7 @@ public class InputValidatorTests
             });
 
         // Act & Assert
-        var exception = Record.Exception(() => 
+        var exception = Record.Exception(() =>
             InputValidator.ValidateParameters(parameters, toolDefinition));
         Assert.Null(exception);
     }

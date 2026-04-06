@@ -164,16 +164,16 @@ public class FunctionMapperTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(3, result.Parameters.Count);
-        
+
         var nameParam = result.Parameters.First(p => p.Name == "name");
         Assert.True(nameParam.IsRequired);
         Assert.Equal(typeof(string), nameParam.ParameterType);
-        
+
         var countParam = result.Parameters.First(p => p.Name == "count");
         Assert.False(countParam.IsRequired);
         Assert.Equal(typeof(int), countParam.ParameterType);
         Assert.Equal(1, countParam.DefaultValue);
-        
+
         var enabledParam = result.Parameters.First(p => p.Name == "enabled");
         Assert.False(enabledParam.IsRequired);
         Assert.Equal(typeof(bool), enabledParam.ParameterType);
