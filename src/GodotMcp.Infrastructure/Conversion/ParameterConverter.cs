@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Frozen;
 using System.Linq;
 using System.Text.Json;

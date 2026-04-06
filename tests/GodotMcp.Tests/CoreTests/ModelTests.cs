@@ -465,6 +465,7 @@ public class ModelTests
 
         var issue = new LintIssue("L001", "warning", "Unused node", "./Temp");
         var lintResult = new LintResult(new[] { issue }, true);
+        var lintProject = new LintProjectRequest("res://");
 
         var presetReq = new PresetApplyRequest("res://scenes/main.tscn", "./Player", "player_default");
         var presetResult = new PresetResult(true, "Applied", "./Player");
@@ -474,6 +475,7 @@ public class ModelTests
         Assert.True(navResult.Success);
         Assert.Single(lintResult.Issues);
         Assert.Equal("L001", lintResult.Issues[0].Code);
+        Assert.Equal("res://", lintProject.ProjectPath);
         Assert.Equal("player_default", presetReq.PresetName);
         Assert.Equal("./Player", presetResult.AppliedToPath);
     }
@@ -515,5 +517,52 @@ public class ModelTests
         Assert.Equal("./MainCamera", update.NodePath);
         Assert.Equal("res://", validate.ProjectRootPath);
         Assert.Equal("camera_fov_range", issue.Rule);
+    }
+
+    [Fact]
+    public void ScriptAndImportModels_ShouldCreateWithExpectedValues()
+    {
+        var scriptCreate = new ScriptCreateRequest("res://scripts/player.cs", "CSharp", "Node3D", "PlayerController");
+        var scriptAttach = new ScriptAttachRequest("res://scenes/main.tscn", "Player", "res://scripts/player.cs");
+        var scriptValidate = new ScriptValidateRequest("res://scripts/player.cs", true);
+        var scriptInfo = new ScriptInfo("res://scripts/player.cs", "CSharp", "Node3D", "PlayerController");
+        var scriptValidation = new ScriptValidationResult(true, "OK", Array.Empty<string>(), new[] { "warning" });
+
+        var importGenerate = new GenerateImportFileRequest(
+            "res://assets/hero.png",
+            "texture",
+            "CompressedTexture2D",
+            new Dictionary<string, object?> { ["compress/mode"] = 2 });
+        var importTexture = new CreateTextureRequest("res://assets/hero.png");
+        var importAudio = new CreateAudioRequest("res://assets/music.ogg");
+        var reimport = new ReimportAssetRequest("res://assets/hero.png");
+        var importResult = new ImportOperationResult(true, "Generated", "res://assets/hero.png", "res://assets/hero.png.import");
+
+        Assert.Equal("PlayerController", scriptCreate.ClassName);
+        Assert.Equal("Player", scriptAttach.NodeName);
+        Assert.True(scriptValidate.IsCSharp);
+        Assert.Equal("Node3D", scriptInfo.BaseType);
+        Assert.Single(scriptValidation.Warnings!);
+
+        Assert.Equal("texture", importGenerate.Importer);
+        Assert.Equal("res://assets/hero.png", importTexture.TexturePath);
+        Assert.Equal("res://assets/music.ogg", importAudio.AudioPath);
+        Assert.Equal("res://assets/hero.png", reimport.AssetPath);
+        Assert.Equal("res://assets/hero.png.import", importResult.ImportPath);
+    }
+
+    [Fact]
+    public void ProjectModels_ShouldCreateWithExpectedValues()
+    {
+        var create = new CreateGodotProjectRequest("MyGame");
+        var config = new ConfigureAutoloadRequest("Game", "res://scripts/game.gd", true);
+        var addPlugin = new AddPluginRequest("my_plugin");
+        var result = new ProjectOperationResult(true, "Configured");
+
+        Assert.Equal("MyGame", create.ProjectName);
+        Assert.Equal("Game", config.Key);
+        Assert.True(config.Enabled);
+        Assert.Equal("my_plugin", addPlugin.PluginName);
+        Assert.True(result.Success);
     }
 }

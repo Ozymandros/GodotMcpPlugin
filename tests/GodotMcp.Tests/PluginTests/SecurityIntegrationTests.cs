@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using NSubstitute;
 using GodotMcp.Core.Exceptions;
 using GodotMcp.Core.Interfaces;

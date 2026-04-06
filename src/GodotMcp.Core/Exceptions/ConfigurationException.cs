@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Exceptions;
+namespace GodotMcp.Core.Exceptions;
 
 /// <summary>
 /// Thrown when plugin configuration is invalid or missing required values.
@@ -19,7 +19,7 @@ public class ConfigurationException : GodotMcpException
     /// or null if not applicable.
     /// </value>
     public string? ParameterName { get; init; }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ConfigurationException"/> class with a specified error message
     /// and optional parameter name.

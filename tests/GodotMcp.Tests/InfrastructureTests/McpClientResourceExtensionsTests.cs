@@ -71,7 +71,7 @@ public class McpClientResourceExtensionsTests
         var properties = new Dictionary<string, object?> { ["metallic"] = 0.8 };
 
         _client
-            .InvokeToolAsync("resource.update", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .InvokeToolAsync("resource.update_properties", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse(
                 "req-3",
                 true,
@@ -88,9 +88,10 @@ public class McpClientResourceExtensionsTests
         Assert.Equal("res://materials/mat.tres", result!.Path);
 
         await _client.Received(1).InvokeToolAsync(
-            "resource.update",
+            "resource.update_properties",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
                 Equals(d["resourcePath"], "res://materials/mat.tres") &&
+                Equals(d["path"], "res://materials/mat.tres") &&
                 ReferenceEquals(d["properties"], properties)),
             Arg.Any<CancellationToken>());
     }
@@ -101,7 +102,7 @@ public class McpClientResourceExtensionsTests
         var properties = new Dictionary<string, object?> { ["size"] = 512 };
 
         _client
-            .InvokeToolAsync("resource.create", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .InvokeToolAsync("create_resource", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse(
                 "req-4",
                 true,
@@ -120,11 +121,73 @@ public class McpClientResourceExtensionsTests
         Assert.Equal("new_texture", result!.Name);
 
         await _client.Received(1).InvokeToolAsync(
-            "resource.create",
+            "create_resource",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
                 Equals(d["resourcePath"], "res://textures/new_texture.tres") &&
+                Equals(d["path"], "res://textures/new_texture.tres") &&
                 Equals(d["resourceType"], "ImageTexture") &&
+                Equals(d["type"], "ImageTexture") &&
                 ReferenceEquals(d["properties"], properties)),
             Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ResourceUpdateAsync_FallsBackToLegacyCommand_WhenPrimaryIsMissing()
+    {
+        var properties = new Dictionary<string, object?> { ["metallic"] = 0.8 };
+
+        _client
+            .InvokeToolAsync("resource.update_properties", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns<Task<McpResponse>>(_ => throw new McpServerException("Tool not found", -32601));
+
+        _client
+            .InvokeToolAsync("resource.update", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse(
+                "req-5",
+                true,
+                new
+                {
+                    path = "res://materials/mat.tres",
+                    type = "StandardMaterial3D",
+                    properties = new Dictionary<string, object?> { ["metallic"] = 0.8 }
+                }));
+
+        var result = await _client.ResourceUpdateAsync(new ResourceUpdateRequest("res://materials/mat.tres", properties));
+
+        Assert.NotNull(result);
+        Assert.Equal("res://materials/mat.tres", result!.Path);
+
+        await _client.Received(1).InvokeToolAsync("resource.update", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ResourceCreateAsync_FallsBackToLegacyCommand_WhenPrimaryIsMissing()
+    {
+        var properties = new Dictionary<string, object?> { ["size"] = 512 };
+
+        _client
+            .InvokeToolAsync("create_resource", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns<Task<McpResponse>>(_ => throw new McpServerException("Unknown tool", -32601));
+
+        _client
+            .InvokeToolAsync("resource.create", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse(
+                "req-6",
+                true,
+                new
+                {
+                    path = "res://textures/new_texture.tres",
+                    type = "ImageTexture",
+                    name = "new_texture",
+                    exists = true
+                }));
+
+        var result = await _client.ResourceCreateAsync(
+            new ResourceCreateRequest("res://textures/new_texture.tres", "ImageTexture", properties));
+
+        Assert.NotNull(result);
+        Assert.Equal("new_texture", result!.Name);
+
+        await _client.Received(1).InvokeToolAsync("resource.create", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>());
     }
 }

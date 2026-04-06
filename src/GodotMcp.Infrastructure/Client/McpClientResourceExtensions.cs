@@ -63,13 +63,18 @@ public static class McpClientResourceExtensions
         ResourceUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<ResourceData>(
+        var payload = new Dictionary<string, object?>
+        {
+            ["resourcePath"] = request.ResourcePath,
+            ["path"] = request.ResourcePath,
+            ["properties"] = request.Properties
+        };
+
+        return InvokeResourceWithFallbackAsync<ResourceData>(
+            client,
+            "resource.update_properties",
             "resource.update",
-            new Dictionary<string, object?>
-            {
-                ["resourcePath"] = request.ResourcePath,
-                ["properties"] = request.Properties
-            },
+            payload,
             cancellationToken);
     }
 
@@ -85,14 +90,42 @@ public static class McpClientResourceExtensions
         ResourceCreateRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<ResourceInfo>(
+        var payload = new Dictionary<string, object?>
+        {
+            ["resourcePath"] = request.ResourcePath,
+            ["path"] = request.ResourcePath,
+            ["resourceType"] = request.ResourceType,
+            ["type"] = request.ResourceType,
+            ["properties"] = request.Properties
+        };
+
+        return InvokeResourceWithFallbackAsync<ResourceInfo>(
+            client,
+            "create_resource",
             "resource.create",
-            new Dictionary<string, object?>
-            {
-                ["resourcePath"] = request.ResourcePath,
-                ["resourceType"] = request.ResourceType,
-                ["properties"] = request.Properties
-            },
+            payload,
             cancellationToken);
     }
+
+    private static async Task<T?> InvokeResourceWithFallbackAsync<T>(
+        IMcpClient client,
+        string primaryCommand,
+        string fallbackCommand,
+        IReadOnlyDictionary<string, object?> payload,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await client.SendAsync<T>(primaryCommand, payload, cancellationToken).ConfigureAwait(false);
+        }
+        catch (McpServerException ex) when (IsToolNotFound(ex))
+        {
+            return await client.SendAsync<T>(fallbackCommand, payload, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static bool IsToolNotFound(McpServerException ex)
+        => ex.ErrorCode == -32601
+           || ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
+           || ex.Message.Contains("unknown tool", StringComparison.OrdinalIgnoreCase);
 }

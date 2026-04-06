@@ -22,7 +22,10 @@ public static class GodotMcpKernelExtensions
         ArgumentNullException.ThrowIfNull(mcpClient);
 
         kernel.Plugins.AddFromObject(new SceneSkill(mcpClient), "scene");
+        kernel.Plugins.AddFromObject(new ProjectSkill(mcpClient), "project");
         kernel.Plugins.AddFromObject(new ResourceSkill(mcpClient), "resource");
+        kernel.Plugins.AddFromObject(new ScriptSkill(mcpClient), "script");
+        kernel.Plugins.AddFromObject(new ImportSkill(mcpClient), "import");
         kernel.Plugins.AddFromObject(new CameraSkill(mcpClient), "camera");
         kernel.Plugins.AddFromObject(new UiSkill(mcpClient), "ui");
         kernel.Plugins.AddFromObject(new LightingSkill(mcpClient), "light");

@@ -35,4 +35,17 @@ public sealed class AdvancedLintSkill(IMcpClient mcp)
         [Description("Project path.")] string projectPath,
         CancellationToken cancellationToken = default) =>
         _mcp.LintProjectAdvancedAsync(new LintProjectAdvancedRequest(projectPath), cancellationToken);
+
+    /// <summary>
+    /// Runs lint checks against a project using the server-default lint contract.
+    /// </summary>
+    /// <param name="projectPath">Project path.</param>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
+    /// <returns>The lint result, or <c>null</c> when no payload is returned.</returns>
+    [KernelFunction("project")]
+    [Description("Runs lint checks for a project.")]
+    public Task<LintResult?> ProjectAsync(
+        [Description("Project path.")] string projectPath,
+        CancellationToken cancellationToken = default) =>
+        _mcp.LintProjectAsync(new LintProjectRequest(projectPath), cancellationToken);
 }

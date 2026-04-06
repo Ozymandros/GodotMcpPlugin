@@ -20,7 +20,10 @@ public class KernelSkillRegistrationTests
         kernel.AddGodotMcpSkills(mcp);
 
         Assert.NotNull(kernel.Plugins["scene"]);
+        Assert.NotNull(kernel.Plugins["project"]);
         Assert.NotNull(kernel.Plugins["resource"]);
+        Assert.NotNull(kernel.Plugins["script"]);
+        Assert.NotNull(kernel.Plugins["import"]);
         Assert.NotNull(kernel.Plugins["camera"]);
         Assert.NotNull(kernel.Plugins["ui"]);
         Assert.NotNull(kernel.Plugins["light"]);

@@ -1,4 +1,4 @@
-﻿using GodotMcp.Core.Exceptions;
+using GodotMcp.Core.Exceptions;
 using GodotMcp.Core.Models;
 using GodotMcp.Plugin.Validation;
 using System.Text.Json;

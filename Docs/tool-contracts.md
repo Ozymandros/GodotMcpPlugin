@@ -16,6 +16,9 @@ The current **GodotMCP.Server** tool names (examples) include:
 - `configure_autoload(key, value, enabled)`
 - `add_plugin(pluginName)`
 
+Notes:
+- The plugin exposes typed project wrappers and SK project skill methods for create/info/autoload/plugin workflows.
+
 ## Scene and Node
 - `create_scene(scenePath, rootNodeName, rootNodeType)`
 - `add_node(scenePath, parentPath, nodeName, nodeType)`
@@ -36,12 +39,19 @@ Camera tool names are discovered dynamically, and newer releases can expose meth
 - `attach_script(scenePath, nodeName, scriptPath)`
 - `validate_script(scriptPath, isCSharp)`
 
+Notes:
+- The plugin exposes typed script wrappers and SK script skill methods for create/attach/validate workflows.
+
 ## Resources and Assets
 - `create_resource(path, type, properties)`
 - `generate_import_file(assetPath, importer, type, parameters?)`
 - `reimport_asset(assetPath)`
 - `create_texture(texturePath)`
 - `create_audio(audioPath)`
+
+Notes:
+- The plugin exposes typed import wrappers and SK import skill methods for import file generation and asset reimport workflows.
+- The plugin resource typed wrappers are compatibility-aware and can use either modern (`create_resource`, `resource.update_properties`) or legacy (`resource.create`, `resource.update`) command names based on server support.
 
 ## UI Module (`ui.*`)
 - `ui.list_controls(scenePath)`
@@ -101,6 +111,13 @@ Notes:
 - `verify_integration_health(integrationName)`
 - `list_integration_compatibility()`
 - `update_resource_uids(paths)`
+
+## Lint Compatibility
+- `lint_project(projectPath)`
+- `lint.project_advanced(projectPath)`
+
+Notes:
+- The plugin exposes both advanced lint APIs and a basic project lint wrapper with fallback between `lint_project` and `lint.project_advanced` for cross-version server compatibility.
 
 ## Response Envelope
 

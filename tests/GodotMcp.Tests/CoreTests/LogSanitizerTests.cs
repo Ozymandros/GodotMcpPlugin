@@ -1,4 +1,4 @@
-﻿using GodotMcp.Core.Utilities;
+using GodotMcp.Core.Utilities;
 
 namespace GodotMcp.Tests.CoreTests;
 
@@ -37,7 +37,7 @@ public class LogSanitizerTests
         {
             ["secret"] = "sensitive_value"
         };
-        
+
         var parameters = new Dictionary<string, object?>
         {
             ["config"] = nested,

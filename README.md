@@ -97,6 +97,12 @@ Detailed reference: `Docs/tool-contracts.md`.
 
 In addition to dynamic discovery, the plugin exposes strongly-typed module wrappers (Infrastructure) and Semantic Kernel skill methods (Plugin) for common workflows.
 
+Project module:
+- `create_godot_project`
+- `get_project_info`
+- `configure_autoload`
+- `add_plugin`
+
 UI module (`ui.*`):
 - `ui.list_controls`
 - `ui.add_control` (with fallback support for `ui.create_control`)
@@ -111,6 +117,22 @@ Lighting module (`light.*`):
 - `light.update`
 - `light.tune`
 - `light.validate`
+
+Script module:
+- `create_script`
+- `attach_script`
+- `validate_script`
+
+Import module:
+- `generate_import_file`
+- `create_texture`
+- `create_audio`
+- `reimport_asset`
+
+Lint module (`lint.*` + compatibility):
+- `lint.scene_advanced`
+- `lint.project_advanced`
+- `lint_project` (via compatibility wrapper)
 
 Physics module (`physics.*`):
 - `physics.list_bodies`

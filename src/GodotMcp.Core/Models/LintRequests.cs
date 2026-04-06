@@ -13,6 +13,12 @@ public sealed record LintSceneAdvancedRequest(string ScenePath);
 public sealed record LintProjectAdvancedRequest(string ProjectPath);
 
 /// <summary>
+/// Lint command request for project linting.
+/// </summary>
+/// <param name="ProjectPath">The project path.</param>
+public sealed record LintProjectRequest(string ProjectPath);
+
+/// <summary>
 /// Represents an advanced lint result payload.
 /// </summary>
 /// <param name="Issues">Detected lint issues.</param>

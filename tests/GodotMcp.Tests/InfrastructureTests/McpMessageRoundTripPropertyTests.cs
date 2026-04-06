@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Microsoft.Extensions.Logging.Abstractions;
 using GodotMcp.Infrastructure.Serialization;
 using FsCheck;
@@ -35,20 +35,20 @@ public class McpMessageRoundTripPropertyTests
 
         // Act
         var serialized = _handler.SerializeRequest(request);
-        
+
         // Parse the serialized JSON to extract the structure
         using var document = JsonDocument.Parse(serialized);
         var root = document.RootElement;
-        
+
         // Verify JSON-RPC structure
-        var hasJsonRpc = root.TryGetProperty("jsonrpc", out var jsonRpcElement) 
+        var hasJsonRpc = root.TryGetProperty("jsonrpc", out var jsonRpcElement)
             && jsonRpcElement.GetString() == "2.0";
-        var hasId = root.TryGetProperty("id", out var idElement) 
+        var hasId = root.TryGetProperty("id", out var idElement)
             && idElement.GetString() == request.Id;
-        var hasMethod = root.TryGetProperty("method", out var methodElement) 
+        var hasMethod = root.TryGetProperty("method", out var methodElement)
             && methodElement.GetString() == request.Method;
         var hasParams = root.TryGetProperty("params", out var paramsElement);
-        
+
         // Verify parameters are preserved (excluding null values which are omitted)
         var parametersPreserved = true;
         if (hasParams && paramsElement.ValueKind == JsonValueKind.Object)
@@ -61,7 +61,7 @@ public class McpMessageRoundTripPropertyTests
                 }
             }
         }
-        
+
         return hasJsonRpc && hasId && hasMethod && hasParams && parametersPreserved;
     }
 
@@ -82,7 +82,7 @@ public class McpMessageRoundTripPropertyTests
 
         // Act
         var response = _handler.DeserializeResponse(responseJson);
-        
+
         // Re-serialize the response
         var reSerialized = JsonSerializer.Serialize(new
         {
@@ -90,11 +90,11 @@ public class McpMessageRoundTripPropertyTests
             id = response.Id,
             result = response.Result
         });
-        
+
         var reDeserialized = _handler.DeserializeResponse(reSerialized);
 
         // Assert
-        return response.Id == reDeserialized.Id 
+        return response.Id == reDeserialized.Id
                 && response.Success == reDeserialized.Success
                 && response.Error == reDeserialized.Error;
     }
@@ -120,7 +120,7 @@ public class McpMessageRoundTripPropertyTests
 
         // Act
         var response = _handler.DeserializeResponse(responseJson);
-        
+
         // Re-serialize the response
         var reSerialized = JsonSerializer.Serialize(new
         {
@@ -133,11 +133,11 @@ public class McpMessageRoundTripPropertyTests
                 data = response.Error.Data
             } : null
         });
-        
+
         var reDeserialized = _handler.DeserializeResponse(reSerialized);
 
         // Assert
-        return response.Id == reDeserialized.Id 
+        return response.Id == reDeserialized.Id
                 && response.Success == reDeserialized.Success
                 && response.Error?.Code == reDeserialized.Error?.Code
                 && response.Error?.Message == reDeserialized.Error?.Message;
@@ -176,25 +176,25 @@ public class McpMessageRoundTripPropertyTests
         var serialized = _handler.SerializeRequest(request);
         using var document = JsonDocument.Parse(serialized);
         var root = document.RootElement;
-        
+
         // Assert - Verify all non-null parameters are present with correct types
         var paramsElement = root.GetProperty("params");
-        
-        var stringPreserved = paramsElement.TryGetProperty("stringParam", out var strEl) 
+
+        var stringPreserved = paramsElement.TryGetProperty("stringParam", out var strEl)
             && (strEl.ValueKind == JsonValueKind.String || strEl.ValueKind == JsonValueKind.Null);
-        var intPreserved = paramsElement.TryGetProperty("intParam", out var intEl) 
+        var intPreserved = paramsElement.TryGetProperty("intParam", out var intEl)
             && intEl.ValueKind == JsonValueKind.Number;
-        var boolPreserved = paramsElement.TryGetProperty("boolParam", out var boolEl) 
+        var boolPreserved = paramsElement.TryGetProperty("boolParam", out var boolEl)
             && (boolEl.ValueKind == JsonValueKind.True || boolEl.ValueKind == JsonValueKind.False);
-        var doublePreserved = paramsElement.TryGetProperty("doubleParam", out var dblEl) 
+        var doublePreserved = paramsElement.TryGetProperty("doubleParam", out var dblEl)
             && dblEl.ValueKind == JsonValueKind.Number;
         var nullOmitted = !paramsElement.TryGetProperty("nullParam", out _);
-        var arrayPreserved = paramsElement.TryGetProperty("arrayParam", out var arrEl) 
+        var arrayPreserved = paramsElement.TryGetProperty("arrayParam", out var arrEl)
             && arrEl.ValueKind == JsonValueKind.Array;
-        var objectPreserved = paramsElement.TryGetProperty("objectParam", out var objEl) 
+        var objectPreserved = paramsElement.TryGetProperty("objectParam", out var objEl)
             && objEl.ValueKind == JsonValueKind.Object;
 
-        return stringPreserved && intPreserved && boolPreserved && doublePreserved 
+        return stringPreserved && intPreserved && boolPreserved && doublePreserved
                 && nullOmitted && arrayPreserved && objectPreserved;
     }
 }

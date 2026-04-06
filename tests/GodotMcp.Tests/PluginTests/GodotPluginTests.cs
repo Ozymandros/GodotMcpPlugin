@@ -23,7 +23,7 @@ public class GodotPluginTests
         _mockMcpClient = Substitute.For<IMcpClient>();
         _mockFunctionMapper = Substitute.For<IFunctionMapper>();
         _mockParameterConverter = Substitute.For<IParameterConverter>();
-        
+
         _plugin = new GodotPlugin(
             _mockMcpClient,
             _mockFunctionMapper,
@@ -41,7 +41,7 @@ public class GodotPluginTests
         {
             new McpToolDefinition("test_tool", "Test tool", new Dictionary<string, McpParameterDefinition>())
         };
-        
+
         _mockMcpClient.ConnectAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _mockMcpClient.ListToolsAsync(Arg.Any<CancellationToken>()).Returns(tools);
         _mockFunctionMapper.RegisterToolsAsync(Arg.Any<IReadOnlyList<McpToolDefinition>>(), Arg.Any<CancellationToken>())
@@ -63,7 +63,7 @@ public class GodotPluginTests
             new McpToolDefinition("tool1", "First tool", new Dictionary<string, McpParameterDefinition>()),
             new McpToolDefinition("tool2", "Second tool", new Dictionary<string, McpParameterDefinition>())
         };
-        
+
         _mockMcpClient.ConnectAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _mockMcpClient.ListToolsAsync(Arg.Any<CancellationToken>()).Returns(tools);
         _mockFunctionMapper.RegisterToolsAsync(Arg.Any<IReadOnlyList<McpToolDefinition>>(), Arg.Any<CancellationToken>())
@@ -86,7 +86,7 @@ public class GodotPluginTests
             new McpToolDefinition("tool2", "Second tool", new Dictionary<string, McpParameterDefinition>()),
             new McpToolDefinition("tool3", "Third tool", new Dictionary<string, McpParameterDefinition>())
         };
-        
+
         _mockMcpClient.ConnectAsync(Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
         _mockMcpClient.ListToolsAsync(Arg.Any<CancellationToken>()).Returns(tools);
         _mockFunctionMapper.RegisterToolsAsync(Arg.Any<IReadOnlyList<McpToolDefinition>>(), Arg.Any<CancellationToken>())
@@ -111,7 +111,7 @@ public class GodotPluginTests
         };
         using var cts = new CancellationTokenSource();
         var token = cts.Token;
-        
+
         _mockMcpClient.ConnectAsync(token).Returns(Task.CompletedTask);
         _mockMcpClient.ListToolsAsync(token).Returns(tools);
         _mockFunctionMapper.RegisterToolsAsync(Arg.Any<IReadOnlyList<McpToolDefinition>>(), token)
@@ -191,8 +191,8 @@ public class GodotPluginTests
     {
         // Arrange
         var toolName = "Godot_set_position";
-        var parameters = new Dictionary<string, object?> 
-        { 
+        var parameters = new Dictionary<string, object?>
+        {
             ["objectName"] = "Cube",
             ["x"] = 1.0,
             ["y"] = 2.0,
@@ -208,8 +208,8 @@ public class GodotPluginTests
                 ["y"] = new McpParameterDefinition("y", "number", "Y coordinate", true),
                 ["z"] = new McpParameterDefinition("z", "number", "Z coordinate", true)
             });
-        var mcpParameters = new Dictionary<string, object?> 
-        { 
+        var mcpParameters = new Dictionary<string, object?>
+        {
             ["objectName"] = "Cube",
             ["x"] = 1.0,
             ["y"] = 2.0,
@@ -228,7 +228,7 @@ public class GodotPluginTests
 
         // Assert
         _mockParameterConverter.Received(1).ConvertToMcp(
-            Arg.Is<IReadOnlyDictionary<string, object?>>(p => 
+            Arg.Is<IReadOnlyDictionary<string, object?>>(p =>
                 p["objectName"]!.Equals("Cube") &&
                 p["x"]!.Equals(1.0) &&
                 p["y"]!.Equals(2.0) &&
@@ -249,7 +249,7 @@ public class GodotPluginTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<GodotMcpException>(
             () => _plugin.InvokeToolAsync(toolName, parameters));
-        
+
         Assert.Contains("not registered", exception.Message);
         Assert.Contains(toolName, exception.Message);
     }
@@ -259,8 +259,8 @@ public class GodotPluginTests
     {
         // Arrange
         var toolName = "Godot_create_object";
-        var parameters = new Dictionary<string, object?> 
-        { 
+        var parameters = new Dictionary<string, object?>
+        {
             ["name"] = "GameObject",
             ["position"] = new { x = 1.0, y = 2.0, z = 3.0 },
             ["components"] = new[] { "Rigidbody", "BoxCollider" }
@@ -274,8 +274,8 @@ public class GodotPluginTests
                 ["position"] = new McpParameterDefinition("position", "object", "Position", false),
                 ["components"] = new McpParameterDefinition("components", "array", "Components", false)
             });
-        var mcpParameters = new Dictionary<string, object?> 
-        { 
+        var mcpParameters = new Dictionary<string, object?>
+        {
             ["name"] = "GameObject",
             ["position"] = new { x = 1.0, y = 2.0, z = 3.0 },
             ["components"] = new[] { "Rigidbody", "BoxCollider" }
@@ -421,8 +421,8 @@ public class GodotPluginTests
         var toolName = "Godot_test";
         var parameters = new Dictionary<string, object?> { ["param1"] = "valid string" };
         var toolDefinition = new McpToolDefinition(
-            toolName, 
-            "Test", 
+            toolName,
+            "Test",
             new Dictionary<string, McpParameterDefinition>
             {
                 ["param1"] = new McpParameterDefinition("param1", "string", "Test parameter", true)
@@ -447,7 +447,7 @@ public class GodotPluginTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var tools = new List<McpToolDefinition>
         {
             new McpToolDefinition("tool1", "First tool", new Dictionary<string, McpParameterDefinition>()),
@@ -497,7 +497,7 @@ public class GodotPluginTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var tools = new List<McpToolDefinition>
         {
             new McpToolDefinition("test_tool", "Test tool", new Dictionary<string, McpParameterDefinition>())
@@ -537,7 +537,7 @@ public class GodotPluginTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var tools = new List<McpToolDefinition>
         {
             new McpToolDefinition("test_tool", "Test tool", new Dictionary<string, McpParameterDefinition>())
@@ -602,7 +602,7 @@ public class GodotPluginTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var tools = new List<McpToolDefinition>
         {
             new McpToolDefinition("test_tool", "Test tool", new Dictionary<string, McpParameterDefinition>())

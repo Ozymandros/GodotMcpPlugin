@@ -1,4 +1,4 @@
-﻿using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel;
 
 namespace GodotMcp.Core.Interfaces;
 
@@ -13,14 +13,14 @@ public interface IFunctionMapper
     /// <param name="toolDefinition">The MCP tool definition to map</param>
     /// <returns>Kernel function metadata for the tool</returns>
     KernelFunctionMetadata MapToKernelFunction(McpToolDefinition toolDefinition);
-    
+
     /// <summary>
     /// Gets the MCP tool definition for a function name
     /// </summary>
     /// <param name="functionName">The name of the function to look up</param>
     /// <returns>The tool definition if found, otherwise null</returns>
     McpToolDefinition? GetToolDefinition(string functionName);
-    
+
     /// <summary>
     /// Gets the names of all registered tools
     /// </summary>
@@ -32,7 +32,7 @@ public interface IFunctionMapper
     /// </summary>
     /// <returns>A read-only list of all registered tool definitions</returns>
     IReadOnlyList<McpToolDefinition> GetRegisteredTools();
-    
+
     /// <summary>
     /// Registers all discovered tools
     /// </summary>

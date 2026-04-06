@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Exceptions;
+namespace GodotMcp.Core.Exceptions;
 
 /// <summary>
 /// Thrown when godot-mcp server process management operations fail.
@@ -17,7 +17,7 @@ public class ProcessException : GodotMcpException
     /// An integer representing the process ID, or null if the process was not started or the ID is not available.
     /// </value>
     public int? ProcessId { get; init; }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessException"/> class with a specified error message
     /// and optional process ID.
@@ -29,7 +29,7 @@ public class ProcessException : GodotMcpException
     {
         ProcessId = processId;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProcessException"/> class with a specified error message,
     /// inner exception, and optional process ID.

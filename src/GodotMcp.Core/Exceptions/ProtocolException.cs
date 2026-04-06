@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Exceptions;
+namespace GodotMcp.Core.Exceptions;
 
 /// <summary>
 /// Thrown when the MCP protocol is violated or malformed data is received.
@@ -17,7 +17,7 @@ public class ProtocolException : GodotMcpException
     /// A string containing the malformed data, or null if not available.
     /// </value>
     public string? MalformedData { get; init; }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProtocolException"/> class with a specified error message
     /// and optional malformed data sample.
@@ -29,7 +29,7 @@ public class ProtocolException : GodotMcpException
     {
         MalformedData = malformedData;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="ProtocolException"/> class with a specified error message,
     /// inner exception, and optional malformed data sample.

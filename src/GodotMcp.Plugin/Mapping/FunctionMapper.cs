@@ -1,4 +1,4 @@
-﻿using System.Collections.Frozen;
+using System.Collections.Frozen;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using GodotMcp.Core.Interfaces;

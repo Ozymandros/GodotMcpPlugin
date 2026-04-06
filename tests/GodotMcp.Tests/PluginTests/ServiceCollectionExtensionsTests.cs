@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -25,7 +25,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -53,7 +53,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -92,7 +92,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>())
             .Build();
@@ -121,7 +121,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             services.AddGodotMcp((IConfiguration)null!));
     }
 
@@ -132,7 +132,7 @@ public class ServiceCollectionExtensionsTests
         var configuration = new ConfigurationBuilder().Build();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             ((IServiceCollection)null!).AddGodotMcp(configuration));
     }
 
@@ -206,7 +206,7 @@ public class ServiceCollectionExtensionsTests
         var services = new ServiceCollection();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             services.AddGodotMcp((Action<GodotMcpOptions>)null!));
     }
 
@@ -214,7 +214,7 @@ public class ServiceCollectionExtensionsTests
     public void AddGodotMcp_WithAction_ThrowsWhenServicesIsNull()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             ((IServiceCollection)null!).AddGodotMcp(options => { }));
     }
 
@@ -228,7 +228,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -248,16 +248,16 @@ public class ServiceCollectionExtensionsTests
 
         Assert.NotNull(protocolFactoryDescriptor);
         Assert.Equal(ServiceLifetime.Singleton, protocolFactoryDescriptor.Lifetime);
-        
+
         Assert.NotNull(parameterConverterDescriptor);
         Assert.Equal(ServiceLifetime.Singleton, parameterConverterDescriptor.Lifetime);
-        
+
         Assert.NotNull(functionMapperDescriptor);
         Assert.Equal(ServiceLifetime.Singleton, functionMapperDescriptor.Lifetime);
-        
+
         Assert.NotNull(mcpClientDescriptor);
         Assert.Equal(ServiceLifetime.Singleton, mcpClientDescriptor.Lifetime);
-        
+
         Assert.NotNull(pluginDescriptor);
         Assert.Equal(ServiceLifetime.Singleton, pluginDescriptor.Lifetime);
     }
@@ -268,7 +268,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -282,7 +282,7 @@ public class ServiceCollectionExtensionsTests
         // Act - Resolve services multiple times
         var factory1 = serviceProvider.GetService<IMcpProtocolClientFactory>();
         var factory2 = serviceProvider.GetService<IMcpProtocolClientFactory>();
-        
+
         var plugin1 = serviceProvider.GetService<GodotPlugin>();
         var plugin2 = serviceProvider.GetService<GodotPlugin>();
 
@@ -300,7 +300,7 @@ public class ServiceCollectionExtensionsTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -321,7 +321,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -344,7 +344,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -367,7 +367,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -390,7 +390,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -418,7 +418,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -430,9 +430,9 @@ public class ServiceCollectionExtensionsTests
         services.AddGodotMcp(configuration);
 
         // Assert - Check that validator is registered
-        var validatorDescriptor = services.FirstOrDefault(s => 
+        var validatorDescriptor = services.FirstOrDefault(s =>
             s.ServiceType == typeof(IValidateOptions<GodotMcpOptions>));
-        
+
         Assert.NotNull(validatorDescriptor);
         Assert.Equal(typeof(GodotMcpOptionsValidator), validatorDescriptor.ImplementationType);
     }
@@ -443,7 +443,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -456,7 +456,7 @@ public class ServiceCollectionExtensionsTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Act & Assert - Validation should fail when trying to access options
-        Assert.Throws<OptionsValidationException>(() => 
+        Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<GodotMcpOptions>>().Value);
     }
 
@@ -466,7 +466,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -479,7 +479,7 @@ public class ServiceCollectionExtensionsTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Act & Assert - Validation should fail
-        Assert.Throws<OptionsValidationException>(() => 
+        Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<GodotMcpOptions>>().Value);
     }
 
@@ -489,7 +489,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -502,7 +502,7 @@ public class ServiceCollectionExtensionsTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Act & Assert - Validation should fail
-        Assert.Throws<OptionsValidationException>(() => 
+        Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<GodotMcpOptions>>().Value);
     }
 
@@ -512,7 +512,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -525,7 +525,7 @@ public class ServiceCollectionExtensionsTests
         var serviceProvider = services.BuildServiceProvider();
 
         // Act & Assert - Validation should fail
-        Assert.Throws<OptionsValidationException>(() => 
+        Assert.Throws<OptionsValidationException>(() =>
             serviceProvider.GetRequiredService<IOptions<GodotMcpOptions>>().Value);
     }
 
@@ -535,7 +535,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -567,7 +567,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -599,7 +599,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -627,7 +627,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -650,7 +650,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
@@ -724,7 +724,7 @@ public class ServiceCollectionExtensionsTests
         // Arrange
         var services = new ServiceCollection();
         services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
-        
+
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {

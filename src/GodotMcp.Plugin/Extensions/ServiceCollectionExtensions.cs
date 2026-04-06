@@ -159,7 +159,10 @@ public static class ServiceCollectionExtensions
 
         // Register typed skill modules
         services.AddSingleton<SceneSkill>();
+        services.AddSingleton<ProjectSkill>();
         services.AddSingleton<ResourceSkill>();
+        services.AddSingleton<ScriptSkill>();
+        services.AddSingleton<ImportSkill>();
         services.AddSingleton<CameraSkill>();
         services.AddSingleton<UiSkill>();
         services.AddSingleton<LightingSkill>();
@@ -220,8 +223,14 @@ public static class ServiceCollectionExtensions
 
         services.AddKeyedSingleton<SceneSkill>(serviceKey, (sp, key) =>
             new SceneSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<ProjectSkill>(serviceKey, (sp, key) =>
+            new ProjectSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
         services.AddKeyedSingleton<ResourceSkill>(serviceKey, (sp, key) =>
             new ResourceSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<ScriptSkill>(serviceKey, (sp, key) =>
+            new ScriptSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<ImportSkill>(serviceKey, (sp, key) =>
+            new ImportSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
         services.AddKeyedSingleton<CameraSkill>(serviceKey, (sp, key) =>
             new CameraSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
         services.AddKeyedSingleton<UiSkill>(serviceKey, (sp, key) =>

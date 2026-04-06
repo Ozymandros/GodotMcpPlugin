@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Abstractions;
 using GodotMcp.Core.Exceptions;
 using GodotMcp.Core.Models;
 using GodotMcp.Infrastructure.Serialization;
@@ -196,7 +196,7 @@ public class JsonRpcRequestHandlerTests
 
         // Act
         var serialized = _handler.SerializeRequest(originalRequest);
-        
+
         // Simulate server response with the same data
         var responseJson = """
         {
@@ -210,7 +210,7 @@ public class JsonRpcRequestHandlerTests
             }
         }
         """;
-        
+
         var response = _handler.DeserializeResponse(responseJson);
 
         // Assert
