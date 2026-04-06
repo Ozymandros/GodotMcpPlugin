@@ -149,7 +149,7 @@ public static class ServiceCollectionExtensions
         // Register IFunctionMapper as singleton with FunctionMapper implementation
         services.AddSingleton<IFunctionMapper, FunctionMapper>();
 
-        // Official MCP stdio client (GodotMCP.Server 1.2.x / tools/call)
+        // Official MCP stdio client (GodotMCP.Server 1.2+ / tools/call)
         services.AddSingleton<IMcpProtocolClientFactory, McpSdkProtocolClientFactory>();
         services.AddSingleton<IMcpClient, StdioMcpClient>();
 

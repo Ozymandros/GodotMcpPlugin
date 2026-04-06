@@ -1,5 +1,7 @@
 ﻿using GodotMcp.Core.Exceptions;
 using GodotMcp.Core.Models;
+using System.Linq;
+using System.Text.Json;
 
 namespace GodotMcp.Plugin.Validation;
 
@@ -81,22 +83,57 @@ public static class InputValidator
     /// <exception cref="GodotMcpException">Thrown when type validation fails</exception>
     private static void ValidateParameterType(string paramName, object paramValue, string expectedType)
     {
-        var isValid = expectedType.ToLowerInvariant() switch
+        var candidateTypes = expectedType
+            .Split(['|', ','], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(t => t.ToLowerInvariant())
+            .Where(t => t != "null")
+            .ToArray();
+
+        if (candidateTypes.Length == 0)
         {
-            "string" => paramValue is string,
-            "number" => paramValue is double or float or decimal or int or long,
-            "integer" => paramValue is int or long or short or byte,
-            "boolean" => paramValue is bool,
-            "object" => true, // Objects are always valid
-            "array" => paramValue is System.Collections.IEnumerable and not string,
-            _ => true // Unknown types are allowed
-        };
+            candidateTypes = [expectedType.ToLowerInvariant()];
+        }
+
+        var isValid = candidateTypes.Any(candidateType => IsValidForType(paramValue, candidateType));
 
         if (!isValid)
         {
             throw new GodotMcpException(
                 $"Parameter '{SanitizeParameterName(paramName)}' has invalid type. Expected: {expectedType}");
         }
+    }
+
+    private static bool IsValidForType(object paramValue, string expectedType)
+    {
+        if (paramValue is JsonElement element)
+        {
+            return IsValidJsonElement(element, expectedType);
+        }
+
+        return expectedType switch
+        {
+            "string" => paramValue is string,
+            "number" => paramValue is double or float or decimal or int or long or short or byte,
+            "integer" or "int" => paramValue is int or long or short or byte,
+            "boolean" or "bool" => paramValue is bool,
+            "object" => true,
+            "array" => paramValue is System.Collections.IEnumerable and not string,
+            _ => true
+        };
+    }
+
+    private static bool IsValidJsonElement(JsonElement element, string expectedType)
+    {
+        return expectedType switch
+        {
+            "string" => element.ValueKind == JsonValueKind.String,
+            "number" => element.ValueKind == JsonValueKind.Number,
+            "integer" or "int" => element.ValueKind == JsonValueKind.Number && element.TryGetInt64(out _),
+            "boolean" or "bool" => element.ValueKind is JsonValueKind.True or JsonValueKind.False,
+            "object" => element.ValueKind == JsonValueKind.Object,
+            "array" => element.ValueKind == JsonValueKind.Array,
+            _ => true
+        };
     }
 
     /// <summary>

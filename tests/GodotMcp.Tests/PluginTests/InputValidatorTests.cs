@@ -1,6 +1,7 @@
 ﻿using GodotMcp.Core.Exceptions;
 using GodotMcp.Core.Models;
 using GodotMcp.Plugin.Validation;
+using System.Text.Json;
 
 namespace GodotMcp.Tests.PluginTests;
 
@@ -225,6 +226,100 @@ public class InputValidatorTests
         var exception = Record.Exception(() => 
             InputValidator.ValidateParameters(parameters, toolDefinition));
         Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateParameters_WithJsonElementNumber_ForNumberType_DoesNotThrow()
+    {
+        // Arrange
+        using var doc = JsonDocument.Parse("3.14");
+        var parameters = new Dictionary<string, object?>
+        {
+            { "fov", doc.RootElement.Clone() }
+        };
+
+        var toolDefinition = new McpToolDefinition(
+            "set_camera",
+            "Sets camera properties",
+            new Dictionary<string, McpParameterDefinition>
+            {
+                { "fov", new McpParameterDefinition("fov", "number", Required: true) }
+            });
+
+        // Act & Assert
+        var exception = Record.Exception(() =>
+            InputValidator.ValidateParameters(parameters, toolDefinition));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateParameters_WithJsonElementArray_ForArrayType_DoesNotThrow()
+    {
+        // Arrange
+        using var doc = JsonDocument.Parse("[0, 1, 2]");
+        var parameters = new Dictionary<string, object?>
+        {
+            { "layers", doc.RootElement.Clone() }
+        };
+
+        var toolDefinition = new McpToolDefinition(
+            "set_camera",
+            "Sets camera properties",
+            new Dictionary<string, McpParameterDefinition>
+            {
+                { "layers", new McpParameterDefinition("layers", "array", Required: true) }
+            });
+
+        // Act & Assert
+        var exception = Record.Exception(() =>
+            InputValidator.ValidateParameters(parameters, toolDefinition));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateParameters_WithUnionType_AcceptsEitherCandidate()
+    {
+        // Arrange
+        var parameters = new Dictionary<string, object?>
+        {
+            { "clip", "0.3" }
+        };
+
+        var toolDefinition = new McpToolDefinition(
+            "set_camera",
+            "Sets camera clipping plane",
+            new Dictionary<string, McpParameterDefinition>
+            {
+                { "clip", new McpParameterDefinition("clip", "number|string", Required: true) }
+            });
+
+        // Act & Assert
+        var exception = Record.Exception(() =>
+            InputValidator.ValidateParameters(parameters, toolDefinition));
+        Assert.Null(exception);
+    }
+
+    [Fact]
+    public void ValidateParameters_WithUnionType_RejectsInvalidCandidate()
+    {
+        // Arrange
+        var parameters = new Dictionary<string, object?>
+        {
+            { "clip", new { value = "oops" } }
+        };
+
+        var toolDefinition = new McpToolDefinition(
+            "set_camera",
+            "Sets camera clipping plane",
+            new Dictionary<string, McpParameterDefinition>
+            {
+                { "clip", new McpParameterDefinition("clip", "number|boolean", Required: true) }
+            });
+
+        // Act & Assert
+        var exception = Assert.Throws<GodotMcpException>(() =>
+            InputValidator.ValidateParameters(parameters, toolDefinition));
+        Assert.Contains("invalid type", exception.Message);
     }
 
     [Fact]

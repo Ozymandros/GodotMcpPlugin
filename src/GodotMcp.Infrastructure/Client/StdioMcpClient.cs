@@ -5,7 +5,7 @@ using ModelContextProtocol.Protocol;
 namespace GodotMcp.Infrastructure.Client;
 
 /// <summary>
-/// MCP client using stdio transport and the official Model Context Protocol .NET SDK (compatible with GodotMCP.Server 1.2.x).
+/// MCP client using stdio transport and the official Model Context Protocol .NET SDK (compatible with GodotMCP.Server 1.2+).
 /// </summary>
 public sealed partial class StdioMcpClient : IMcpClient
 {

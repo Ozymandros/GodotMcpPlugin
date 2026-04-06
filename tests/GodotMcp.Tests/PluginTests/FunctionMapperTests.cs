@@ -511,6 +511,52 @@ public class FunctionMapperTests
     }
 
     [Fact]
+    public void MapToKernelFunction_WithUnionParameterType_MapsToFirstKnownType()
+    {
+        // Arrange
+        var toolDefinition = new McpToolDefinition(
+            Name: "set_camera",
+            Description: "Sets camera property",
+            Parameters: new Dictionary<string, McpParameterDefinition>
+            {
+                ["fov"] = new McpParameterDefinition(
+                    Name: "fov",
+                    Type: "number|null",
+                    Required: true
+                )
+            }
+        );
+
+        // Act
+        var result = _mapper.MapToKernelFunction(toolDefinition);
+
+        // Assert
+        Assert.Equal(typeof(double), result.Parameters[0].ParameterType);
+    }
+
+    [Fact]
+    public void MapToKernelFunction_WithUnionReturnType_MapsToFirstKnownType()
+    {
+        // Arrange
+        var toolDefinition = new McpToolDefinition(
+            Name: "get_camera_mode",
+            Description: "Gets camera mode",
+            Parameters: new Dictionary<string, McpParameterDefinition>(),
+            ReturnType: new McpReturnType(
+                Type: "integer|string",
+                Description: "Camera mode"
+            )
+        );
+
+        // Act
+        var result = _mapper.MapToKernelFunction(toolDefinition);
+
+        // Assert
+        Assert.NotNull(result.ReturnParameter);
+        Assert.Equal(typeof(int), result.ReturnParameter.ParameterType);
+    }
+
+    [Fact]
     public void MapToKernelFunction_WithMixedCaseType_HandlesCorrectly()
     {
         // Arrange

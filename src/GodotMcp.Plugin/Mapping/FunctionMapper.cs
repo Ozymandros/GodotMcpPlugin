@@ -103,16 +103,38 @@ public sealed partial class FunctionMapper : IFunctionMapper
     /// <returns>The corresponding CLR type</returns>
     private static Type MapMcpTypeToClrType(string mcpType)
     {
-        return mcpType.ToLowerInvariant() switch
+        if (string.IsNullOrWhiteSpace(mcpType))
         {
-            "string" => typeof(string),
-            "number" => typeof(double),
-            "integer" => typeof(int),
-            "boolean" => typeof(bool),
-            "object" => typeof(object),
-            "array" => typeof(object[]),
-            _ => typeof(object)
-        };
+            return typeof(object);
+        }
+
+        var candidates = mcpType
+            .Split(['|', ','], StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(t => t.ToLowerInvariant())
+            .Where(t => t != "null");
+
+        foreach (var candidate in candidates)
+        {
+            switch (candidate)
+            {
+                case "string":
+                    return typeof(string);
+                case "number":
+                    return typeof(double);
+                case "integer":
+                case "int":
+                    return typeof(int);
+                case "boolean":
+                case "bool":
+                    return typeof(bool);
+                case "object":
+                    return typeof(object);
+                case "array":
+                    return typeof(object[]);
+            }
+        }
+
+        return typeof(object);
     }
 
     // LoggerMessage source generator methods for high-performance structured logging

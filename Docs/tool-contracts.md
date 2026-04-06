@@ -1,6 +1,6 @@
 # Tool Contracts
 
-This plugin is discovery-first: it connects with the official .NET MCP client (`ModelContextProtocol` NuGet, aligned with **GodotMCP.Server 1.2.x**), performs MCP `initialize`, then uses **`tools/list`** and **`tools/call`** for discovery and invocation. Tool names and parameters match the server’s advertised tool surface.
+This plugin is discovery-first: it connects with the official .NET MCP client (`ModelContextProtocol` NuGet, aligned with **GodotMCP.Server 1.2+**), performs MCP `initialize`, then uses **`tools/list`** and **`tools/call`** for discovery and invocation. Tool names and parameters match the server’s advertised tool surface.
 
 The current **GodotMCP.Server** tool names (examples) include:
 
@@ -23,6 +23,13 @@ The current **GodotMCP.Server** tool names (examples) include:
 - `remove_node(scenePath, nodeName)`
 - `instantiate_packed_scene(targetScenePath, parentPath, packedScenePath, instanceName)`
 - `save_branch_as_scene(sourceScenePath, nodeName, destinationScenePath)`
+
+## Camera (newer server versions)
+Camera tool names are discovered dynamically, and newer releases can expose methods for:
+- querying camera settings for nodes/scenes
+- updating camera projection properties (e.g., perspective/orthogonal)
+- changing clipping configuration (near/far)
+- applying batched camera setting updates
 
 ## Scripts
 - `create_script(path, language, baseType, className)`
