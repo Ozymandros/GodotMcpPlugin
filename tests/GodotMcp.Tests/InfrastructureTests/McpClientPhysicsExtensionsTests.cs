@@ -19,6 +19,39 @@ public class McpClientPhysicsExtensionsTests
 
         Assert.Single(result);
         Assert.Equal("CharacterBody3D", result[0].BodyType);
+
+        await _client.Received(1).InvokeToolAsync(
+            "physics.list_bodies",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectRootPath"], "res://scenes/main.tscn") &&
+                Equals(d["scenePath"], "res://scenes/main.tscn")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PhysicsCreateBodyAsync_MapsPayloadAndReturnsTypedBody()
+    {
+        _client.InvokeToolAsync("physics.create_body", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse("body-1", true, new { name = "Player", path = "./Player", bodyType = "CharacterBody3D", enabled = true }));
+
+        var result = await _client.PhysicsCreateBodyAsync(
+            new PhysicsCreateBodyRequest("res://scenes/main.tscn", ".", "CharacterBody3D", "Player", true));
+
+        Assert.NotNull(result);
+        Assert.Equal("Player", result!.Name);
+    }
+
+    [Fact]
+    public async Task PhysicsUpdateBodyAsync_MapsPayloadAndReturnsTypedBody()
+    {
+        _client.InvokeToolAsync("physics.update_body", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse("body-2", true, new { name = "Player", path = "./Player", bodyType = "CharacterBody3D", enabled = true }));
+
+        var result = await _client.PhysicsUpdateBodyAsync(
+            new PhysicsUpdateBodyRequest("res://scenes/main.tscn", "./Player", new Dictionary<string, object?> { ["collision_layer"] = 2 }));
+
+        Assert.NotNull(result);
+        Assert.Equal("CharacterBody3D", result!.BodyType);
     }
 
     [Fact]
@@ -32,6 +65,13 @@ public class McpClientPhysicsExtensionsTests
         Assert.NotNull(result);
         Assert.True(result!.Success);
         Assert.Equal("Physics valid", result.Message);
+
+        await _client.Received(1).InvokeToolAsync(
+            "physics.validate",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectRootPath"], "res://scenes/main.tscn") &&
+                Equals(d["scenePath"], "res://scenes/main.tscn")),
+            Arg.Any<CancellationToken>());
     }
 
     [Fact]

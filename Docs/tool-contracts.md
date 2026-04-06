@@ -45,14 +45,15 @@ Camera tool names are discovered dynamically, and newer releases can expose meth
 
 ## UI Module (`ui.*`)
 - `ui.list_controls(scenePath)`
-- `ui.create_control(scenePath, parentPath, controlName, controlType)`
-- `ui.update_control(scenePath, controlPath, properties)`
-- `ui.apply_layout_preset(scenePath, controlPath, presetName)`
+- `ui.add_control(scenePath, parentNodePath, controlType, nodeName, properties?)`
+- `ui.set_control_properties(scenePath, controlNodePath, properties)`
+- `ui.set_layout_preset(scenePath, controlNodePath, preset)`
 - `ui.list_themes(scenePath)`
 - `ui.apply_theme(scenePath, controlPath, themeName)`
 
 Notes:
-- The plugin exposes typed wrappers and SK skill methods for control management, layout presets, and theme application.
+- The plugin keeps fallback compatibility for legacy aliases (`ui.create_control`, `ui.update_control`, `ui.apply_layout_preset`).
+- Theme commands are plugin-typed extensions and require server support when available.
 
 ## Lighting Module (`light.*`)
 - `light.list(scenePath)`
@@ -65,16 +66,29 @@ Notes:
 - `light.tune` is intended for iterative light property adjustment workflows.
 
 ## Physics Module (`physics.*`)
-- `physics.list_bodies(scenePath)`
+- `physics.list_bodies(projectRootPath)`
+- `physics.create_body(scenePath, parentNodePath, bodyType, nodeName, addCollisionShape?)`
+- `physics.update_body(scenePath, nodePath, properties)`
 - `physics.list_shapes(scenePath)`
 - `physics.create_shape(scenePath, bodyPath, shapeName, shapeType, properties)`
 - `physics.update_shape(scenePath, shapePath, properties)`
 - `physics.set_layers(scenePath, bodyPath, collisionLayer, collisionMask)`
 - `physics.run_checks(scenePath, bodyPath?)`
-- `physics.validate(scenePath)`
+- `physics.validate(projectRootPath)`
 
 Notes:
 - The plugin provides typed results for layer updates and physics checks to support collider/layer validation loops.
+- Body commands are aligned with the current GD_MCP-Server tool contracts.
+- For compatibility with older servers, the plugin sends both `projectRootPath` and `scenePath` payload keys for root-scoped physics commands.
+
+## Camera Module (`camera.*`)
+- `camera.list(projectRootPath)`
+- `camera.create(scenePath, nodePath, cameraType, preset?)`
+- `camera.update(scenePath, nodePath, properties)`
+- `camera.validate(projectRootPath)`
+
+Notes:
+- The plugin exposes typed camera wrappers and SK camera skill methods for list/create/update/validate workflows.
 
 ## Editor and Export
 - `run_editor_command(arguments)`

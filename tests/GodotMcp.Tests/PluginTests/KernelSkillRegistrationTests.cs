@@ -21,6 +21,7 @@ public class KernelSkillRegistrationTests
 
         Assert.NotNull(kernel.Plugins["scene"]);
         Assert.NotNull(kernel.Plugins["resource"]);
+        Assert.NotNull(kernel.Plugins["camera"]);
         Assert.NotNull(kernel.Plugins["ui"]);
         Assert.NotNull(kernel.Plugins["light"]);
         Assert.NotNull(kernel.Plugins["physics"]);

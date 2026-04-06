@@ -3,8 +3,15 @@ namespace GodotMcp.Core.Models;
 /// <summary>
 /// Physics command request for listing bodies.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-public sealed record PhysicsListBodiesRequest(string ScenePath);
+/// <param name="ProjectRootPath">The project root path.</param>
+public sealed record PhysicsListBodiesRequest(string ProjectRootPath)
+{
+    /// <summary>
+    /// Compatibility alias kept for older call sites that still treat this as scene-based input.
+    /// </summary>
+    [Obsolete("Use ProjectRootPath instead.")]
+    public string ScenePath => ProjectRootPath;
+}
 
 /// <summary>
 /// Physics command request for listing shapes.
@@ -41,8 +48,41 @@ public sealed record PhysicsUpdateShapeRequest(
 /// <summary>
 /// Physics command request for validating physics setup.
 /// </summary>
+/// <param name="ProjectRootPath">The project root path.</param>
+public sealed record PhysicsValidateRequest(string ProjectRootPath)
+{
+    /// <summary>
+    /// Compatibility alias kept for older call sites that still treat this as scene-based input.
+    /// </summary>
+    [Obsolete("Use ProjectRootPath instead.")]
+    public string ScenePath => ProjectRootPath;
+}
+
+/// <summary>
+/// Physics command request for creating a body.
+/// </summary>
 /// <param name="ScenePath">The scene resource path.</param>
-public sealed record PhysicsValidateRequest(string ScenePath);
+/// <param name="ParentPath">Parent node path where the body is added.</param>
+/// <param name="BodyType">Body node type to create.</param>
+/// <param name="NodeName">Body node name.</param>
+/// <param name="AddCollisionShape">Whether to auto-add a collision shape child.</param>
+public sealed record PhysicsCreateBodyRequest(
+    string ScenePath,
+    string ParentPath,
+    string BodyType,
+    string NodeName,
+    bool AddCollisionShape = true);
+
+/// <summary>
+/// Physics command request for updating a body.
+/// </summary>
+/// <param name="ScenePath">The scene resource path.</param>
+/// <param name="BodyPath">Body node path.</param>
+/// <param name="Properties">Body properties to update.</param>
+public sealed record PhysicsUpdateBodyRequest(
+    string ScenePath,
+    string BodyPath,
+    IReadOnlyDictionary<string, object?> Properties);
 
 /// <summary>
 /// Represents a physics validation result.

@@ -477,4 +477,43 @@ public class ModelTests
         Assert.Equal("player_default", presetReq.PresetName);
         Assert.Equal("./Player", presetResult.AppliedToPath);
     }
+
+    [Fact]
+    public void CameraModels_ShouldCreateWithExpectedValues()
+    {
+        var camera = new CameraInfo(
+            "res://scenes/main.tscn",
+            "./MainCamera",
+            "Camera3D",
+            70,
+            null,
+            0.1,
+            4000,
+            "Perspective",
+            true);
+
+        var list = new CameraListRequest("res://");
+        var create = new CameraCreateRequest("res://scenes/main.tscn", "./MainCamera", "3d", "cinematic");
+        var update = new CameraUpdateRequest(
+            "res://scenes/main.tscn",
+            "./MainCamera",
+            new Dictionary<string, object?> { ["fov"] = 75.0 });
+        var validate = new CameraValidateRequest("res://");
+        var issue = new CameraValidationIssue(
+            "res://scenes/main.tscn",
+            "warning",
+            "FOV out of range",
+            "Use value between 1 and 179",
+            "camera_fov_range",
+            "res://scenes/main.tscn",
+            "./MainCamera");
+
+        Assert.Equal("Camera3D", camera.Type);
+        Assert.True(camera.Current);
+        Assert.Equal("res://", list.ProjectRootPath);
+        Assert.Equal("cinematic", create.Preset);
+        Assert.Equal("./MainCamera", update.NodePath);
+        Assert.Equal("res://", validate.ProjectRootPath);
+        Assert.Equal("camera_fov_range", issue.Rule);
+    }
 }

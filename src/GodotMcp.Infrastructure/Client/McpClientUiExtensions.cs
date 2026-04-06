@@ -41,15 +41,21 @@ public static class McpClientUiExtensions
         UiCreateControlRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<ControlInfo>(
+        var payload = new Dictionary<string, object?>
+        {
+            ["scenePath"] = request.ScenePath,
+            ["parentNodePath"] = request.ParentPath,
+            ["parentPath"] = request.ParentPath,
+            ["controlName"] = request.ControlName,
+            ["nodeName"] = request.ControlName,
+            ["controlType"] = request.ControlType
+        };
+
+        return InvokeUiWithFallbackAsync<ControlInfo>(
+            client,
+            "ui.add_control",
             "ui.create_control",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath,
-                ["parentPath"] = request.ParentPath,
-                ["controlName"] = request.ControlName,
-                ["controlType"] = request.ControlType
-            },
+            payload,
             cancellationToken);
     }
 
@@ -65,14 +71,19 @@ public static class McpClientUiExtensions
         UiUpdateControlRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<ControlInfo>(
+        var payload = new Dictionary<string, object?>
+        {
+            ["scenePath"] = request.ScenePath,
+            ["controlNodePath"] = request.ControlPath,
+            ["controlPath"] = request.ControlPath,
+            ["properties"] = request.Properties
+        };
+
+        return InvokeUiWithFallbackAsync<ControlInfo>(
+            client,
+            "ui.set_control_properties",
             "ui.update_control",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath,
-                ["controlPath"] = request.ControlPath,
-                ["properties"] = request.Properties
-            },
+            payload,
             cancellationToken);
     }
 
@@ -88,14 +99,20 @@ public static class McpClientUiExtensions
         UiApplyLayoutPresetRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<UiLayoutPresetResult>(
+        var payload = new Dictionary<string, object?>
+        {
+            ["scenePath"] = request.ScenePath,
+            ["controlNodePath"] = request.ControlPath,
+            ["controlPath"] = request.ControlPath,
+            ["preset"] = request.PresetName,
+            ["presetName"] = request.PresetName
+        };
+
+        return InvokeUiWithFallbackAsync<UiLayoutPresetResult>(
+            client,
+            "ui.set_layout_preset",
             "ui.apply_layout_preset",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath,
-                ["controlPath"] = request.ControlPath,
-                ["presetName"] = request.PresetName
-            },
+            payload,
             cancellationToken);
     }
 
@@ -142,4 +159,26 @@ public static class McpClientUiExtensions
             },
             cancellationToken);
     }
+
+    private static async Task<T?> InvokeUiWithFallbackAsync<T>(
+        IMcpClient client,
+        string primaryCommand,
+        string fallbackCommand,
+        IReadOnlyDictionary<string, object?> payload,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await client.SendAsync<T>(primaryCommand, payload, cancellationToken).ConfigureAwait(false);
+        }
+        catch (McpServerException ex) when (IsToolNotFound(ex))
+        {
+            return await client.SendAsync<T>(fallbackCommand, payload, cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static bool IsToolNotFound(McpServerException ex)
+        => ex.ErrorCode == -32601
+           || ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
+           || ex.Message.Contains("unknown tool", StringComparison.OrdinalIgnoreCase);
 }

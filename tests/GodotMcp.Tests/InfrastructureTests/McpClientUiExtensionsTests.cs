@@ -34,7 +34,7 @@ public class McpClientUiExtensionsTests
     public async Task UiCreateControlAsync_MapsPayloadAndReturnsTypedControl()
     {
         _client
-            .InvokeToolAsync("ui.create_control", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .InvokeToolAsync("ui.add_control", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse(
                 "req-2",
                 true,
@@ -47,10 +47,10 @@ public class McpClientUiExtensionsTests
         Assert.Equal("StartButton", result!.Name);
 
         await _client.Received(1).InvokeToolAsync(
-            "ui.create_control",
+            "ui.add_control",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
                 Equals(d["scenePath"], "res://scenes/ui.tscn") &&
-                Equals(d["parentPath"], ".") &&
+                Equals(d["parentNodePath"], ".") &&
                 Equals(d["controlName"], "StartButton") &&
                 Equals(d["controlType"], "Button")),
             Arg.Any<CancellationToken>());
@@ -60,7 +60,7 @@ public class McpClientUiExtensionsTests
     public async Task UiApplyLayoutPresetAsync_MapsPayloadAndReturnsResult()
     {
         _client
-            .InvokeToolAsync("ui.apply_layout_preset", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .InvokeToolAsync("ui.set_layout_preset", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse("req-3", true, new { success = true, message = "Applied" }));
 
         var result = await _client.UiApplyLayoutPresetAsync(

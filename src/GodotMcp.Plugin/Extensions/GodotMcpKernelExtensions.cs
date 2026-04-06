@@ -23,6 +23,7 @@ public static class GodotMcpKernelExtensions
 
         kernel.Plugins.AddFromObject(new SceneSkill(mcpClient), "scene");
         kernel.Plugins.AddFromObject(new ResourceSkill(mcpClient), "resource");
+        kernel.Plugins.AddFromObject(new CameraSkill(mcpClient), "camera");
         kernel.Plugins.AddFromObject(new UiSkill(mcpClient), "ui");
         kernel.Plugins.AddFromObject(new LightingSkill(mcpClient), "light");
         kernel.Plugins.AddFromObject(new PhysicsSkill(mcpClient), "physics");

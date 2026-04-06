@@ -11,17 +11,57 @@ public sealed class PhysicsSkill(IMcpClient mcp)
     private readonly IMcpClient _mcp = mcp;
 
     /// <summary>
-    /// Lists physics bodies in a scene.
+    /// Lists physics bodies under a project root path.
     /// </summary>
-    /// <param name="scenePath">Scene resource path.</param>
+    /// <param name="projectRootPath">Project root path to scan.</param>
     /// <param name="cancellationToken">Cancellation token for the operation.</param>
     /// <returns>A read-only list of physics bodies.</returns>
     [KernelFunction("list_bodies")]
     [Description("Lists physics bodies in a scene.")]
     public Task<IReadOnlyList<PhysicsBodyInfo>> ListBodiesAsync(
-        [Description("Scene resource path.")] string scenePath,
+        [Description("Project root path to scan.")] string projectRootPath,
         CancellationToken cancellationToken = default) =>
-        _mcp.PhysicsListBodiesAsync(new PhysicsListBodiesRequest(scenePath), cancellationToken);
+        _mcp.PhysicsListBodiesAsync(new PhysicsListBodiesRequest(projectRootPath), cancellationToken);
+
+    /// <summary>
+    /// Creates a physics body in a scene.
+    /// </summary>
+    /// <param name="scenePath">Scene resource path.</param>
+    /// <param name="parentPath">Parent node path.</param>
+    /// <param name="bodyType">Body type.</param>
+    /// <param name="nodeName">Body node name.</param>
+    /// <param name="addCollisionShape">Whether to auto-add a collision shape child.</param>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
+    /// <returns>The created body, or <c>null</c> when no payload is returned.</returns>
+    [KernelFunction("create_body")]
+    [Description("Creates a physics body in a scene.")]
+    public Task<PhysicsBodyInfo?> CreateBodyAsync(
+        [Description("Scene resource path.")] string scenePath,
+        [Description("Parent node path.")] string parentPath,
+        [Description("Body type.")] string bodyType,
+        [Description("Body node name.")] string nodeName,
+        [Description("Whether to auto-add collision shape.")] bool addCollisionShape = true,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsCreateBodyAsync(
+            new PhysicsCreateBodyRequest(scenePath, parentPath, bodyType, nodeName, addCollisionShape),
+            cancellationToken);
+
+    /// <summary>
+    /// Updates a physics body.
+    /// </summary>
+    /// <param name="scenePath">Scene resource path.</param>
+    /// <param name="bodyPath">Body node path.</param>
+    /// <param name="properties">Body properties to update.</param>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
+    /// <returns>The updated body, or <c>null</c> when no payload is returned.</returns>
+    [KernelFunction("update_body")]
+    [Description("Updates a physics body.")]
+    public Task<PhysicsBodyInfo?> UpdateBodyAsync(
+        [Description("Scene resource path.")] string scenePath,
+        [Description("Body node path.")] string bodyPath,
+        [Description("Body properties to update.")] IReadOnlyDictionary<string, object?> properties,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsUpdateBodyAsync(new PhysicsUpdateBodyRequest(scenePath, bodyPath, properties), cancellationToken);
 
     /// <summary>
     /// Lists physics shapes in a scene.
@@ -75,17 +115,17 @@ public sealed class PhysicsSkill(IMcpClient mcp)
         _mcp.PhysicsUpdateShapeAsync(new PhysicsUpdateShapeRequest(scenePath, shapePath, properties), cancellationToken);
 
     /// <summary>
-    /// Validates physics setup in a scene.
+    /// Validates physics setup under a project root path.
     /// </summary>
-    /// <param name="scenePath">Scene resource path.</param>
+    /// <param name="projectRootPath">Project root path to validate.</param>
     /// <param name="cancellationToken">Cancellation token for the operation.</param>
     /// <returns>The physics validation result, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("validate")]
     [Description("Validates physics setup in a scene.")]
     public Task<PhysicsValidationResult?> ValidateAsync(
-        [Description("Scene resource path.")] string scenePath,
+        [Description("Project root path to validate.")] string projectRootPath,
         CancellationToken cancellationToken = default) =>
-        _mcp.PhysicsValidateAsync(new PhysicsValidateRequest(scenePath), cancellationToken);
+        _mcp.PhysicsValidateAsync(new PhysicsValidateRequest(projectRootPath), cancellationToken);
 
     /// <summary>
     /// Sets collision layer and mask for a physics body.

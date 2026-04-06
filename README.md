@@ -99,9 +99,9 @@ In addition to dynamic discovery, the plugin exposes strongly-typed module wrapp
 
 UI module (`ui.*`):
 - `ui.list_controls`
-- `ui.create_control`
-- `ui.update_control`
-- `ui.apply_layout_preset`
+- `ui.add_control` (with fallback support for `ui.create_control`)
+- `ui.set_control_properties` (with fallback support for `ui.update_control`)
+- `ui.set_layout_preset` (with fallback support for `ui.apply_layout_preset`)
 - `ui.list_themes`
 - `ui.apply_theme`
 
@@ -114,12 +114,20 @@ Lighting module (`light.*`):
 
 Physics module (`physics.*`):
 - `physics.list_bodies`
+- `physics.create_body`
+- `physics.update_body`
 - `physics.list_shapes`
 - `physics.create_shape`
 - `physics.update_shape`
 - `physics.set_layers`
 - `physics.run_checks`
 - `physics.validate`
+
+Camera module (`camera.*`):
+- `camera.list`
+- `camera.create`
+- `camera.update`
+- `camera.validate`
 
 These typed surfaces are additive: if a server does not expose a given command, dynamic discovery still provides the authoritative runtime list.
 
@@ -188,28 +196,16 @@ dotnet test GodotMcp.sln --collect:"XPlat Code Coverage" --settings coverlet.run
 
 ## Available Functions
 
-The plugin automatically discovers available Godot functions from the godot-mcp-Server. Common functions include:
+The plugin is discovery-first and maps the server-advertised tools from `tools/list` at runtime.
 
-### Scene Management
-- `Godot_create_scene` - Create a new Godot scene
-- `Godot_load_scene` - Load an existing scene
-- `Godot_save_scene` - Save the current scene
+Typical families available on recent `GD_MCP-Server` builds include:
+- Core: `health_check`, `get_server_info`, `get_server_capabilities`
+- Project: `create_godot_project`, `get_project_info`
+- Scene/Node: `create_scene`, `add_node`, `set_node_property`, `remove_node`
+- Script/Resource: `create_script`, `attach_script`, `create_resource`, `reimport_asset`
+- Typed modules (when exposed by server): `ui.*`, `light.*`, `physics.*`, `camera.*`
 
-### GameObject Operations
-- `Godot_create_gameobject` - Create a new GameObject
-- `Godot_delete_gameobject` - Delete a GameObject
-- `Godot_find_gameobject` - Find GameObject by name or tag
-
-### Asset Management
-- `Godot_import_asset` - Import an asset into the project
-- `Godot_create_material` - Create a new material
-- `Godot_create_prefab` - Create a prefab from GameObject
-
-### Project Information
-- `Godot_get_project_info` - Get Godot project information
-- `Godot_list_scenes` - List all scenes in the project
-
-**Note**: The exact list of available functions depends on the godot-mcp-Server version. Use `ListToolsAsync()` to discover all available functions at runtime.
+The exact list depends on the connected server version and installed integrations. Use `ListToolsAsync()` to inspect the authoritative runtime surface.
 
 ## Advanced Usage
 

@@ -9,7 +9,7 @@ namespace GodotMcp.Infrastructure.Client;
 public static class McpClientPhysicsExtensions
 {
     /// <summary>
-    /// Lists physics bodies in a scene.
+    /// Lists physics bodies under a project root path.
     /// </summary>
     /// <param name="client">The MCP client instance.</param>
     /// <param name="request">The physics list-bodies request payload.</param>
@@ -22,8 +22,56 @@ public static class McpClientPhysicsExtensions
     {
         return await client.SendAsync<IReadOnlyList<PhysicsBodyInfo>>(
             "physics.list_bodies",
-            new Dictionary<string, object?> { ["scenePath"] = request.ScenePath },
+            BuildProjectRootPayload(request.ProjectRootPath),
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<PhysicsBodyInfo>();
+    }
+
+    /// <summary>
+    /// Creates a physics body.
+    /// </summary>
+    /// <param name="client">The MCP client instance.</param>
+    /// <param name="request">The physics create-body request payload.</param>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
+    /// <returns>The created body information, or <c>null</c> when no payload is returned.</returns>
+    public static Task<PhysicsBodyInfo?> PhysicsCreateBodyAsync(
+        this IMcpClient client,
+        PhysicsCreateBodyRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        return client.SendAsync<PhysicsBodyInfo>(
+            "physics.create_body",
+            new Dictionary<string, object?>
+            {
+                ["scenePath"] = request.ScenePath,
+                ["parentNodePath"] = request.ParentPath,
+                ["bodyType"] = request.BodyType,
+                ["nodeName"] = request.NodeName,
+                ["addCollisionShape"] = request.AddCollisionShape
+            },
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Updates a physics body.
+    /// </summary>
+    /// <param name="client">The MCP client instance.</param>
+    /// <param name="request">The physics update-body request payload.</param>
+    /// <param name="cancellationToken">Cancellation token for the operation.</param>
+    /// <returns>The updated body information, or <c>null</c> when no payload is returned.</returns>
+    public static Task<PhysicsBodyInfo?> PhysicsUpdateBodyAsync(
+        this IMcpClient client,
+        PhysicsUpdateBodyRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        return client.SendAsync<PhysicsBodyInfo>(
+            "physics.update_body",
+            new Dictionary<string, object?>
+            {
+                ["scenePath"] = request.ScenePath,
+                ["nodePath"] = request.BodyPath,
+                ["properties"] = request.Properties
+            },
+            cancellationToken);
     }
 
     /// <summary>
@@ -93,7 +141,7 @@ public static class McpClientPhysicsExtensions
     }
 
     /// <summary>
-    /// Validates physics setup in a scene.
+    /// Validates physics setup under a project root path.
     /// </summary>
     /// <param name="client">The MCP client instance.</param>
     /// <param name="request">The physics validate request payload.</param>
@@ -106,8 +154,17 @@ public static class McpClientPhysicsExtensions
     {
         return client.SendAsync<PhysicsValidationResult>(
             "physics.validate",
-            new Dictionary<string, object?> { ["scenePath"] = request.ScenePath },
+            BuildProjectRootPayload(request.ProjectRootPath),
             cancellationToken);
+    }
+
+    private static Dictionary<string, object?> BuildProjectRootPayload(string projectRootPath)
+    {
+        return new Dictionary<string, object?>
+        {
+            ["projectRootPath"] = projectRootPath,
+            ["scenePath"] = projectRootPath
+        };
     }
 
     /// <summary>
