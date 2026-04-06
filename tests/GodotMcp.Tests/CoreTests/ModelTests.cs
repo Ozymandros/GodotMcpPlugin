@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Tests.CoreTests;
+namespace GodotMcp.Tests.CoreTests;
 
 /// <summary>
 /// Unit tests for Core model types
