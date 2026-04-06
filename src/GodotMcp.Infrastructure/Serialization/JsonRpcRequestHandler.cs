@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using GodotMcp.Core.Utilities;
 
 namespace GodotMcp.Infrastructure.Serialization;
@@ -19,14 +20,16 @@ public sealed partial class JsonRpcRequestHandler : IRequestHandler
     public JsonRpcRequestHandler(ILogger<JsonRpcRequestHandler> logger)
     {
         _logger = logger;
-        
+
         // Configure options with source generator context
         _options = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
             WriteIndented = false,
-            TypeInfoResolver = McpJsonSerializerContext.Default
+            TypeInfoResolver = JsonTypeInfoResolver.Combine(
+                McpJsonSerializerContext.Default,
+                new DefaultJsonTypeInfoResolver())
         };
     }
 
@@ -50,9 +53,9 @@ public sealed partial class JsonRpcRequestHandler : IRequestHandler
             };
 
             var json = JsonSerializer.Serialize(jsonRpc, _options);
-            
+
             LogRequestSerialized(request.Id, json.Length);
-            
+
             return json;
         }
         catch (Exception ex)
@@ -95,9 +98,9 @@ public sealed partial class JsonRpcRequestHandler : IRequestHandler
                     : null;
 
                 var error = new McpError(code, message, data);
-                
+
                 LogResponseDeserialized(id, false);
-                
+
                 return new McpResponse(id, false, null, error);
             }
 

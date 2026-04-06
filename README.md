@@ -93,6 +93,64 @@ This plugin supports full dynamic discovery and invocation of the local `GD_MCP-
 
 Detailed reference: `Docs/tool-contracts.md`.
 
+### Typed Module Wrappers And Skills
+
+In addition to dynamic discovery, the plugin exposes strongly-typed module wrappers (Infrastructure) and Semantic Kernel skill methods (Plugin) for common workflows.
+
+UI module (`ui.*`):
+- `ui.list_controls`
+- `ui.create_control`
+- `ui.update_control`
+- `ui.apply_layout_preset`
+- `ui.list_themes`
+- `ui.apply_theme`
+
+Lighting module (`light.*`):
+- `light.list`
+- `light.create`
+- `light.update`
+- `light.tune`
+- `light.validate`
+
+Physics module (`physics.*`):
+- `physics.list_bodies`
+- `physics.list_shapes`
+- `physics.create_shape`
+- `physics.update_shape`
+- `physics.set_layers`
+- `physics.run_checks`
+- `physics.validate`
+
+These typed surfaces are additive: if a server does not expose a given command, dynamic discovery still provides the authoritative runtime list.
+
+### Typed Module Quick Examples
+
+```csharp
+var mcpClient = host.Services.GetRequiredService<IMcpClient>();
+
+// UI: apply a theme to a control
+var uiTheme = await mcpClient.UiApplyThemeAsync(
+  new UiApplyThemeRequest("res://scenes/ui.tscn", "./RootPanel", "dark_flat"));
+
+// Lighting: tune an existing light
+var tunedLight = await mcpClient.LightTuneAsync(
+  new LightTuneRequest(
+    "res://scenes/main.tscn",
+    "./Sun",
+    new Dictionary<string, object?>
+    {
+      ["energy"] = 2.5,
+      ["color"] = new { r = 1.0, g = 0.95, b = 0.85, a = 1.0 }
+    }));
+
+// Physics: set layers and run checks
+var layerResult = await mcpClient.PhysicsSetLayersAsync(
+  new PhysicsSetLayersRequest("res://scenes/main.tscn", "./Player", collisionLayer: 2, collisionMask: 5));
+
+var checks = await mcpClient.PhysicsRunChecksAsync(
+  new PhysicsRunChecksRequest("res://scenes/main.tscn", "./Player"));
+```
+
 ## Documentation
 
 - `Docs/tool-contracts.md`

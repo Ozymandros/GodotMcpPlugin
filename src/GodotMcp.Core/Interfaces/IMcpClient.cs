@@ -1,7 +1,7 @@
-﻿namespace GodotMcp.Core.Interfaces;
+namespace GodotMcp.Core.Interfaces;
 
 /// <summary>
-/// Defines the contract for MCP client communication
+/// Defines the contract for MCP client communication.
 /// </summary>
 public interface IMcpClient : IAsyncDisposable
 {
@@ -11,7 +11,7 @@ public interface IMcpClient : IAsyncDisposable
     /// <param name="cancellationToken">Cancellation token for the operation</param>
     /// <returns>A task representing the asynchronous connection operation</returns>
     Task ConnectAsync(CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Sends a tool invocation request
     /// </summary>
@@ -20,10 +20,10 @@ public interface IMcpClient : IAsyncDisposable
     /// <param name="cancellationToken">Cancellation token for the operation</param>
     /// <returns>A task representing the asynchronous operation with the MCP response</returns>
     Task<McpResponse> InvokeToolAsync(
-        string toolName, 
+        string toolName,
         IReadOnlyDictionary<string, object?> parameters,
         CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Discovers available tools from the server
     /// </summary>
@@ -31,16 +31,17 @@ public interface IMcpClient : IAsyncDisposable
     /// <returns>A task representing the asynchronous operation with the list of available tools</returns>
     Task<IReadOnlyList<McpToolDefinition>> ListToolsAsync(
         CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Checks if the connection is healthy
     /// </summary>
     /// <param name="cancellationToken">Cancellation token for the operation</param>
     /// <returns>A task representing the asynchronous operation with true if connection is healthy, false otherwise</returns>
     Task<bool> PingAsync(CancellationToken cancellationToken = default);
-    
+
     /// <summary>
-    /// Gets the current connection state
+    /// Gets the current connection state.
     /// </summary>
+    /// <value>The current state of the MCP connection lifecycle.</value>
     ConnectionState State { get; }
 }

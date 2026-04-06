@@ -270,6 +270,117 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
     }
 
     [Fact]
+    public async Task SceneListNodesAsync_WhenSuccessful_ReturnsTypedNodes()
+    {
+        var client = CreateClient();
+        await SetupConnectedClient(client);
+
+        _mockSession
+            .CallToolAsync("scene.list_nodes", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(JsonResult(new[]
+            {
+                new { name = "Root", path = ".", type = "Node3D", parentPath = (string?)null, isInternal = false },
+                new { name = "Camera", path = "./Camera", type = "Camera3D", parentPath = (string?)".", isInternal = false }
+            })));
+
+        var result = await client.SceneListNodesAsync(new SceneListNodesRequest("res://scenes/main.tscn"));
+
+        Assert.Equal(2, result.Count);
+        Assert.Equal("Root", result[0].Name);
+        Assert.Equal("Camera3D", result[1].Type);
+        await _mockSession.Received(1).CallToolAsync(
+            "scene.list_nodes",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                d.ContainsKey("scenePath") &&
+                string.Equals(d["scenePath"] as string, "res://scenes/main.tscn", StringComparison.Ordinal)),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SceneAddNodeAsync_WhenSuccessful_ReturnsTypedNode()
+    {
+        var client = CreateClient();
+        await SetupConnectedClient(client);
+
+        _mockSession
+            .CallToolAsync("scene.add_node", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(JsonResult(new
+            {
+                name = "Player",
+                path = "./Player",
+                type = "CharacterBody3D",
+                parentPath = ".",
+                isInternal = false
+            })));
+
+        var request = new SceneAddNodeRequest(
+            "res://scenes/main.tscn",
+            ".",
+            "Player",
+            "CharacterBody3D");
+
+        var result = await client.SceneAddNodeAsync(request);
+
+        Assert.NotNull(result);
+        Assert.Equal("Player", result!.Name);
+        Assert.Equal("CharacterBody3D", result.Type);
+        await _mockSession.Received(1).CallToolAsync(
+            "scene.add_node",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["scenePath"], "res://scenes/main.tscn") &&
+                Equals(d["parentPath"], ".") &&
+                Equals(d["nodeName"], "Player") &&
+                Equals(d["nodeType"], "CharacterBody3D")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task SceneGetNodePropertiesAsync_WhenSuccessful_ReturnsTypedProperties()
+    {
+        var client = CreateClient();
+        await SetupConnectedClient(client);
+
+        _mockSession
+            .CallToolAsync("scene.get_node_properties", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new CallToolResult
+            {
+                Content = [new TextContentBlock
+                {
+                    Text = "[{\"name\":\"fov\",\"type\":\"float\",\"value\":70,\"readOnly\":false},{\"name\":\"current\",\"type\":\"bool\",\"value\":true,\"readOnly\":false}]"
+                }]
+            }));
+
+        var result = await client.SceneGetNodePropertiesAsync(
+            new SceneGetNodePropertiesRequest("res://scenes/main.tscn", "./Camera"));
+
+        Assert.Equal(2, result.Count);
+        Assert.Equal("fov", result[0].Name);
+        Assert.Equal("float", result[0].Type);
+        Assert.True(result[0].Value.TryGetInt32(out var fov));
+        Assert.Equal(70, fov);
+        Assert.Equal("current", result[1].Name);
+        Assert.Equal(JsonValueKind.True, result[1].Value.ValueKind);
+    }
+
+    [Fact]
+    public async Task SceneMoveNodeAsync_WhenSuccessful_ReturnsCommandResult()
+    {
+        var client = CreateClient();
+        await SetupConnectedClient(client);
+
+        _mockSession
+            .CallToolAsync("scene.move_node", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(JsonResult(new { success = true, message = "Moved" })));
+
+        var result = await client.SceneMoveNodeAsync(
+            new SceneMoveNodeRequest("res://scenes/main.tscn", "./Camera", "./Rig", 0));
+
+        Assert.NotNull(result);
+        Assert.True(result!.Success);
+        Assert.Equal("Moved", result.Message);
+    }
+
+    [Fact]
     public async Task PingAsync_WhenSuccessful_ReturnsTrue()
     {
         var client = CreateClient();

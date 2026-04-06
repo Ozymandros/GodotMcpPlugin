@@ -43,6 +43,39 @@ Camera tool names are discovered dynamically, and newer releases can expose meth
 - `create_texture(texturePath)`
 - `create_audio(audioPath)`
 
+## UI Module (`ui.*`)
+- `ui.list_controls(scenePath)`
+- `ui.create_control(scenePath, parentPath, controlName, controlType)`
+- `ui.update_control(scenePath, controlPath, properties)`
+- `ui.apply_layout_preset(scenePath, controlPath, presetName)`
+- `ui.list_themes(scenePath)`
+- `ui.apply_theme(scenePath, controlPath, themeName)`
+
+Notes:
+- The plugin exposes typed wrappers and SK skill methods for control management, layout presets, and theme application.
+
+## Lighting Module (`light.*`)
+- `light.list(scenePath)`
+- `light.create(scenePath, parentPath, lightName, lightType)`
+- `light.update(scenePath, lightPath, properties)`
+- `light.tune(scenePath, lightPath, properties)`
+- `light.validate(scenePath)`
+
+Notes:
+- `light.tune` is intended for iterative light property adjustment workflows.
+
+## Physics Module (`physics.*`)
+- `physics.list_bodies(scenePath)`
+- `physics.list_shapes(scenePath)`
+- `physics.create_shape(scenePath, bodyPath, shapeName, shapeType, properties)`
+- `physics.update_shape(scenePath, shapePath, properties)`
+- `physics.set_layers(scenePath, bodyPath, collisionLayer, collisionMask)`
+- `physics.run_checks(scenePath, bodyPath?)`
+- `physics.validate(scenePath)`
+
+Notes:
+- The plugin provides typed results for layer updates and physics checks to support collider/layer validation loops.
+
 ## Editor and Export
 - `run_editor_command(arguments)`
 - `manage_export_presets(presetName, platform)`

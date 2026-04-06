@@ -309,4 +309,172 @@ public class ModelTests
         Assert.Single(info.Scenes);
         Assert.Single(info.Packages);
     }
+
+    [Fact]
+    public void ResourceInfo_ShouldCreateWithExpectedValues()
+    {
+        var resource = new ResourceInfo(
+            Path: "res://materials/mat.tres",
+            Type: "StandardMaterial3D",
+            Name: "mat",
+            Exists: true);
+
+        Assert.Equal("res://materials/mat.tres", resource.Path);
+        Assert.Equal("StandardMaterial3D", resource.Type);
+        Assert.Equal("mat", resource.Name);
+        Assert.True(resource.Exists);
+    }
+
+    [Fact]
+    public void ResourceData_ShouldCreateWithProperties()
+    {
+        var properties = new Dictionary<string, object?>
+        {
+            ["albedoColor"] = "#ffffff",
+            ["metallic"] = 0.5
+        };
+
+        var resource = new ResourceData(
+            Path: "res://materials/mat.tres",
+            Type: "StandardMaterial3D",
+            Properties: properties);
+
+        Assert.Equal("res://materials/mat.tres", resource.Path);
+        Assert.Equal("StandardMaterial3D", resource.Type);
+        Assert.Equal(2, resource.Properties.Count);
+        Assert.Equal("#ffffff", resource.Properties["albedoColor"]);
+    }
+
+    [Fact]
+    public void ResourceRequestRecords_ShouldCreateWithExpectedValues()
+    {
+        var list = new ResourceListRequest("res://materials", "StandardMaterial3D");
+        var read = new ResourceReadRequest("res://materials/mat.tres");
+        var update = new ResourceUpdateRequest(
+            "res://materials/mat.tres",
+            new Dictionary<string, object?> { ["metallic"] = 0.8 });
+        var create = new ResourceCreateRequest(
+            "res://materials/new_mat.tres",
+            "StandardMaterial3D",
+            new Dictionary<string, object?> { ["roughness"] = 0.2 });
+
+        Assert.Equal("res://materials", list.Directory);
+        Assert.Equal("StandardMaterial3D", list.ResourceType);
+        Assert.Equal("res://materials/mat.tres", read.ResourcePath);
+        Assert.Equal("res://materials/mat.tres", update.ResourcePath);
+        Assert.Single(update.Properties);
+        Assert.Equal("res://materials/new_mat.tres", create.ResourcePath);
+        Assert.Equal("StandardMaterial3D", create.ResourceType);
+        Assert.Single(create.Properties);
+    }
+
+    [Fact]
+    public void ControlInfo_AndUiRequests_ShouldCreateWithExpectedValues()
+    {
+        var control = new ControlInfo("RootPanel", ".", "Panel", null);
+        var list = new UiListControlsRequest("res://scenes/ui.tscn");
+        var create = new UiCreateControlRequest("res://scenes/ui.tscn", ".", "PlayButton", "Button");
+        var update = new UiUpdateControlRequest(
+            "res://scenes/ui.tscn",
+            "./PlayButton",
+            new Dictionary<string, object?> { ["text"] = "Play" });
+        var preset = new UiApplyLayoutPresetRequest("res://scenes/ui.tscn", "./RootPanel", "full_rect");
+        var presetResult = new UiLayoutPresetResult(true, "Applied");
+        var listThemes = new UiListThemesRequest("res://scenes/ui.tscn");
+        var applyTheme = new UiApplyThemeRequest("res://scenes/ui.tscn", "./RootPanel", "dark_flat");
+        var themeResult = new UiThemeResult(true, "Theme applied", "dark_flat");
+
+        Assert.Equal("Panel", control.ControlType);
+        Assert.Equal("res://scenes/ui.tscn", list.ScenePath);
+        Assert.Equal("PlayButton", create.ControlName);
+        Assert.Equal("./PlayButton", update.ControlPath);
+        Assert.Single(update.Properties);
+        Assert.Equal("full_rect", preset.PresetName);
+        Assert.True(presetResult.Success);
+        Assert.Equal("res://scenes/ui.tscn", listThemes.ScenePath);
+        Assert.Equal("dark_flat", applyTheme.ThemeName);
+        Assert.Equal("dark_flat", themeResult.AppliedTheme);
+    }
+
+    [Fact]
+    public void LightInfo_AndLightingRequests_ShouldCreateWithExpectedValues()
+    {
+        var light = new LightInfo("Sun", "./Sun", "DirectionalLight3D", true);
+        var list = new LightListRequest("res://scenes/main.tscn");
+        var create = new LightCreateRequest("res://scenes/main.tscn", ".", "Fill", "OmniLight3D");
+        var update = new LightUpdateRequest(
+            "res://scenes/main.tscn",
+            "./Fill",
+            new Dictionary<string, object?> { ["energy"] = 2.0 });
+        var validate = new LightValidateRequest("res://scenes/main.tscn");
+        var validateResult = new LightValidationResult(true, "Lighting valid");
+        var tune = new LightTuneRequest(
+            "res://scenes/main.tscn",
+            "./Sun",
+            new Dictionary<string, object?> { ["energy"] = 2.5 });
+
+        Assert.Equal("DirectionalLight3D", light.LightType);
+        Assert.Equal("res://scenes/main.tscn", list.ScenePath);
+        Assert.Equal("Fill", create.LightName);
+        Assert.Equal("./Fill", update.LightPath);
+        Assert.Single(update.Properties);
+        Assert.Equal("res://scenes/main.tscn", validate.ScenePath);
+        Assert.True(validateResult.Success);
+        Assert.Equal("./Sun", tune.LightPath);
+        Assert.Single(tune.Properties);
+    }
+
+    [Fact]
+    public void PhysicsModels_AndRequests_ShouldCreateWithExpectedValues()
+    {
+        var body = new PhysicsBodyInfo("PlayerBody", "./Player", "CharacterBody3D", true);
+        var shape = new PhysicsShapeInfo(
+            "Capsule",
+            "./Player/Capsule",
+            "CapsuleShape3D",
+            new Dictionary<string, object?> { ["radius"] = 0.4 });
+        var create = new PhysicsCreateShapeRequest(
+            "res://scenes/main.tscn",
+            "./Player",
+            "Capsule",
+            "CapsuleShape3D",
+            new Dictionary<string, object?> { ["height"] = 1.8 });
+        var validate = new PhysicsValidationResult(true, "Physics valid");
+        var setLayers = new PhysicsSetLayersRequest("res://scenes/main.tscn", "./Player", 2, 5);
+        var runChecks = new PhysicsRunChecksRequest("res://scenes/main.tscn", "./Player");
+        var layerResult = new PhysicsLayerResult(true, "Updated", 2, 5);
+        var checkResult = new PhysicsCheckResult(true, "No issues", Array.Empty<string>());
+
+        Assert.Equal("CharacterBody3D", body.BodyType);
+        Assert.Equal("CapsuleShape3D", shape.ShapeType);
+        Assert.Single(shape.Properties);
+        Assert.Equal("./Player", create.BodyPath);
+        Assert.True(validate.Success);
+        Assert.Equal(2, setLayers.CollisionLayer);
+        Assert.Equal("./Player", runChecks.BodyPath);
+        Assert.Equal(5, layerResult.CollisionMask);
+        Assert.Empty(checkResult.Issues!);
+    }
+
+    [Fact]
+    public void NavigationLintAndPresetModels_ShouldCreateWithExpectedValues()
+    {
+        var nav = new NavigationRegionInfo("RegionA", "./RegionA", true);
+        var navCreate = new NavigationCreateRegionRequest("res://scenes/main.tscn", ".", "RegionA");
+        var navResult = new NavigationResult(true, "Baked");
+
+        var issue = new LintIssue("L001", "warning", "Unused node", "./Temp");
+        var lintResult = new LintResult(new[] { issue }, true);
+
+        var presetReq = new PresetApplyRequest("res://scenes/main.tscn", "./Player", "player_default");
+        var presetResult = new PresetResult(true, "Applied", "./Player");
+
+        Assert.Equal("RegionA", nav.Name);
+        Assert.Equal(".", navCreate.ParentPath);
+        Assert.True(navResult.Success);
+        Assert.Single(lintResult.Issues);
+        Assert.Equal("L001", lintResult.Issues[0].Code);
+        Assert.Equal("player_default", presetReq.PresetName);
+        Assert.Equal("./Player", presetResult.AppliedToPath);
+    }
 }

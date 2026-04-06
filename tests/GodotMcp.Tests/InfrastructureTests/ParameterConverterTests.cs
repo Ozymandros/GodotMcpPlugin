@@ -16,7 +16,7 @@ public class ParameterConverterTests
     {
         _converter = new ParameterConverter(NullLogger<ParameterConverter>.Instance);
         GodotTypeConverter.RegisterDefaults(_converter);
-        
+
         // Create test-specific JSON options without source generator for test types
         _testJsonOptions = new JsonSerializerOptions
         {
@@ -345,7 +345,7 @@ public class ParameterConverterTests
         Assert.True(result.ContainsKey("objects"));
         var list = Assert.IsType<List<object?>>(result["objects"]);
         Assert.Equal(2, list.Count);
-        
+
         var firstElement = Assert.IsType<JsonElement>(list[0]);
         Assert.Equal("Renderer", firstElement.GetProperty("type").GetString());
     }
@@ -508,7 +508,10 @@ public class ParameterConverterTests
     {
         // Arrange
         var vector = new Vector3(1.0f, 2.0f, 3.0f);
-        var jsonElement = JsonSerializer.SerializeToElement(vector, McpJsonSerializerContext.Default.Vector3);
+        var jsonElement = JsonSerializer.SerializeToElement(vector, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
         var response = new McpResponse(
             Id: "test-3",
             Success: true,
@@ -570,7 +573,10 @@ public class ParameterConverterTests
                 new ComponentDefinition("Renderer", new Dictionary<string, object?> { ["enabled"] = true })
             }
         );
-        var jsonElement = JsonSerializer.SerializeToElement(gameObject, McpJsonSerializerContext.Default.GameObjectDefinition);
+        var jsonElement = JsonSerializer.SerializeToElement(gameObject, new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
         var response = new McpResponse(
             Id: "test-6",
             Success: true,
@@ -600,9 +606,9 @@ public class ParameterConverterTests
         );
 
         // Act & Assert
-        var exception = Assert.Throws<TypeConversionException>(() => 
+        var exception = Assert.Throws<TypeConversionException>(() =>
             _converter.ConvertFromMcp<int>(response));
-        
+
         Assert.Contains("Failed to convert MCP response to type", exception.Message);
         Assert.NotNull(exception.SourceType);
         Assert.NotNull(exception.TargetType);
@@ -681,7 +687,7 @@ public class ParameterConverterTests
         // Arrange
         var converter1 = new TestTypeConverter();
         var converter2 = new AnotherTestTypeConverter();
-        
+
         _converter.RegisterConverter(converter1);
         _converter.RegisterConverter(converter2);
 
