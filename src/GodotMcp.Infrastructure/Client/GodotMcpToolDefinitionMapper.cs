@@ -78,11 +78,7 @@ internal static class GodotMcpToolDefinitionMapper
 
         foreach (var reqName in requiredElement.EnumerateArray())
         {
-            var name = reqName.GetString();
-            if (!string.IsNullOrWhiteSpace(name))
-            {
-                requiredNames.Add(name);
-            }
+            AddRequiredNameCandidate(requiredNames, reqName);
         }
 
         return requiredNames;
@@ -190,6 +186,33 @@ internal static class GodotMcpToolDefinitionMapper
             "bool" => "boolean",
             var normalized => normalized
         };
+    }
+
+    private static void AddRequiredNameCandidate(HashSet<string> requiredNames, JsonElement candidate)
+    {
+        // Defensive parsing: some servers emit non-standard "required" payloads where
+        // entries can be arrays (e.g. ["paramA", "paramB"]) instead of plain strings.
+        // We flatten arrays and only keep string entries.
+        switch (candidate.ValueKind)
+        {
+            case JsonValueKind.String:
+            {
+                var name = candidate.GetString();
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    requiredNames.Add(name);
+                }
+
+                break;
+            }
+            case JsonValueKind.Array:
+                foreach (var nested in candidate.EnumerateArray())
+                {
+                    AddRequiredNameCandidate(requiredNames, nested);
+                }
+
+                break;
+        }
     }
 
     private static object? ParseJsonValue(JsonElement element)
