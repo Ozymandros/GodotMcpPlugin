@@ -196,7 +196,6 @@ internal static class GodotMcpToolDefinitionMapper
         switch (candidate.ValueKind)
         {
             case JsonValueKind.String:
-            {
                 var name = candidate.GetString();
                 if (!string.IsNullOrWhiteSpace(name))
                 {
@@ -204,7 +203,6 @@ internal static class GodotMcpToolDefinitionMapper
                 }
 
                 break;
-            }
             case JsonValueKind.Array:
                 foreach (var nested in candidate.EnumerateArray())
                 {
