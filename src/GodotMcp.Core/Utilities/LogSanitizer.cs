@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 namespace GodotMcp.Core.Utilities;
 
@@ -7,7 +7,7 @@ namespace GodotMcp.Core.Utilities;
 /// </summary>
 public static partial class LogSanitizer
 {
-    private static readonly string[] SensitiveKeys = 
+    private static readonly string[] SensitiveKeys =
     [
         "password",
         "token",
@@ -127,7 +127,7 @@ public static partial class LogSanitizer
         }
 
         var lowerKey = key.ToLowerInvariant();
-        
+
         return SensitiveKeys.Any(sensitiveKey => lowerKey.Contains(sensitiveKey));
     }
 

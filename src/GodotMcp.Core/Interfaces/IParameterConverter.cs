@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Interfaces;
+namespace GodotMcp.Core.Interfaces;
 
 /// <summary>
 /// Converts between C# types and MCP parameter formats
@@ -14,7 +14,7 @@ public interface IParameterConverter
     IReadOnlyDictionary<string, object?> ConvertToMcp(
         IReadOnlyDictionary<string, object?> parameters,
         McpToolDefinition toolDefinition);
-    
+
     /// <summary>
     /// Converts MCP response to C# type
     /// </summary>
@@ -22,7 +22,7 @@ public interface IParameterConverter
     /// <param name="response">The MCP response to convert</param>
     /// <returns>The converted value of type T, or null if conversion fails</returns>
     T? ConvertFromMcp<T>(McpResponse response);
-    
+
     /// <summary>
     /// Registers a custom type converter
     /// </summary>

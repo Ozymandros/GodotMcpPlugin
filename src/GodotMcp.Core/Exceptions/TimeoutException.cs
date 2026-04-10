@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Exceptions;
+namespace GodotMcp.Core.Exceptions;
 
 /// <summary>
 /// Thrown when an operation exceeds its configured timeout period.
@@ -18,7 +18,7 @@ public class TimeoutException : GodotMcpException
     /// A <see cref="TimeSpan"/> representing the configured timeout duration.
     /// </value>
     public TimeSpan Timeout { get; init; }
-    
+
     /// <summary>
     /// Gets the name of the operation that timed out.
     /// </summary>
@@ -26,7 +26,7 @@ public class TimeoutException : GodotMcpException
     /// A string identifying the operation (e.g., "Connect", "InvokeTool"), or null if not specified.
     /// </value>
     public string? Operation { get; init; }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TimeoutException"/> class with a specified error message,
     /// timeout duration, and optional operation name.

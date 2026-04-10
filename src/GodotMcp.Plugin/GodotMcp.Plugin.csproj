@@ -9,18 +9,27 @@
 
 		<!-- NuGet Package Metadata -->
 		<PackageId>GodotMcp.SemanticKernel.Plugin</PackageId>
-		<Version>1.2.1</Version>
+		<Version>1.4.1</Version>
 		<Authors>Godot MCP Contributors</Authors>
 		<Description>A Semantic Kernel plugin that bridges SK applications with Godot Editor automation through the Model Context Protocol (MCP). Enables AI agents to interact with Godot environments via stdio transport.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/Ozymandros/Godot-MCP-SK-Plugin</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/Ozymandros/Godot-MCP-SK-Plugin</RepositoryUrl>
+		<PackageProjectUrl>https://github.com/Ozymandros/GodotMcpPlugin</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Ozymandros/GodotMcpPlugin</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>semantic-kernel;Godot;mcp;model-context-protocol</PackageTags>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageOutputPath>.\nupkg</PackageOutputPath>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageReleaseNotes>
+			This package is part of the Godot MCP ecosystem.
+			Contributions from the Godot MCP community are welcome.
+		</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<ItemGroup>

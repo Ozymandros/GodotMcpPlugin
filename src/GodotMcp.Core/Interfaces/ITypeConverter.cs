@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Interfaces;
+namespace GodotMcp.Core.Interfaces;
 
 /// <summary>
 /// Custom type converter for specific types
@@ -12,7 +12,7 @@ public interface ITypeConverter<T>
     /// <param name="value">The value to convert</param>
     /// <returns>The value in MCP format, or null if conversion fails</returns>
     object? ToMcp(T value);
-    
+
     /// <summary>
     /// Converts from MCP format to typed value
     /// </summary>

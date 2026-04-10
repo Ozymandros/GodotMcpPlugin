@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Models;
+namespace GodotMcp.Core.Models;
 
 /// <summary>
 /// Connection state enumeration

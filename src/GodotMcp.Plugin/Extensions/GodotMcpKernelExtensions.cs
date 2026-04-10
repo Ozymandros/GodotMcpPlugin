@@ -1,5 +1,6 @@
 using Microsoft.SemanticKernel;
 using GodotMcp.Core.Interfaces;
+using GodotMcp.Plugin.Skills;
 
 namespace GodotMcp.Plugin.Extensions;
 
@@ -10,6 +11,42 @@ namespace GodotMcp.Plugin.Extensions;
 /// </summary>
 public static class GodotMcpKernelExtensions
 {
+    /// <summary>
+    /// Registers typed Godot MCP skill modules on a kernel.
+    /// </summary>
+    /// <param name="kernel">The kernel to register skills on.</param>
+    /// <param name="mcpClient">The MCP client used by all skill modules.</param>
+    public static void AddGodotMcpSkills(this Kernel kernel, IMcpClient mcpClient)
+    {
+        ArgumentNullException.ThrowIfNull(kernel);
+        ArgumentNullException.ThrowIfNull(mcpClient);
+
+        kernel.Plugins.AddFromObject(new SceneSkill(mcpClient), "scene");
+        kernel.Plugins.AddFromObject(new ProjectSkill(mcpClient), "project");
+        kernel.Plugins.AddFromObject(new ResourceSkill(mcpClient), "resource");
+        kernel.Plugins.AddFromObject(new ScriptSkill(mcpClient), "script");
+        kernel.Plugins.AddFromObject(new ImportSkill(mcpClient), "import");
+        kernel.Plugins.AddFromObject(new CameraSkill(mcpClient), "camera");
+        kernel.Plugins.AddFromObject(new UiSkill(mcpClient), "ui");
+        kernel.Plugins.AddFromObject(new LightingSkill(mcpClient), "light");
+        kernel.Plugins.AddFromObject(new PhysicsSkill(mcpClient), "physics");
+        kernel.Plugins.AddFromObject(new NavigationSkill(mcpClient), "nav");
+        kernel.Plugins.AddFromObject(new AdvancedLintSkill(mcpClient), "lint");
+        kernel.Plugins.AddFromObject(new PresetSkill(mcpClient), "preset");
+    }
+
+    /// <summary>
+    /// Registers typed Godot MCP skill modules by resolving <see cref="IMcpClient"/> from a service provider.
+    /// </summary>
+    /// <param name="kernel">The kernel to register skills on.</param>
+    /// <param name="serviceProvider">The service provider used to resolve dependencies.</param>
+    public static void AddGodotMcpSkills(this Kernel kernel, IServiceProvider serviceProvider)
+    {
+        ArgumentNullException.ThrowIfNull(serviceProvider);
+        var mcpClient = serviceProvider.GetRequiredService<IMcpClient>();
+        kernel.AddGodotMcpSkills(mcpClient);
+    }
+
     /// <summary>
     /// Registers all discovered Godot MCP tools as individual kernel functions under a single plugin.
     /// </summary>

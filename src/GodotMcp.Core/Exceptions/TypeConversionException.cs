@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Exceptions;
+namespace GodotMcp.Core.Exceptions;
 
 /// <summary>
 /// Thrown when type conversion between C# types and MCP parameter formats fails.
@@ -17,7 +17,7 @@ public class TypeConversionException : GodotMcpException
     /// The <see cref="Type"/> of the source value, or null if not available.
     /// </value>
     public Type? SourceType { get; init; }
-    
+
     /// <summary>
     /// Gets the target type that was being converted to.
     /// </summary>
@@ -25,7 +25,7 @@ public class TypeConversionException : GodotMcpException
     /// The <see cref="Type"/> of the target value, or null if not available.
     /// </value>
     public Type? TargetType { get; init; }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="TypeConversionException"/> class with a specified error message
     /// and optional source and target type information.

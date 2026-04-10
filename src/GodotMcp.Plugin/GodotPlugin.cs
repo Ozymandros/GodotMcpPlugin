@@ -136,7 +136,7 @@ public sealed partial class GodotPlugin(
         LogInitializing();
 
         await _mcpClient.ConnectAsync(cancellationToken);
-        
+
         var tools = await _mcpClient.ListToolsAsync(cancellationToken);
         await _functionMapper.RegisterToolsAsync(tools, cancellationToken);
 
@@ -221,9 +221,9 @@ public sealed partial class GodotPlugin(
         try
         {
             var mcpParameters = _parameterConverter.ConvertToMcp(parameters, toolDefinition);
-            
+
             var response = await _mcpClient.InvokeToolAsync(normalizedToolName, mcpParameters, cancellationToken);
-            
+
             return response.Result;
         }
         catch (Exception ex) when (ex is not GodotMcpException)

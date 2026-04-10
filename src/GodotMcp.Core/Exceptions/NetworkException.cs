@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Exceptions;
+namespace GodotMcp.Core.Exceptions;
 
 /// <summary>
 /// Thrown when network communication with the godot-mcp server fails.
@@ -17,19 +17,19 @@ public class NetworkException : GodotMcpException
     /// A string representing the network endpoint (e.g., "stdio://godot-mcp"), or null if not applicable.
     /// </value>
     public string? Endpoint { get; init; }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="NetworkException"/> class with a specified error message
     /// and optional endpoint information.
     /// </summary>
     /// <param name="message">The message that describes the network error.</param>
     /// <param name="endpoint">The endpoint that failed, or null if not applicable.</param>
-    public NetworkException(string message, string? endpoint = null) 
+    public NetworkException(string message, string? endpoint = null)
         : base(message)
     {
         Endpoint = endpoint;
     }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="NetworkException"/> class with a specified error message,
     /// inner exception, and optional endpoint information.

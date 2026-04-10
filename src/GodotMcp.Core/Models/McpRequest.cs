@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Models;
+namespace GodotMcp.Core.Models;
 
 /// <summary>
 /// Represents a JSON-RPC 2.0 MCP request sent to the godot-mcp server

@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Interfaces;
+namespace GodotMcp.Core.Interfaces;
 
 /// <summary>
 /// Handles serialization and deserialization of MCP messages
@@ -11,14 +11,14 @@ public interface IRequestHandler
     /// <param name="request">The MCP request to serialize</param>
     /// <returns>The serialized JSON string</returns>
     string SerializeRequest(McpRequest request);
-    
+
     /// <summary>
     /// Deserializes an MCP response
     /// </summary>
     /// <param name="json">The JSON string to deserialize</param>
     /// <returns>The deserialized MCP response</returns>
     McpResponse DeserializeResponse(string json);
-    
+
     /// <summary>
     /// Pretty prints an MCP message for debugging
     /// </summary>

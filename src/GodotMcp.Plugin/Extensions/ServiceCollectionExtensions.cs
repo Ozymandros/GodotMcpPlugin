@@ -6,6 +6,7 @@ using GodotMcp.Infrastructure.Client;
 using GodotMcp.Infrastructure.Configuration;
 using GodotMcp.Infrastructure.Conversion;
 using GodotMcp.Plugin.Mapping;
+using GodotMcp.Plugin.Skills;
 
 namespace GodotMcp.Plugin.Extensions;
 
@@ -29,7 +30,7 @@ public static class ServiceCollectionExtensions
     /// - Function mapper for MCP tool to SK function mapping
     /// - MCP client for stdio communication
     /// - Godot plugin for Semantic Kernel integration
-    /// 
+    ///
     /// Configuration is read from the "GodotMcp" section by default.
     /// Use the serviceKey parameter to register multiple plugin instances with different configurations.
     /// </remarks>
@@ -52,7 +53,7 @@ public static class ServiceCollectionExtensions
         // Register configuration with validation
         var configSection = configuration.GetSection(GodotMcpOptions.SectionName);
         services.Configure<GodotMcpOptions>(options => configSection.Bind(options));
-        
+
         // Enable validation on start
         services.AddOptions<GodotMcpOptions>().ValidateOnStart();
 
@@ -149,12 +150,26 @@ public static class ServiceCollectionExtensions
         // Register IFunctionMapper as singleton with FunctionMapper implementation
         services.AddSingleton<IFunctionMapper, FunctionMapper>();
 
-        // Official MCP stdio client (GodotMCP.Server 1.2.x / tools/call)
+        // Official MCP stdio client (GodotMCP.Server 1.2+ / tools/call)
         services.AddSingleton<IMcpProtocolClientFactory, McpSdkProtocolClientFactory>();
         services.AddSingleton<IMcpClient, StdioMcpClient>();
 
         // Register GodotPlugin as singleton
         services.AddSingleton<GodotPlugin>();
+
+        // Register typed skill modules
+        services.AddSingleton<SceneSkill>();
+        services.AddSingleton<ProjectSkill>();
+        services.AddSingleton<ResourceSkill>();
+        services.AddSingleton<ScriptSkill>();
+        services.AddSingleton<ImportSkill>();
+        services.AddSingleton<CameraSkill>();
+        services.AddSingleton<UiSkill>();
+        services.AddSingleton<LightingSkill>();
+        services.AddSingleton<PhysicsSkill>();
+        services.AddSingleton<NavigationSkill>();
+        services.AddSingleton<AdvancedLintSkill>();
+        services.AddSingleton<PresetSkill>();
     }
 
     /// <summary>
@@ -205,5 +220,30 @@ public static class ServiceCollectionExtensions
             var logger = sp.GetRequiredService<ILogger<GodotPlugin>>();
             return new GodotPlugin(mcpClient, functionMapper, parameterConverter, logger);
         });
+
+        services.AddKeyedSingleton<SceneSkill>(serviceKey, (sp, key) =>
+            new SceneSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<ProjectSkill>(serviceKey, (sp, key) =>
+            new ProjectSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<ResourceSkill>(serviceKey, (sp, key) =>
+            new ResourceSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<ScriptSkill>(serviceKey, (sp, key) =>
+            new ScriptSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<ImportSkill>(serviceKey, (sp, key) =>
+            new ImportSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<CameraSkill>(serviceKey, (sp, key) =>
+            new CameraSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<UiSkill>(serviceKey, (sp, key) =>
+            new UiSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<LightingSkill>(serviceKey, (sp, key) =>
+            new LightingSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<PhysicsSkill>(serviceKey, (sp, key) =>
+            new PhysicsSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<NavigationSkill>(serviceKey, (sp, key) =>
+            new NavigationSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<AdvancedLintSkill>(serviceKey, (sp, key) =>
+            new AdvancedLintSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<PresetSkill>(serviceKey, (sp, key) =>
+            new PresetSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
     }
 }

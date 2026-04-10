@@ -12,7 +12,7 @@
 <!-- Project -->
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A .NET 10 Semantic Kernel plugin that connects SK agents/apps to **`GodotMCP.Server` 1.2.x** (the .NET global tool `godot-mcp`) using the official **[ModelContextProtocol](https://www.nuget.org/packages/ModelContextProtocol)** .NET SDK over stdio (`initialize`, `tools/list`, `tools/call`), and dynamically exposes Godot automation tools as Kernel functions.
+A .NET 10 Semantic Kernel plugin that connects SK agents/apps to **`GodotMCP.Server` 1.2+** (including newer tool surfaces such as camera settings in current releases) via the .NET global tool `godot-mcp`, using the official **[ModelContextProtocol](https://www.nuget.org/packages/ModelContextProtocol)** .NET SDK over stdio (`initialize`, `tools/list`, `tools/call`) and dynamically exposing Godot automation tools as Kernel functions.
 
 ### Key Features
 
@@ -93,6 +93,94 @@ This plugin supports full dynamic discovery and invocation of the local `GD_MCP-
 
 Detailed reference: `Docs/tool-contracts.md`.
 
+### Typed Module Wrappers And Skills
+
+In addition to dynamic discovery, the plugin exposes strongly-typed module wrappers (Infrastructure) and Semantic Kernel skill methods (Plugin) for common workflows.
+
+Project module:
+- `create_godot_project`
+- `get_project_info`
+- `configure_autoload`
+- `add_plugin`
+
+UI module (`ui.*`):
+- `ui.list_controls`
+- `ui.add_control` (with fallback support for `ui.create_control`)
+- `ui.set_control_properties` (with fallback support for `ui.update_control`)
+- `ui.set_layout_preset` (with fallback support for `ui.apply_layout_preset`)
+- `ui.list_themes`
+- `ui.apply_theme`
+
+Lighting module (`light.*`):
+- `light.list`
+- `light.create`
+- `light.update`
+- `light.tune`
+- `light.validate`
+
+Script module:
+- `create_script`
+- `attach_script`
+- `validate_script`
+
+Import module:
+- `generate_import_file`
+- `create_texture`
+- `create_audio`
+- `reimport_asset`
+
+Lint module (`lint.*` + compatibility):
+- `lint.scene_advanced`
+- `lint.project_advanced`
+- `lint_project` (via compatibility wrapper)
+
+Physics module (`physics.*`):
+- `physics.list_bodies`
+- `physics.create_body`
+- `physics.update_body`
+- `physics.list_shapes`
+- `physics.create_shape`
+- `physics.update_shape`
+- `physics.set_layers`
+- `physics.run_checks`
+- `physics.validate`
+
+Camera module (`camera.*`):
+- `camera.list`
+- `camera.create`
+- `camera.update`
+- `camera.validate`
+
+These typed surfaces are additive: if a server does not expose a given command, dynamic discovery still provides the authoritative runtime list.
+
+### Typed Module Quick Examples
+
+```csharp
+var mcpClient = host.Services.GetRequiredService<IMcpClient>();
+
+// UI: apply a theme to a control
+var uiTheme = await mcpClient.UiApplyThemeAsync(
+  new UiApplyThemeRequest("res://scenes/ui.tscn", "./RootPanel", "dark_flat"));
+
+// Lighting: tune an existing light
+var tunedLight = await mcpClient.LightTuneAsync(
+  new LightTuneRequest(
+    "res://scenes/main.tscn",
+    "./Sun",
+    new Dictionary<string, object?>
+    {
+      ["energy"] = 2.5,
+      ["color"] = new { r = 1.0, g = 0.95, b = 0.85, a = 1.0 }
+    }));
+
+// Physics: set layers and run checks
+var layerResult = await mcpClient.PhysicsSetLayersAsync(
+  new PhysicsSetLayersRequest("res://scenes/main.tscn", "./Player", collisionLayer: 2, collisionMask: 5));
+
+var checks = await mcpClient.PhysicsRunChecksAsync(
+  new PhysicsRunChecksRequest("res://scenes/main.tscn", "./Player"));
+```
+
 ## Documentation
 
 - `Docs/tool-contracts.md`
@@ -130,28 +218,16 @@ dotnet test GodotMcp.sln --collect:"XPlat Code Coverage" --settings coverlet.run
 
 ## Available Functions
 
-The plugin automatically discovers available Godot functions from the godot-mcp-Server. Common functions include:
+The plugin is discovery-first and maps the server-advertised tools from `tools/list` at runtime.
 
-### Scene Management
-- `Godot_create_scene` - Create a new Godot scene
-- `Godot_load_scene` - Load an existing scene
-- `Godot_save_scene` - Save the current scene
+Typical families available on recent `GD_MCP-Server` builds include:
+- Core: `health_check`, `get_server_info`, `get_server_capabilities`
+- Project: `create_godot_project`, `get_project_info`
+- Scene/Node: `create_scene`, `add_node`, `set_node_property`, `remove_node`
+- Script/Resource: `create_script`, `attach_script`, `create_resource`, `reimport_asset`
+- Typed modules (when exposed by server): `ui.*`, `light.*`, `physics.*`, `camera.*`
 
-### GameObject Operations
-- `Godot_create_gameobject` - Create a new GameObject
-- `Godot_delete_gameobject` - Delete a GameObject
-- `Godot_find_gameobject` - Find GameObject by name or tag
-
-### Asset Management
-- `Godot_import_asset` - Import an asset into the project
-- `Godot_create_material` - Create a new material
-- `Godot_create_prefab` - Create a prefab from GameObject
-
-### Project Information
-- `Godot_get_project_info` - Get Godot project information
-- `Godot_list_scenes` - List all scenes in the project
-
-**Note**: The exact list of available functions depends on the godot-mcp-Server version. Use `ListToolsAsync()` to discover all available functions at runtime.
+The exact list depends on the connected server version and installed integrations. Use `ListToolsAsync()` to inspect the authoritative runtime surface.
 
 ## Advanced Usage
 

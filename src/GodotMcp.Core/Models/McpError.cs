@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Models;
+namespace GodotMcp.Core.Models;
 
 /// <summary>
 /// Represents an MCP error returned in a JSON-RPC error response

@@ -12,13 +12,43 @@ permissions:
   contents: read
 
 jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+          dotnet-quality: "preview"
+
+      - name: Restore
+        run: dotnet restore GodotMcp.sln
+
+      - name: Verify formatting
+        run: dotnet format GodotMcp.sln --verify-no-changes --no-restore
+
+      - name: Build (analyzers)
+        run: dotnet build GodotMcp.sln --no-restore -c Release -p:RunAnalyzers=true -p:EnableNETAnalyzers=true
+
+      - name: Test
+        run: dotnet test GodotMcp.sln --no-build -c Release --verbosity normal --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+
+      - name: Restore sample host
+        run: dotnet restore samples/GodotMcp.Sample/GodotMcp.Sample.csproj
+
+      - name: Build sample host
+        run: dotnet build samples/GodotMcp.Sample/GodotMcp.Sample.csproj --no-restore -c Release
+
   build-and-test:
     name: Build & Test (${{ matrix.os }})
+    needs: quality-gate
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -33,13 +63,7 @@ jobs:
         run: dotnet restore GodotMcp.sln
 
       - name: Build
-        run: dotnet build GodotMcp.sln --no-restore -c Release
+        run: dotnet build GodotMcp.sln --no-restore -c Release -p:RunAnalyzers=true -p:EnableNETAnalyzers=true
 
       - name: Test
         run: dotnet test GodotMcp.sln --no-build -c Release --verbosity normal --collect:"XPlat Code Coverage" --settings coverlet.runsettings
-
-      - name: Restore sample host
-        run: dotnet restore samples/GodotMcp.Sample/GodotMcp.Sample.csproj
-
-      - name: Build sample host
-        run: dotnet build samples/GodotMcp.Sample/GodotMcp.Sample.csproj --no-restore -c Release

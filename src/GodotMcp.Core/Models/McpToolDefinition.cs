@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Models;
+namespace GodotMcp.Core.Models;
 
 /// <summary>
 /// Represents an MCP tool definition discovered from the godot-mcp server

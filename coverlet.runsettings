@@ -9,6 +9,9 @@
           <ExcludeByFile>**/obj/**,**/*.g.cs,**/*AssemblyInfo.cs</ExcludeByFile>
           <Exclude>[*.Tests]*,[xunit.*]*,[NSubstitute*]*</Exclude>
           <SkipAutoProps>true</SkipAutoProps>
+          <Threshold>60</Threshold>
+          <ThresholdType>line,branch,method</ThresholdType>
+          <ThresholdStat>total</ThresholdStat>
         </Configuration>
       </DataCollector>
     </DataCollectors>

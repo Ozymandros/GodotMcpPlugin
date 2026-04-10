@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.SemanticKernel;
 using GodotMcp.Core.Models;
 using GodotMcp.Plugin.Mapping;
@@ -164,16 +164,16 @@ public class FunctionMapperTests
         // Assert
         Assert.NotNull(result);
         Assert.Equal(3, result.Parameters.Count);
-        
+
         var nameParam = result.Parameters.First(p => p.Name == "name");
         Assert.True(nameParam.IsRequired);
         Assert.Equal(typeof(string), nameParam.ParameterType);
-        
+
         var countParam = result.Parameters.First(p => p.Name == "count");
         Assert.False(countParam.IsRequired);
         Assert.Equal(typeof(int), countParam.ParameterType);
         Assert.Equal(1, countParam.DefaultValue);
-        
+
         var enabledParam = result.Parameters.First(p => p.Name == "enabled");
         Assert.False(enabledParam.IsRequired);
         Assert.Equal(typeof(bool), enabledParam.ParameterType);
@@ -508,6 +508,52 @@ public class FunctionMapperTests
 
         // Assert
         Assert.Equal(typeof(object), result.Parameters[0].ParameterType);
+    }
+
+    [Fact]
+    public void MapToKernelFunction_WithUnionParameterType_MapsToFirstKnownType()
+    {
+        // Arrange
+        var toolDefinition = new McpToolDefinition(
+            Name: "set_camera",
+            Description: "Sets camera property",
+            Parameters: new Dictionary<string, McpParameterDefinition>
+            {
+                ["fov"] = new McpParameterDefinition(
+                    Name: "fov",
+                    Type: "number|null",
+                    Required: true
+                )
+            }
+        );
+
+        // Act
+        var result = _mapper.MapToKernelFunction(toolDefinition);
+
+        // Assert
+        Assert.Equal(typeof(double), result.Parameters[0].ParameterType);
+    }
+
+    [Fact]
+    public void MapToKernelFunction_WithUnionReturnType_MapsToFirstKnownType()
+    {
+        // Arrange
+        var toolDefinition = new McpToolDefinition(
+            Name: "get_camera_mode",
+            Description: "Gets camera mode",
+            Parameters: new Dictionary<string, McpParameterDefinition>(),
+            ReturnType: new McpReturnType(
+                Type: "integer|string",
+                Description: "Camera mode"
+            )
+        );
+
+        // Act
+        var result = _mapper.MapToKernelFunction(toolDefinition);
+
+        // Assert
+        Assert.NotNull(result.ReturnParameter);
+        Assert.Equal(typeof(int), result.ReturnParameter.ParameterType);
     }
 
     [Fact]

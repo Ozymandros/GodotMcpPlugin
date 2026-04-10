@@ -1,7 +1,8 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Frozen;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace GodotMcp.Infrastructure.Conversion;
 
@@ -21,13 +22,15 @@ public sealed partial class ParameterConverter : IParameterConverter
     public ParameterConverter(ILogger<ParameterConverter> logger)
     {
         _logger = logger;
-        
+
         // Configure JsonSerializerOptions with source generator context for complex type serialization
         _jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
-            TypeInfoResolver = McpJsonSerializerContext.Default
+            TypeInfoResolver = JsonTypeInfoResolver.Combine(
+                McpJsonSerializerContext.Default,
+                new DefaultJsonTypeInfoResolver())
         };
 
         // Initialize with empty frozen dictionary (immutable, high-performance)
@@ -52,14 +55,14 @@ public sealed partial class ParameterConverter : IParameterConverter
             }
 
             var valueType = value.GetType();
-            
+
             // Check for custom converter
             if (_converters.TryGetValue(valueType, out var converter))
             {
                 var converterType = typeof(ITypeConverter<>).MakeGenericType(valueType);
                 var toMcpMethod = converterType.GetMethod("ToMcp");
                 converted[key] = toMcpMethod?.Invoke(converter, [value]);
-                
+
                 LogCustomConverterUsed(key, valueType.Name);
             }
             // Handle primitives
@@ -81,7 +84,7 @@ public sealed partial class ParameterConverter : IParameterConverter
         }
 
         LogParametersConverted(parameters.Count, converted.Count);
-        
+
         return converted;
     }
 
@@ -105,9 +108,9 @@ public sealed partial class ParameterConverter : IParameterConverter
                 var converterType = typeof(ITypeConverter<>).MakeGenericType(targetType);
                 var fromMcpMethod = converterType.GetMethod("FromMcp");
                 var result = (T?)fromMcpMethod?.Invoke(converter, [response.Result]);
-                
+
                 LogCustomConverterUsed("response", targetType.Name);
-                
+
                 return result;
             }
 
@@ -128,15 +131,15 @@ public sealed partial class ParameterConverter : IParameterConverter
             // Serialize then deserialize for complex types using source generators
             var json = JsonSerializer.Serialize(response.Result, _jsonOptions);
             var deserializedResult = JsonSerializer.Deserialize<T>(json, _jsonOptions);
-            
+
             LogResponseDeserialized(targetType.Name);
-            
+
             return deserializedResult;
         }
         catch (Exception ex)
         {
             LogConversionFailed(targetType.Name, ex);
-            
+
             throw new TypeConversionException(
                 $"Failed to convert MCP response to type {targetType.Name}",
                 response.Result?.GetType(),
@@ -152,10 +155,10 @@ public sealed partial class ParameterConverter : IParameterConverter
         // Create a new dictionary with the additional converter
         var newConverters = _converters.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         newConverters[typeof(T)] = converter;
-        
+
         // Replace with new frozen dictionary (immutable, high-performance)
         _converters = newConverters.ToFrozenDictionary();
-        
+
         LogConverterRegistered(typeof(T).Name);
     }
 
@@ -164,11 +167,11 @@ public sealed partial class ParameterConverter : IParameterConverter
     /// </summary>
     private static bool IsPrimitive(Type type)
     {
-        return type.IsPrimitive 
-            || type == typeof(string) 
-            || type == typeof(decimal) 
-            || type == typeof(DateTime) 
-            || type == typeof(DateTimeOffset) 
+        return type.IsPrimitive
+            || type == typeof(string)
+            || type == typeof(decimal)
+            || type == typeof(DateTime)
+            || type == typeof(DateTimeOffset)
             || type == typeof(Guid);
     }
 
@@ -178,7 +181,7 @@ public sealed partial class ParameterConverter : IParameterConverter
     private object ConvertCollection(IEnumerable enumerable)
     {
         var list = new List<object?>();
-        
+
         foreach (var item in enumerable)
         {
             if (item == null)
@@ -194,7 +197,7 @@ public sealed partial class ParameterConverter : IParameterConverter
                 list.Add(JsonSerializer.SerializeToElement(item, _jsonOptions));
             }
         }
-        
+
         return list;
     }
 

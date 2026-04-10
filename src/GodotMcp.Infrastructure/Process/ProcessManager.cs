@@ -22,17 +22,17 @@ public sealed partial class ProcessManager : IProcessManager, IAsyncDisposable
     /// Gets the current process state
     /// </summary>
     public ProcessState State => _state;
-    
+
     /// <summary>
     /// Gets the stdin stream for writing requests
     /// </summary>
-    public Stream StandardInput => _process?.StandardInput.BaseStream 
+    public Stream StandardInput => _process?.StandardInput.BaseStream
         ?? throw new ProcessException("Process not started");
-    
+
     /// <summary>
     /// Gets the stdout stream for reading responses
     /// </summary>
-    public Stream StandardOutput => _process?.StandardOutput.BaseStream 
+    public Stream StandardOutput => _process?.StandardOutput.BaseStream
         ?? throw new ProcessException("Process not started");
 
     /// <summary>
@@ -68,7 +68,7 @@ public sealed partial class ProcessManager : IProcessManager, IAsyncDisposable
             {
                 _lastActivityTime = DateTime.UtcNow;
                 LogProcessAlreadyRunning(_process.Id);
-                
+
                 var startTime = DateTime.UtcNow;
                 try { startTime = _process.StartTime; } catch { /* use UtcNow fallback */ }
 
@@ -93,7 +93,7 @@ public sealed partial class ProcessManager : IProcessManager, IAsyncDisposable
         CancellationToken cancellationToken)
     {
         _state = ProcessState.Starting;
-        
+
         // Sanitize executable path before logging (may contain sensitive paths)
         var sanitizedPath = SanitizeExecutablePath(_options.ExecutablePath);
         LogStartingProcess(sanitizedPath);
@@ -124,7 +124,7 @@ public sealed partial class ProcessManager : IProcessManager, IAsyncDisposable
             // Wait for process to be ready (with timeout)
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             cts.CancelAfter(TimeSpan.FromSeconds(_options.ConnectionTimeoutSeconds));
-            
+
             // Give process time to initialize
             await Task.Delay(500, cts.Token);
 
@@ -194,17 +194,17 @@ public sealed partial class ProcessManager : IProcessManager, IAsyncDisposable
             }
 
             _state = ProcessState.Stopping;
-            
+
             LogStoppingProcess(_process.Id);
 
             try
             {
                 // Close stdin to signal graceful shutdown
                 _process.StandardInput.Close();
-                
+
                 // Wait for graceful exit with timeout
                 var exitedGracefully = await Task.Run(() => _process.WaitForExit(5000), cancellationToken);
-                
+
                 if (!exitedGracefully)
                 {
                     LogProcessForceKill(_process.Id);
@@ -248,7 +248,7 @@ public sealed partial class ProcessManager : IProcessManager, IAsyncDisposable
                     // Ignore errors during disposal
                 }
             }
-            
+
             _process?.Dispose();
         }
         finally
@@ -277,7 +277,7 @@ public sealed partial class ProcessManager : IProcessManager, IAsyncDisposable
                     // Ignore errors during disposal
                 }
             }
-            
+
             _process?.Dispose();
         }
         finally
@@ -288,7 +288,7 @@ public sealed partial class ProcessManager : IProcessManager, IAsyncDisposable
     }
 
     // LoggerMessage source generator methods for high-performance structured logging
-    
+
     [LoggerMessage(
         EventId = 1001,
         Level = LogLevel.Debug,

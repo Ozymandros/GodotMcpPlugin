@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using GodotMcp.Infrastructure.Configuration;
 using GodotMcp.Infrastructure.Process;
@@ -143,7 +143,7 @@ public sealed class ProcessManagerTests : IDisposable
 
         // Act
         var firstProcessInfo = await manager.EnsureProcessRunningAsync();
-        
+
         // Immediately call again before process exits
         var secondProcessInfo = await manager.EnsureProcessRunningAsync();
 
@@ -164,7 +164,7 @@ public sealed class ProcessManagerTests : IDisposable
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ProcessException>(
             () => manager.EnsureProcessRunningAsync());
-        
+
         Assert.Contains("Failed to start godot-mcp process", exception.Message);
         Assert.Equal(ProcessState.Faulted, manager.State);
     }
@@ -226,7 +226,7 @@ public sealed class ProcessManagerTests : IDisposable
         // Arrange
         var manager = CreateProcessManager(CreateDefaultOptions());
         await manager.EnsureProcessRunningAsync();
-        
+
         var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -267,7 +267,7 @@ public sealed class ProcessManagerTests : IDisposable
 
         // Act & Assert
         Assert.Equal(ProcessState.NotStarted, manager.State);
-        
+
         await manager.EnsureProcessRunningAsync();
         Assert.Equal(ProcessState.Running, manager.State);
     }
@@ -281,7 +281,7 @@ public sealed class ProcessManagerTests : IDisposable
         // Act & Assert
         await manager.EnsureProcessRunningAsync();
         Assert.Equal(ProcessState.Running, manager.State);
-        
+
         await manager.StopProcessAsync();
         Assert.Equal(ProcessState.Stopped, manager.State);
     }
@@ -319,7 +319,7 @@ public sealed class ProcessManagerTests : IDisposable
 
         // Assert - Process should be terminated
         await Task.Delay(100); // Give time for process to terminate
-        
+
         try
         {
             var process = System.Diagnostics.Process.GetProcessById(processId);
@@ -345,7 +345,7 @@ public sealed class ProcessManagerTests : IDisposable
 
         // Assert - Process should be terminated
         await Task.Delay(100); // Give time for process to terminate
-        
+
         try
         {
             var process = System.Diagnostics.Process.GetProcessById(processId);

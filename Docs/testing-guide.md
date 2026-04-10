@@ -12,6 +12,17 @@ dotnet test GodotMcp.sln
 dotnet test GodotMcp.sln --collect:"XPlat Code Coverage" --settings coverlet.runsettings
 ```
 
+Coverage thresholds are enforced from `coverlet.runsettings`:
+- line: 60%
+- branch: 60%
+- method: 60%
+
+To run the same coverage gate used in CI/local validation:
+
+```bash
+dotnet test GodotMcp.sln -c Release --collect:"XPlat Code Coverage" --settings coverlet.runsettings
+```
+
 Coverage artifacts are produced under `TestResults/`.
 
 ## Test Categories

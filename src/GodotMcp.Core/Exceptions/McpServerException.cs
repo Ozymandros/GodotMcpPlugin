@@ -1,4 +1,4 @@
-﻿namespace GodotMcp.Core.Exceptions;
+namespace GodotMcp.Core.Exceptions;
 
 /// <summary>
 /// Thrown when the godot-mcp server returns an error response.
@@ -17,7 +17,7 @@ public class McpServerException : GodotMcpException
     /// An integer representing the MCP protocol error code.
     /// </value>
     public int ErrorCode { get; init; }
-    
+
     /// <summary>
     /// Gets additional error data returned by the server.
     /// </summary>
@@ -25,7 +25,7 @@ public class McpServerException : GodotMcpException
     /// An object containing additional error details, or null if no additional data was provided.
     /// </value>
     public object? ErrorData { get; init; }
-    
+
     /// <summary>
     /// Initializes a new instance of the <see cref="McpServerException"/> class with a specified error message,
     /// error code, and optional error data.
