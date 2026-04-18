@@ -22,7 +22,7 @@ public sealed class ResourceSkill(IMcpClient mcp)
     [KernelFunction("read")]
     [Description("Reads a resource.")]
     public Task<ResourceData?> ReadAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Resource file path relative to project root (e.g. materials/mat.tres).")] string fileName,
         CancellationToken cancellationToken = default) =>
         _mcp.ResourceReadAsync(new ResourceReadRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
@@ -30,7 +30,7 @@ public sealed class ResourceSkill(IMcpClient mcp)
     [KernelFunction("update")]
     [Description("Updates a resource.")]
     public Task<ResourceData?> UpdateAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Resource file path relative to project root.")] string fileName,
         [Description("Properties to update.")] IReadOnlyDictionary<string, object?> properties,
         CancellationToken cancellationToken = default) =>
@@ -39,7 +39,7 @@ public sealed class ResourceSkill(IMcpClient mcp)
     [KernelFunction("create")]
     [Description("Creates a resource.")]
     public Task<ResourceInfo?> CreateAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Resource file path relative to project root.")] string fileName,
         [Description("Resource type.")] string resourceType,
         [Description("Initial properties.")] IReadOnlyDictionary<string, object?> properties,

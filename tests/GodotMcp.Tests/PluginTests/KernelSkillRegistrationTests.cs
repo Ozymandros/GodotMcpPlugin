@@ -35,14 +35,14 @@ public class KernelSkillRegistrationTests
         var sceneFunc = kernel.Plugins["scene"]["list_nodes"];
         await kernel.InvokeAsync(sceneFunc, new KernelArguments
         {
-            ["projectPath"] = "res://",
+            ["projectPath"] = Root,
             ["fileName"] = "scenes/main.tscn"
         });
 
         await mcp.Received(1).InvokeToolAsync(
             "scene.list_nodes",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["projectPath"], "res://") &&
+                Equals(d["projectPath"], Root) &&
                 Equals(d["fileName"], "scenes/main.tscn")),
             Arg.Any<CancellationToken>());
     }

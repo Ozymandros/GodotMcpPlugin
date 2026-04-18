@@ -30,6 +30,13 @@ public sealed class GodotMcpOptionsValidator : IValidateOptions<GodotMcpOptions>
                 "GodotExecutablePath contains invalid path characters.");
         }
 
+        if (!string.IsNullOrWhiteSpace(options.ProjectPath)
+            && Path.GetInvalidPathChars().Any(options.ProjectPath.Contains))
+        {
+            return ValidateOptionsResult.Fail(
+                "ProjectPath contains invalid path characters.");
+        }
+
         // Validate ConnectionTimeoutSeconds is positive
         if (options.ConnectionTimeoutSeconds <= 0)
         {

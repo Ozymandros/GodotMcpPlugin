@@ -65,6 +65,20 @@ public sealed class GodotMcpOptions
     /// Enable request/response logging (default: false)
     /// </summary>
     public required bool EnableMessageLogging { get; set; } = false;
+
+    /// <summary>
+    /// Absolute path to the Godot project root directory. When set, the godot-mcp process is
+    /// launched with this directory as its working directory so the server's <c>IPathResolver</c>
+    /// is scoped to the correct project. Required when the server validates <c>projectPath</c>
+    /// parameters against its working directory (GodotMCP.Server 1.5+).
+    /// </summary>
+    public string? ProjectPath { get; set; }
+
+    /// <summary>
+    /// Display name of the active Godot project. Used as the default <c>projectName</c> in tool
+    /// calls when no per-request project name is supplied by the caller.
+    /// </summary>
+    public string? ProjectName { get; set; }
 }
 
 /// <summary>

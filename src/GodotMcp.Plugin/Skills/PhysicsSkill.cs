@@ -14,14 +14,14 @@ public sealed class PhysicsSkill(IMcpClient mcp)
     [KernelFunction("list_bodies")]
     [Description("Lists physics bodies under a project root path.")]
     public Task<IReadOnlyList<PhysicsBodyInfo>> ListBodiesAsync(
-        [Description("Project root path to scan (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root to scan (folder containing project.godot).")] string projectPath,
         CancellationToken cancellationToken = default) =>
         _mcp.PhysicsListBodiesAsync(new PhysicsListBodiesRequest(projectPath), cancellationToken);
 
     [KernelFunction("create_body")]
     [Description("Creates a physics body in a scene.")]
     public Task<PhysicsBodyInfo?> CreateBodyAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Parent node path.")] string parentNodePath,
         [Description("Body type.")] string bodyType,
@@ -35,7 +35,7 @@ public sealed class PhysicsSkill(IMcpClient mcp)
     [KernelFunction("update_body")]
     [Description("Updates a physics body.")]
     public Task<PhysicsBodyInfo?> UpdateBodyAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Body node path.")] string nodePath,
         [Description("Body properties to update.")] IReadOnlyDictionary<string, object?> properties,
@@ -47,7 +47,7 @@ public sealed class PhysicsSkill(IMcpClient mcp)
     [KernelFunction("list_shapes")]
     [Description("Lists physics shapes in a scene.")]
     public Task<IReadOnlyList<PhysicsShapeInfo>> ListShapesAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         CancellationToken cancellationToken = default) =>
         _mcp.PhysicsListShapesAsync(new PhysicsListShapesRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
@@ -55,7 +55,7 @@ public sealed class PhysicsSkill(IMcpClient mcp)
     [KernelFunction("create_shape")]
     [Description("Creates a physics shape.")]
     public Task<PhysicsShapeInfo?> CreateShapeAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Body node path.")] string bodyPath,
         [Description("Shape name.")] string shapeName,
@@ -69,7 +69,7 @@ public sealed class PhysicsSkill(IMcpClient mcp)
     [KernelFunction("update_shape")]
     [Description("Updates a physics shape.")]
     public Task<PhysicsShapeInfo?> UpdateShapeAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Shape node path.")] string shapePath,
         [Description("Shape properties to update.")] IReadOnlyDictionary<string, object?> properties,
@@ -81,14 +81,14 @@ public sealed class PhysicsSkill(IMcpClient mcp)
     [KernelFunction("validate")]
     [Description("Validates physics setup under a project root path.")]
     public Task<PhysicsValidationResult?> ValidateAsync(
-        [Description("Project root path to validate (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root to validate (folder containing project.godot).")] string projectPath,
         CancellationToken cancellationToken = default) =>
         _mcp.PhysicsValidateAsync(new PhysicsValidateRequest(projectPath), cancellationToken);
 
     [KernelFunction("set_layers")]
     [Description("Sets collision layer and mask for a physics body.")]
     public Task<PhysicsLayerResult?> SetLayersAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Body node path.")] string bodyPath,
         [Description("Collision layer bitmask.")] int collisionLayer,
@@ -101,7 +101,7 @@ public sealed class PhysicsSkill(IMcpClient mcp)
     [KernelFunction("run_checks")]
     [Description("Runs physics checks in a scene.")]
     public Task<PhysicsCheckResult?> RunChecksAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Optional body node path filter.")] string? bodyPath = null,
         CancellationToken cancellationToken = default) =>

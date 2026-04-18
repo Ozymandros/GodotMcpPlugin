@@ -41,7 +41,7 @@ var result = await plugin.InvokeToolAsync(
     "create_scene",
     new Dictionary<string, object?>
     {
-        ["scenePath"] = "res://Scenes/Main.tscn",
+        ["scenePath"] = @"C:\GodotProjects\MyGame\Scenes\Main.tscn",
         ["rootNodeName"] = "Main",
         ["rootNodeType"] = "Node2D"
     });
@@ -157,15 +157,16 @@ These typed surfaces are additive: if a server does not expose a given command, 
 
 ```csharp
 var mcpClient = host.Services.GetRequiredService<IMcpClient>();
+const string projectRoot = @"C:\GodotProjects\MyGame";
 
 // UI: apply a theme to a control
 var uiTheme = await mcpClient.UiApplyThemeAsync(
-  new UiApplyThemeRequest("res://scenes/ui.tscn", "./RootPanel", "dark_flat"));
+  new UiApplyThemeRequest(new McpProjectFile(projectRoot, "scenes/ui.tscn"), "./RootPanel", "dark_flat"));
 
 // Lighting: tune an existing light
 var tunedLight = await mcpClient.LightTuneAsync(
   new LightTuneRequest(
-    "res://scenes/main.tscn",
+    new McpProjectFile(projectRoot, "scenes/main.tscn"),
     "./Sun",
     new Dictionary<string, object?>
     {
@@ -175,10 +176,10 @@ var tunedLight = await mcpClient.LightTuneAsync(
 
 // Physics: set layers and run checks
 var layerResult = await mcpClient.PhysicsSetLayersAsync(
-  new PhysicsSetLayersRequest("res://scenes/main.tscn", "./Player", collisionLayer: 2, collisionMask: 5));
+  new PhysicsSetLayersRequest(new McpProjectFile(projectRoot, "scenes/main.tscn"), "./Player", collisionLayer: 2, collisionMask: 5));
 
 var checks = await mcpClient.PhysicsRunChecksAsync(
-  new PhysicsRunChecksRequest("res://scenes/main.tscn", "./Player"));
+  new PhysicsRunChecksRequest(new McpProjectFile(projectRoot, "scenes/main.tscn"), "./Player"));
 ```
 
 ## Documentation

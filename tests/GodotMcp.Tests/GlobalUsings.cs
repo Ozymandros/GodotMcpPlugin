@@ -1,4 +1,5 @@
 global using System;
+global using System.IO;
 global using System.Collections.Generic;
 global using System.Threading;
 global using System.Threading.Tasks;
@@ -8,3 +9,4 @@ global using Microsoft.Extensions.Logging;
 global using GodotMcp.Core.Interfaces;
 global using GodotMcp.Core.Models;
 global using GodotMcp.Core.Exceptions;
+global using static GodotMcp.Tests.TestPaths;

@@ -16,7 +16,7 @@ public class McpClientNavigationExtensionsTests
             .Returns(new McpResponse("1", true, new[] { new { name = "RegionA", path = "./RegionA", enabled = true } }));
 
         var result = await _client.NavigationListRegionsAsync(
-            new NavigationListRegionsRequest(new McpProjectFile("res://", "scenes/main.tscn")));
+            new NavigationListRegionsRequest(new McpProjectFile(Root, "scenes/main.tscn")));
 
         Assert.Single(result);
         Assert.Equal("RegionA", result[0].Name);
@@ -29,7 +29,7 @@ public class McpClientNavigationExtensionsTests
             .Returns(new McpResponse("2", true, new { success = true, message = "Baked" }));
 
         var result = await _client.NavigationBakeAsync(
-            new NavigationBakeRequest(new McpProjectFile("res://", "scenes/main.tscn")));
+            new NavigationBakeRequest(new McpProjectFile(Root, "scenes/main.tscn")));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);

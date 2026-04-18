@@ -19,14 +19,14 @@ public class McpClientScriptExtensionsTests
                 true,
                 new
                 {
-                    path = "res://scripts/player.cs",
+                    path = Combine("scripts", "player.cs"),
                     language = "CSharp",
                     baseType = "Node3D",
                     className = "PlayerController"
                 }));
 
         var result = await _client.ScriptCreateAsync(
-            new ScriptCreateRequest(new McpProjectFile("res://", "scripts/player.cs"), "CSharp", "Node3D", "PlayerController"));
+            new ScriptCreateRequest(new McpProjectFile(Root, "scripts/player.cs"), "CSharp", "Node3D", "PlayerController"));
 
         Assert.NotNull(result);
         Assert.Equal("PlayerController", result!.ClassName);
@@ -34,7 +34,7 @@ public class McpClientScriptExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "create_script",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["projectPath"], "res://") &&
+                Equals(d["projectPath"], Root) &&
                 Equals(d["fileName"], "scripts/player.cs") &&
                 Equals(d["language"], "CSharp") &&
                 Equals(d["baseType"], "Node3D") &&
@@ -51,9 +51,9 @@ public class McpClientScriptExtensionsTests
 
         var result = await _client.ScriptAttachAsync(
             new ScriptAttachRequest(
-                new McpProjectFile("res://", "scenes/main.tscn"),
+                new McpProjectFile(Root, "scenes/main.tscn"),
                 "Player",
-                new McpProjectFile("res://", "scripts/player.cs")));
+                new McpProjectFile(Root, "scripts/player.cs")));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -61,7 +61,7 @@ public class McpClientScriptExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "attach_script",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["projectPath"], "res://") &&
+                Equals(d["projectPath"], Root) &&
                 Equals(d["fileName"], "scenes/main.tscn") &&
                 Equals(d["nodeName"], "Player") &&
                 Equals(d["scriptFileName"], "scripts/player.cs")),
@@ -84,7 +84,7 @@ public class McpClientScriptExtensionsTests
                     warnings = new[] { "Unused using" }
                 }));
 
-        var result = await _client.ScriptValidateAsync(new ScriptValidateRequest(new McpProjectFile("res://", "scripts/player.cs"), true));
+        var result = await _client.ScriptValidateAsync(new ScriptValidateRequest(new McpProjectFile(Root, "scripts/player.cs"), true));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -93,7 +93,7 @@ public class McpClientScriptExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "validate_script",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["projectPath"], "res://") &&
+                Equals(d["projectPath"], Root) &&
                 Equals(d["fileName"], "scripts/player.cs") &&
                 Equals(d["isCSharp"], true)),
             Arg.Any<CancellationToken>());

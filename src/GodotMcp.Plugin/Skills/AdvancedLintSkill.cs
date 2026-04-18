@@ -16,7 +16,7 @@ public sealed class AdvancedLintSkill(IMcpClient mcp)
     [KernelFunction("scene_advanced")]
     [Description("Runs advanced lint checks for a scene.")]
     public Task<LintResult?> SceneAdvancedAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         CancellationToken cancellationToken = default) =>
         _mcp.LintSceneAdvancedAsync(
@@ -29,7 +29,7 @@ public sealed class AdvancedLintSkill(IMcpClient mcp)
     [KernelFunction("project_advanced")]
     [Description("Runs advanced lint checks for a project.")]
     public Task<LintResult?> ProjectAdvancedAsync(
-        [Description("Project path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root.")] string projectPath,
         CancellationToken cancellationToken = default) =>
         _mcp.LintProjectAdvancedAsync(new LintProjectAdvancedRequest(projectPath), cancellationToken);
 
@@ -39,7 +39,7 @@ public sealed class AdvancedLintSkill(IMcpClient mcp)
     [KernelFunction("project")]
     [Description("Runs lint checks for a project.")]
     public Task<LintResult?> ProjectAsync(
-        [Description("Project path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root.")] string projectPath,
         CancellationToken cancellationToken = default) =>
         _mcp.LintProjectAsync(new LintProjectRequest(projectPath), cancellationToken);
 }

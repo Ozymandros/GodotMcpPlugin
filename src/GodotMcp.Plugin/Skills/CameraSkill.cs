@@ -17,7 +17,7 @@ public sealed class CameraSkill(IMcpClient mcp)
     [KernelFunction("list")]
     [Description("Lists camera nodes under a project root path.")]
     public Task<IReadOnlyList<CameraInfo>> ListAsync(
-        [Description("Project root path to scan (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root to scan (folder containing project.godot).")] string projectPath,
         CancellationToken cancellationToken = default) =>
         _mcp.CameraListAsync(new CameraListRequest(projectPath), cancellationToken);
 
@@ -27,7 +27,7 @@ public sealed class CameraSkill(IMcpClient mcp)
     [KernelFunction("create")]
     [Description("Creates a camera node in a scene.")]
     public Task<CameraInfo?> CreateAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Node path for the new camera.")] string nodePath,
         [Description("Camera type token (2d/3d or camera2d/camera3d).")] string cameraType,
@@ -43,7 +43,7 @@ public sealed class CameraSkill(IMcpClient mcp)
     [KernelFunction("update")]
     [Description("Updates camera properties in a scene.")]
     public Task<CameraInfo?> UpdateAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Camera node path to update.")] string nodePath,
         [Description("Properties to update.")] IReadOnlyDictionary<string, object?> properties,
@@ -58,7 +58,7 @@ public sealed class CameraSkill(IMcpClient mcp)
     [KernelFunction("validate")]
     [Description("Validates camera configuration under a project root path.")]
     public Task<IReadOnlyList<CameraValidationIssue>> ValidateAsync(
-        [Description("Project root path to validate (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root to validate (folder containing project.godot).")] string projectPath,
         CancellationToken cancellationToken = default) =>
         _mcp.CameraValidateAsync(new CameraValidateRequest(projectPath), cancellationToken);
 }

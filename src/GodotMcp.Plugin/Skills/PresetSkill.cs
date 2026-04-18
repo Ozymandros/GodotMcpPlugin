@@ -16,7 +16,7 @@ public sealed class PresetSkill(IMcpClient mcp)
     [KernelFunction("apply")]
     [Description("Applies a node preset.")]
     public Task<PresetResult?> ApplyAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Target node path.")] string nodePath,
         [Description("Preset name.")] string presetName,

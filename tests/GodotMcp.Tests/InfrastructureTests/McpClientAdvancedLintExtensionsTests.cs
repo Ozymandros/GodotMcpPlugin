@@ -23,7 +23,7 @@ public class McpClientAdvancedLintExtensionsTests
                 }));
 
         var result = await _client.LintSceneAdvancedAsync(
-            new LintSceneAdvancedRequest(new McpProjectFile("res://", "scenes/main.tscn")));
+            new LintSceneAdvancedRequest(new McpProjectFile(Root, "scenes/main.tscn")));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -40,11 +40,11 @@ public class McpClientAdvancedLintExtensionsTests
                 true,
                 new
                 {
-                    issues = new[] { new { code = "LP001", severity = "warning", message = "Project warning", path = "res://" } },
+                    issues = new[] { new { code = "LP001", severity = "warning", message = "Project warning", path = Root } },
                     success = true
                 }));
 
-        var result = await _client.LintProjectAsync(new LintProjectRequest("res://"));
+        var result = await _client.LintProjectAsync(new LintProjectRequest(Root));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -64,11 +64,11 @@ public class McpClientAdvancedLintExtensionsTests
                 true,
                 new
                 {
-                    issues = new[] { new { code = "LP002", severity = "info", message = "Advanced project lint", path = "res://" } },
+                    issues = new[] { new { code = "LP002", severity = "info", message = "Advanced project lint", path = Root } },
                     success = true
                 }));
 
-        var result = await _client.LintProjectAsync(new LintProjectRequest("res://"));
+        var result = await _client.LintProjectAsync(new LintProjectRequest(Root));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);

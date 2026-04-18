@@ -14,7 +14,7 @@ public sealed class ImportSkill(IMcpClient mcp)
     [KernelFunction("generate_import_file")]
     [Description("Generates a Godot .import file for a source asset.")]
     public Task<ImportOperationResult?> GenerateImportFileAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Asset file path relative to project root.")] string fileName,
         [Description("Godot importer identifier.")] string importer,
         [Description("Godot resource type token.")] string type,
@@ -27,7 +27,7 @@ public sealed class ImportSkill(IMcpClient mcp)
     [KernelFunction("create_texture")]
     [Description("Creates texture import/resource metadata.")]
     public Task<ResourceInfo?> CreateTextureAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Texture file path relative to project root.")] string fileName,
         CancellationToken cancellationToken = default) =>
         _mcp.CreateTextureAsync(new CreateTextureRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
@@ -35,7 +35,7 @@ public sealed class ImportSkill(IMcpClient mcp)
     [KernelFunction("create_audio")]
     [Description("Creates audio import/resource metadata.")]
     public Task<ResourceInfo?> CreateAudioAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Audio file path relative to project root.")] string fileName,
         CancellationToken cancellationToken = default) =>
         _mcp.CreateAudioAsync(new CreateAudioRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
@@ -43,7 +43,7 @@ public sealed class ImportSkill(IMcpClient mcp)
     [KernelFunction("reimport_asset")]
     [Description("Reimports an existing asset.")]
     public Task<ImportOperationResult?> ReimportAssetAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Asset file path relative to project root.")] string fileName,
         CancellationToken cancellationToken = default) =>
         _mcp.ReimportAssetAsync(new ReimportAssetRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);

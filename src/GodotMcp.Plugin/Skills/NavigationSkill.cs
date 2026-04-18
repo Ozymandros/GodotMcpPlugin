@@ -16,7 +16,7 @@ public sealed class NavigationSkill(IMcpClient mcp)
     [KernelFunction("list_regions")]
     [Description("Lists navigation regions in a scene.")]
     public Task<IReadOnlyList<NavigationRegionInfo>> ListRegionsAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         CancellationToken cancellationToken = default) =>
         _mcp.NavigationListRegionsAsync(
@@ -29,7 +29,7 @@ public sealed class NavigationSkill(IMcpClient mcp)
     [KernelFunction("create_region")]
     [Description("Creates a navigation region in a scene.")]
     public Task<NavigationRegionInfo?> CreateRegionAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         [Description("Parent node path.")] string parentPath,
         [Description("Region name.")] string regionName,
@@ -44,7 +44,7 @@ public sealed class NavigationSkill(IMcpClient mcp)
     [KernelFunction("validate")]
     [Description("Validates navigation setup in a scene.")]
     public Task<NavigationResult?> ValidateAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         CancellationToken cancellationToken = default) =>
         _mcp.NavigationValidateAsync(
@@ -57,7 +57,7 @@ public sealed class NavigationSkill(IMcpClient mcp)
     [KernelFunction("bake")]
     [Description("Bakes navigation in a scene.")]
     public Task<NavigationResult?> BakeAsync(
-        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
         [Description("Scene file path relative to project root.")] string fileName,
         CancellationToken cancellationToken = default) =>
         _mcp.NavigationBakeAsync(

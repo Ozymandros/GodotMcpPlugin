@@ -12,23 +12,25 @@ public class McpClientResourceExtensionsTests
     [Fact]
     public async Task ResourceListAsync_MapsPayloadAndReturnsTypedList()
     {
+        var matTres = Combine("materials", "mat.tres");
         _client
             .InvokeToolAsync("resource.list", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse(
                 "req-1",
                 true,
-                new[] { new { path = "res://materials/mat.tres", type = "StandardMaterial3D", name = "mat", exists = true } }));
+                new[] { new { path = matTres, type = "StandardMaterial3D", name = "mat", exists = true } }));
 
-        var result = await _client.ResourceListAsync(new ResourceListRequest("res://materials", "StandardMaterial3D"));
+        var materialsDir = Combine("materials");
+        var result = await _client.ResourceListAsync(new ResourceListRequest(materialsDir, "StandardMaterial3D"));
 
         Assert.Single(result);
-        Assert.Equal("res://materials/mat.tres", result[0].Path);
+        Assert.Equal(matTres, result[0].Path);
         Assert.Equal("StandardMaterial3D", result[0].Type);
 
         await _client.Received(1).InvokeToolAsync(
             "resource.list",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["directory"], "res://materials") &&
+                Equals(d["directory"], materialsDir) &&
                 Equals(d["resourceType"], "StandardMaterial3D")),
             Arg.Any<CancellationToken>());
     }
@@ -36,6 +38,7 @@ public class McpClientResourceExtensionsTests
     [Fact]
     public async Task ResourceReadAsync_MapsPayloadAndReturnsTypedResourceData()
     {
+        var matTres = Combine("materials", "mat.tres");
         _client
             .InvokeToolAsync("resource.read", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse(
@@ -43,7 +46,7 @@ public class McpClientResourceExtensionsTests
                 true,
                 new
                 {
-                    path = "res://materials/mat.tres",
+                    path = matTres,
                     type = "StandardMaterial3D",
                     properties = new Dictionary<string, object?>
                     {
@@ -53,17 +56,17 @@ public class McpClientResourceExtensionsTests
                 }));
 
         var result = await _client.ResourceReadAsync(
-            new ResourceReadRequest(new McpProjectFile("res://", "materials/mat.tres")));
+            new ResourceReadRequest(new McpProjectFile(Root, "materials/mat.tres")));
 
         Assert.NotNull(result);
-        Assert.Equal("res://materials/mat.tres", result!.Path);
+        Assert.Equal(matTres, result!.Path);
         Assert.Equal("StandardMaterial3D", result.Type);
         Assert.True(result.Properties.ContainsKey("albedoColor"));
 
         await _client.Received(1).InvokeToolAsync(
             "resource.read",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["projectPath"], "res://") &&
+                Equals(d["projectPath"], Root) &&
                 Equals(d["fileName"], "materials/mat.tres")),
             Arg.Any<CancellationToken>());
     }
@@ -71,6 +74,7 @@ public class McpClientResourceExtensionsTests
     [Fact]
     public async Task ResourceUpdateAsync_MapsPayloadAndReturnsTypedResourceData()
     {
+        var matTres = Combine("materials", "mat.tres");
         var properties = new Dictionary<string, object?> { ["metallic"] = 0.8 };
 
         _client
@@ -80,21 +84,21 @@ public class McpClientResourceExtensionsTests
                 true,
                 new
                 {
-                    path = "res://materials/mat.tres",
+                    path = matTres,
                     type = "StandardMaterial3D",
                     properties = new Dictionary<string, object?> { ["metallic"] = 0.8 }
                 }));
 
         var result = await _client.ResourceUpdateAsync(
-            new ResourceUpdateRequest(new McpProjectFile("res://", "materials/mat.tres"), properties));
+            new ResourceUpdateRequest(new McpProjectFile(Root, "materials/mat.tres"), properties));
 
         Assert.NotNull(result);
-        Assert.Equal("res://materials/mat.tres", result!.Path);
+        Assert.Equal(matTres, result!.Path);
 
         await _client.Received(1).InvokeToolAsync(
             "resource.update_properties",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["projectPath"], "res://") &&
+                Equals(d["projectPath"], Root) &&
                 Equals(d["fileName"], "materials/mat.tres") &&
                 ((Dictionary<string, string>)d["properties"]!).ContainsKey("metallic")),
             Arg.Any<CancellationToken>());
@@ -112,14 +116,14 @@ public class McpClientResourceExtensionsTests
                 true,
                 new
                 {
-                    path = "res://textures/new_texture.tres",
+                    path = Combine("textures", "new_texture.tres"),
                     type = "ImageTexture",
                     name = "new_texture",
                     exists = true
                 }));
 
         var result = await _client.ResourceCreateAsync(
-            new ResourceCreateRequest(new McpProjectFile("res://", "textures/new_texture.tres"), "ImageTexture", properties));
+            new ResourceCreateRequest(new McpProjectFile(Root, "textures/new_texture.tres"), "ImageTexture", properties));
 
         Assert.NotNull(result);
         Assert.Equal("new_texture", result!.Name);
@@ -127,7 +131,7 @@ public class McpClientResourceExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "create_resource",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["projectPath"], "res://") &&
+                Equals(d["projectPath"], Root) &&
                 Equals(d["fileName"], "textures/new_texture.tres") &&
                 Equals(d["type"], "ImageTexture") &&
                 Equals(((Dictionary<string, string>)d["properties"]!)["size"], "512")),
@@ -137,6 +141,7 @@ public class McpClientResourceExtensionsTests
     [Fact]
     public async Task ResourceUpdateAsync_FallsBackToLegacyCommand_WhenPrimaryIsMissing()
     {
+        var matTres = Combine("materials", "mat.tres");
         var properties = new Dictionary<string, object?> { ["metallic"] = 0.8 };
 
         _client
@@ -150,16 +155,16 @@ public class McpClientResourceExtensionsTests
                 true,
                 new
                 {
-                    path = "res://materials/mat.tres",
+                    path = matTres,
                     type = "StandardMaterial3D",
                     properties = new Dictionary<string, object?> { ["metallic"] = 0.8 }
                 }));
 
         var result = await _client.ResourceUpdateAsync(
-            new ResourceUpdateRequest(new McpProjectFile("res://", "materials/mat.tres"), properties));
+            new ResourceUpdateRequest(new McpProjectFile(Root, "materials/mat.tres"), properties));
 
         Assert.NotNull(result);
-        Assert.Equal("res://materials/mat.tres", result!.Path);
+        Assert.Equal(matTres, result!.Path);
 
         await _client.Received(1).InvokeToolAsync("resource.update", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>());
     }
@@ -180,14 +185,14 @@ public class McpClientResourceExtensionsTests
                 true,
                 new
                 {
-                    path = "res://textures/new_texture.tres",
+                    path = Combine("textures", "new_texture.tres"),
                     type = "ImageTexture",
                     name = "new_texture",
                     exists = true
                 }));
 
         var result = await _client.ResourceCreateAsync(
-            new ResourceCreateRequest(new McpProjectFile("res://", "textures/new_texture.tres"), "ImageTexture", properties));
+            new ResourceCreateRequest(new McpProjectFile(Root, "textures/new_texture.tres"), "ImageTexture", properties));
 
         Assert.NotNull(result);
         Assert.Equal("new_texture", result!.Name);
