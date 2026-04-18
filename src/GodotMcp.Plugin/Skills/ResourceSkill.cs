@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using GodotMcp.Core.Models;
 using GodotMcp.Infrastructure.Client;
 
 namespace GodotMcp.Plugin.Skills;
@@ -10,13 +11,6 @@ public sealed class ResourceSkill(IMcpClient mcp)
 {
     private readonly IMcpClient _mcp = mcp;
 
-    /// <summary>
-    /// Lists resources.
-    /// </summary>
-    /// <param name="directory">Optional resource directory filter.</param>
-    /// <param name="resourceType">Optional resource type filter.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>A read-only list of resources.</returns>
     [KernelFunction("list")]
     [Description("Lists resources.")]
     public Task<IReadOnlyList<ResourceInfo>> ListAsync(
@@ -25,48 +19,32 @@ public sealed class ResourceSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.ResourceListAsync(new ResourceListRequest(directory, resourceType), cancellationToken);
 
-    /// <summary>
-    /// Reads a resource.
-    /// </summary>
-    /// <param name="resourcePath">Resource path.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The resource payload, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("read")]
     [Description("Reads a resource.")]
     public Task<ResourceData?> ReadAsync(
-        [Description("Resource path.")] string resourcePath,
+        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Resource file path relative to project root (e.g. materials/mat.tres).")] string fileName,
         CancellationToken cancellationToken = default) =>
-        _mcp.ResourceReadAsync(new ResourceReadRequest(resourcePath), cancellationToken);
+        _mcp.ResourceReadAsync(new ResourceReadRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
 
-    /// <summary>
-    /// Updates a resource.
-    /// </summary>
-    /// <param name="resourcePath">Resource path.</param>
-    /// <param name="properties">Properties to update.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The updated resource payload, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("update")]
     [Description("Updates a resource.")]
     public Task<ResourceData?> UpdateAsync(
-        [Description("Resource path.")] string resourcePath,
+        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Resource file path relative to project root.")] string fileName,
         [Description("Properties to update.")] IReadOnlyDictionary<string, object?> properties,
         CancellationToken cancellationToken = default) =>
-        _mcp.ResourceUpdateAsync(new ResourceUpdateRequest(resourcePath, properties), cancellationToken);
+        _mcp.ResourceUpdateAsync(new ResourceUpdateRequest(new McpProjectFile(projectPath, fileName), properties), cancellationToken);
 
-    /// <summary>
-    /// Creates a resource.
-    /// </summary>
-    /// <param name="resourcePath">Resource path.</param>
-    /// <param name="resourceType">Resource type.</param>
-    /// <param name="properties">Initial properties.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The created resource info, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("create")]
     [Description("Creates a resource.")]
     public Task<ResourceInfo?> CreateAsync(
-        [Description("Resource path.")] string resourcePath,
+        [Description("Project root path (res:// or absolute path under the project).")] string projectPath,
+        [Description("Resource file path relative to project root.")] string fileName,
         [Description("Resource type.")] string resourceType,
         [Description("Initial properties.")] IReadOnlyDictionary<string, object?> properties,
         CancellationToken cancellationToken = default) =>
-        _mcp.ResourceCreateAsync(new ResourceCreateRequest(resourcePath, resourceType, properties), cancellationToken);
+        _mcp.ResourceCreateAsync(
+            new ResourceCreateRequest(new McpProjectFile(projectPath, fileName), resourceType, properties),
+            cancellationToken);
 }

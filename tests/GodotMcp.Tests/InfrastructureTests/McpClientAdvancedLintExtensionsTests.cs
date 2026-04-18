@@ -22,7 +22,8 @@ public class McpClientAdvancedLintExtensionsTests
                     success = true
                 }));
 
-        var result = await _client.LintSceneAdvancedAsync(new LintSceneAdvancedRequest("res://scenes/main.tscn"));
+        var result = await _client.LintSceneAdvancedAsync(
+            new LintSceneAdvancedRequest(new McpProjectFile("res://", "scenes/main.tscn")));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);

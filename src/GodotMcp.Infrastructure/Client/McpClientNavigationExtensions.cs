@@ -18,7 +18,7 @@ public static class McpClientNavigationExtensions
     {
         return await client.SendAsync<IReadOnlyList<NavigationRegionInfo>>(
             "nav.list_regions",
-            new Dictionary<string, object?> { ["scenePath"] = request.ScenePath },
+            McpProjectFilePayload.ToDictionary(request.Scene),
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<NavigationRegionInfo>();
     }
 
@@ -30,15 +30,10 @@ public static class McpClientNavigationExtensions
         NavigationCreateRegionRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<NavigationRegionInfo>(
-            "nav.create_region",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath,
-                ["parentPath"] = request.ParentPath,
-                ["regionName"] = request.RegionName
-            },
-            cancellationToken);
+        var d = McpProjectFilePayload.ToDictionary(request.Scene);
+        d["parentPath"] = request.ParentPath;
+        d["regionName"] = request.RegionName;
+        return client.SendAsync<NavigationRegionInfo>("nav.create_region", d, cancellationToken);
     }
 
     /// <summary>
@@ -51,7 +46,7 @@ public static class McpClientNavigationExtensions
     {
         return client.SendAsync<NavigationResult>(
             "nav.validate",
-            new Dictionary<string, object?> { ["scenePath"] = request.ScenePath },
+            McpProjectFilePayload.ToDictionary(request.Scene),
             cancellationToken);
     }
 
@@ -65,7 +60,7 @@ public static class McpClientNavigationExtensions
     {
         return client.SendAsync<NavigationResult>(
             "nav.bake",
-            new Dictionary<string, object?> { ["scenePath"] = request.ScenePath },
+            McpProjectFilePayload.ToDictionary(request.Scene),
             cancellationToken);
     }
 }

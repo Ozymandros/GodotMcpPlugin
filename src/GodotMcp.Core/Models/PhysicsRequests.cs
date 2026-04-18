@@ -1,34 +1,20 @@
 namespace GodotMcp.Core.Models;
 
 /// <summary>
-/// Physics command request for listing bodies.
+/// Physics command request for listing bodies (server: <c>projectPath</c> only).
 /// </summary>
-/// <param name="ProjectRootPath">The project root path.</param>
-public sealed record PhysicsListBodiesRequest(string ProjectRootPath)
-{
-    /// <summary>
-    /// Compatibility alias kept for older call sites that still treat this as scene-based input.
-    /// </summary>
-    [Obsolete("Use ProjectRootPath instead.")]
-    public string ScenePath => ProjectRootPath;
-}
+public sealed record PhysicsListBodiesRequest(string ProjectPath);
 
 /// <summary>
-/// Physics command request for listing shapes.
+/// Physics command request for listing shapes (tool surface not present on all server versions).
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-public sealed record PhysicsListShapesRequest(string ScenePath);
+public sealed record PhysicsListShapesRequest(McpProjectFile Scene);
 
 /// <summary>
 /// Physics command request for creating a shape.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="BodyPath">Target body node path.</param>
-/// <param name="ShapeName">Shape node name.</param>
-/// <param name="ShapeType">Godot shape type name.</param>
-/// <param name="Properties">Initial shape properties.</param>
 public sealed record PhysicsCreateShapeRequest(
-    string ScenePath,
+    McpProjectFile Scene,
     string BodyPath,
     string ShapeName,
     string ShapeType,
@@ -37,38 +23,22 @@ public sealed record PhysicsCreateShapeRequest(
 /// <summary>
 /// Physics command request for updating a shape.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="ShapePath">Shape node path.</param>
-/// <param name="Properties">Shape properties to update.</param>
 public sealed record PhysicsUpdateShapeRequest(
-    string ScenePath,
+    McpProjectFile Scene,
     string ShapePath,
     IReadOnlyDictionary<string, object?> Properties);
 
 /// <summary>
-/// Physics command request for validating physics setup.
+/// Physics command request for validating physics setup (server: <c>projectPath</c> only).
 /// </summary>
-/// <param name="ProjectRootPath">The project root path.</param>
-public sealed record PhysicsValidateRequest(string ProjectRootPath)
-{
-    /// <summary>
-    /// Compatibility alias kept for older call sites that still treat this as scene-based input.
-    /// </summary>
-    [Obsolete("Use ProjectRootPath instead.")]
-    public string ScenePath => ProjectRootPath;
-}
+public sealed record PhysicsValidateRequest(string ProjectPath);
 
 /// <summary>
 /// Physics command request for creating a body.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="ParentPath">Parent node path where the body is added.</param>
-/// <param name="BodyType">Body node type to create.</param>
-/// <param name="NodeName">Body node name.</param>
-/// <param name="AddCollisionShape">Whether to auto-add a collision shape child.</param>
 public sealed record PhysicsCreateBodyRequest(
-    string ScenePath,
-    string ParentPath,
+    McpProjectFile Scene,
+    string ParentNodePath,
     string BodyType,
     string NodeName,
     bool AddCollisionShape = true);
@@ -76,19 +46,14 @@ public sealed record PhysicsCreateBodyRequest(
 /// <summary>
 /// Physics command request for updating a body.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="BodyPath">Body node path.</param>
-/// <param name="Properties">Body properties to update.</param>
 public sealed record PhysicsUpdateBodyRequest(
-    string ScenePath,
-    string BodyPath,
+    McpProjectFile Scene,
+    string NodePath,
     IReadOnlyDictionary<string, object?> Properties);
 
 /// <summary>
 /// Represents a physics validation result.
 /// </summary>
-/// <param name="Success">Whether validation succeeded.</param>
-/// <param name="Message">Optional validation message.</param>
 public sealed record PhysicsValidationResult(
     bool Success,
     string? Message = null);
@@ -96,12 +61,8 @@ public sealed record PhysicsValidationResult(
 /// <summary>
 /// Physics command request for setting collision layers and mask on a body.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="BodyPath">Body node path.</param>
-/// <param name="CollisionLayer">Collision layer bitmask.</param>
-/// <param name="CollisionMask">Collision mask bitmask.</param>
 public sealed record PhysicsSetLayersRequest(
-    string ScenePath,
+    McpProjectFile Scene,
     string BodyPath,
     int CollisionLayer,
     int CollisionMask);
@@ -109,19 +70,11 @@ public sealed record PhysicsSetLayersRequest(
 /// <summary>
 /// Physics command request for running physics checks in a scene.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="BodyPath">Optional body node path filter.</param>
-public sealed record PhysicsRunChecksRequest(
-    string ScenePath,
-    string? BodyPath = null);
+public sealed record PhysicsRunChecksRequest(McpProjectFile Scene, string? BodyPath = null);
 
 /// <summary>
-/// Represents the result of a physics layers update operation.
+/// Represents a physics layers update operation result.
 /// </summary>
-/// <param name="Success">Whether the operation succeeded.</param>
-/// <param name="Message">Optional result message.</param>
-/// <param name="CollisionLayer">Applied collision layer bitmask.</param>
-/// <param name="CollisionMask">Applied collision mask bitmask.</param>
 public sealed record PhysicsLayerResult(
     bool Success,
     string? Message = null,
@@ -131,9 +84,6 @@ public sealed record PhysicsLayerResult(
 /// <summary>
 /// Represents the result of running physics checks.
 /// </summary>
-/// <param name="Success">Whether checks succeeded.</param>
-/// <param name="Message">Optional result message.</param>
-/// <param name="Issues">Detected issue messages.</param>
 public sealed record PhysicsCheckResult(
     bool Success,
     string? Message = null,

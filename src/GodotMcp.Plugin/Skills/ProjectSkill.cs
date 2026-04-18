@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using GodotMcp.Core.Models;
 using GodotMcp.Infrastructure.Client;
 
 namespace GodotMcp.Plugin.Skills;
@@ -17,16 +18,21 @@ public sealed class ProjectSkill(IMcpClient mcp)
     [Description("Creates a new Godot project.")]
     public Task<ProjectInfo?> CreateGodotProjectAsync(
         [Description("Project name.")] string projectName,
+        [Description("Project root path (res:// or absolute path under the project).")] string? projectRootPath = null,
         CancellationToken cancellationToken = default) =>
-        _mcp.CreateGodotProjectAsync(new CreateGodotProjectRequest(projectName), cancellationToken);
+        _mcp.CreateGodotProjectAsync(
+            new CreateGodotProjectRequest(projectName, projectRootPath ?? GodotMcpPathDefaults.ResProjectRoot),
+            cancellationToken);
 
     /// <summary>
     /// Gets information for the current Godot project.
     /// </summary>
     [KernelFunction("get_project_info")]
     [Description("Gets information for the current Godot project.")]
-    public Task<ProjectInfo?> GetProjectInfoAsync(CancellationToken cancellationToken = default) =>
-        _mcp.GetProjectInfoAsync(cancellationToken);
+    public Task<ProjectInfo?> GetProjectInfoAsync(
+        [Description("Project root path (res:// or absolute path under the project).")] string? projectRootPath = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.GetProjectInfoAsync(projectRootPath ?? GodotMcpPathDefaults.ResProjectRoot, cancellationToken);
 
     /// <summary>
     /// Configures an autoload entry.
@@ -37,8 +43,11 @@ public sealed class ProjectSkill(IMcpClient mcp)
         [Description("Autoload key/name.")] string key,
         [Description("Autoload script/resource path.")] string value,
         [Description("Whether the autoload entry is enabled.")] bool enabled = true,
+        [Description("Project root path (res:// or absolute path under the project).")] string? projectRootPath = null,
         CancellationToken cancellationToken = default) =>
-        _mcp.ConfigureAutoloadAsync(new ConfigureAutoloadRequest(key, value, enabled), cancellationToken);
+        _mcp.ConfigureAutoloadAsync(
+            new ConfigureAutoloadRequest(key, value, enabled, projectRootPath ?? GodotMcpPathDefaults.ResProjectRoot),
+            cancellationToken);
 
     /// <summary>
     /// Adds a plugin to the project.
@@ -47,6 +56,9 @@ public sealed class ProjectSkill(IMcpClient mcp)
     [Description("Adds a plugin to the project.")]
     public Task<ProjectOperationResult?> AddPluginAsync(
         [Description("Plugin name to add.")] string pluginName,
+        [Description("Project root path (res:// or absolute path under the project).")] string? projectRootPath = null,
         CancellationToken cancellationToken = default) =>
-        _mcp.AddPluginAsync(new AddPluginRequest(pluginName), cancellationToken);
+        _mcp.AddPluginAsync(
+            new AddPluginRequest(pluginName, projectRootPath ?? GodotMcpPathDefaults.ResProjectRoot),
+            cancellationToken);
 }

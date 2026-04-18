@@ -1,3 +1,4 @@
+using GodotMcp.Core.Models;
 using GodotMcp.Infrastructure.Client;
 
 namespace GodotMcp.Tests.InfrastructureTests;
@@ -33,7 +34,9 @@ public class McpClientProjectExtensionsTests
 
         await _client.Received(1).InvokeToolAsync(
             "create_godot_project",
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["projectName"], "MyGame")),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectName"], "MyGame") &&
+                Equals(d["projectPath"], GodotMcpPathDefaults.ResProjectRoot)),
             Arg.Any<CancellationToken>());
     }
 
@@ -61,7 +64,7 @@ public class McpClientProjectExtensionsTests
 
         await _client.Received(1).InvokeToolAsync(
             "get_project_info",
-            Arg.Any<IReadOnlyDictionary<string, object?>>(),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["projectPath"], GodotMcpPathDefaults.ResProjectRoot)),
             Arg.Any<CancellationToken>());
     }
 
@@ -81,6 +84,7 @@ public class McpClientProjectExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "configure_autoload",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], GodotMcpPathDefaults.ResProjectRoot) &&
                 Equals(d["key"], "Game") &&
                 Equals(d["value"], "res://scripts/game.gd") &&
                 Equals(d["enabled"], true)),
@@ -101,7 +105,9 @@ public class McpClientProjectExtensionsTests
 
         await _client.Received(1).InvokeToolAsync(
             "add_plugin",
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["pluginName"], "my_plugin")),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], GodotMcpPathDefaults.ResProjectRoot) &&
+                Equals(d["pluginName"], "my_plugin")),
             Arg.Any<CancellationToken>());
     }
 }

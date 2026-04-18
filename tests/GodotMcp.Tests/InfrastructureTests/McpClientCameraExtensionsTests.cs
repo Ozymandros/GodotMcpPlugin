@@ -62,7 +62,7 @@ public class McpClientCameraExtensionsTests
                 }));
 
         var result = await _client.CameraCreateAsync(
-            new CameraCreateRequest("res://scenes/main.tscn", "./MainCamera", "3d", "cinematic"));
+            new CameraCreateRequest(new McpProjectFile("res://", "scenes/main.tscn"), "./MainCamera", "3d", "cinematic"));
 
         Assert.NotNull(result);
         Assert.Equal("Camera3D", result!.Type);

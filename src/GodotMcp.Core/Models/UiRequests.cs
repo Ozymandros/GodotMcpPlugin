@@ -3,49 +3,36 @@ namespace GodotMcp.Core.Models;
 /// <summary>
 /// UI command request for listing controls in a scene.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-public sealed record UiListControlsRequest(string ScenePath);
+public sealed record UiListControlsRequest(McpProjectFile Scene);
 
 /// <summary>
 /// UI command request for creating a control.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="ParentPath">The parent node path for the new control.</param>
-/// <param name="ControlName">The control name.</param>
-/// <param name="ControlType">The Godot control type.</param>
 public sealed record UiCreateControlRequest(
-    string ScenePath,
-    string ParentPath,
+    McpProjectFile Scene,
+    string ParentNodePath,
     string ControlName,
     string ControlType);
 
 /// <summary>
 /// UI command request for updating a control.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="ControlPath">The control node path.</param>
-/// <param name="Properties">Properties to update on the control.</param>
 public sealed record UiUpdateControlRequest(
-    string ScenePath,
-    string ControlPath,
+    McpProjectFile Scene,
+    string ControlNodePath,
     IReadOnlyDictionary<string, object?> Properties);
 
 /// <summary>
 /// UI command request for applying a layout preset.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="ControlPath">The control node path.</param>
-/// <param name="PresetName">The layout preset name.</param>
 public sealed record UiApplyLayoutPresetRequest(
-    string ScenePath,
-    string ControlPath,
-    string PresetName);
+    McpProjectFile Scene,
+    string ControlNodePath,
+    string Preset);
 
 /// <summary>
 /// Represents the result of applying a UI layout preset.
 /// </summary>
-/// <param name="Success">Whether the operation succeeded.</param>
-/// <param name="Message">Optional result message.</param>
 public sealed record UiLayoutPresetResult(
     bool Success,
     string? Message = null);
@@ -53,26 +40,19 @@ public sealed record UiLayoutPresetResult(
 /// <summary>
 /// UI command request for listing themes in a scene.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-public sealed record UiListThemesRequest(string ScenePath);
+public sealed record UiListThemesRequest(McpProjectFile Scene);
 
 /// <summary>
 /// UI command request for applying a theme to a control.
 /// </summary>
-/// <param name="ScenePath">The scene resource path.</param>
-/// <param name="ControlPath">The control node path.</param>
-/// <param name="ThemeName">The theme name to apply.</param>
 public sealed record UiApplyThemeRequest(
-    string ScenePath,
-    string ControlPath,
+    McpProjectFile Scene,
+    string ControlNodePath,
     string ThemeName);
 
 /// <summary>
 /// Represents the result of applying a UI theme.
 /// </summary>
-/// <param name="Success">Whether the operation succeeded.</param>
-/// <param name="Message">Optional result message.</param>
-/// <param name="AppliedTheme">Optional applied theme identifier.</param>
 public sealed record UiThemeResult(
     bool Success,
     string? Message = null,

@@ -18,7 +18,7 @@ public static class McpClientAdvancedLintExtensions
     {
         return client.SendAsync<LintResult>(
             "lint.scene_advanced",
-            new Dictionary<string, object?> { ["scenePath"] = request.ScenePath },
+            McpProjectFilePayload.ToDictionary(request.Scene),
             cancellationToken);
     }
 

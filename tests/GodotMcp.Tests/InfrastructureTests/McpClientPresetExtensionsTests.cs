@@ -15,7 +15,8 @@ public class McpClientPresetExtensionsTests
         _client.InvokeToolAsync("preset.apply", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse("1", true, new { success = true, message = "Applied", appliedToPath = "./Player" }));
 
-        var result = await _client.PresetApplyAsync(new PresetApplyRequest("res://scenes/main.tscn", "./Player", "player_default"));
+        var result = await _client.PresetApplyAsync(
+            new PresetApplyRequest(new McpProjectFile("res://", "scenes/main.tscn"), "./Player", "player_default"));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);

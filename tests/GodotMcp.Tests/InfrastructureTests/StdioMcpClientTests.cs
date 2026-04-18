@@ -283,7 +283,7 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
                 new { name = "Camera", path = "./Camera", type = "Camera3D", parentPath = (string?)".", isInternal = false }
             })));
 
-        var result = await client.SceneListNodesAsync(new SceneListNodesRequest("res://scenes/main.tscn"));
+        var result = await client.SceneListNodesAsync(new SceneListNodesRequest(new McpProjectFile("res://", "scenes/main.tscn")));
 
         Assert.Equal(2, result.Count);
         Assert.Equal("Root", result[0].Name);
@@ -291,8 +291,8 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
         await _mockSession.Received(1).CallToolAsync(
             "scene.list_nodes",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                d.ContainsKey("scenePath") &&
-                string.Equals(d["scenePath"] as string, "res://scenes/main.tscn", StringComparison.Ordinal)),
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "scenes/main.tscn")),
             Arg.Any<CancellationToken>());
     }
 
@@ -314,7 +314,7 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
             })));
 
         var request = new SceneAddNodeRequest(
-            "res://scenes/main.tscn",
+            new McpProjectFile("res://", "scenes/main.tscn"),
             ".",
             "Player",
             "CharacterBody3D");
@@ -327,8 +327,9 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
         await _mockSession.Received(1).CallToolAsync(
             "scene.add_node",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["scenePath"], "res://scenes/main.tscn") &&
-                Equals(d["parentPath"], ".") &&
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "scenes/main.tscn") &&
+                Equals(d["parentNodePath"], ".") &&
                 Equals(d["nodeName"], "Player") &&
                 Equals(d["nodeType"], "CharacterBody3D")),
             Arg.Any<CancellationToken>());
@@ -351,7 +352,7 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
             }));
 
         var result = await client.SceneGetNodePropertiesAsync(
-            new SceneGetNodePropertiesRequest("res://scenes/main.tscn", "./Camera"));
+            new SceneGetNodePropertiesRequest(new McpProjectFile("res://", "scenes/main.tscn"), "./Camera"));
 
         Assert.Equal(2, result.Count);
         Assert.Equal("fov", result[0].Name);
@@ -373,7 +374,7 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
             .Returns(Task.FromResult(JsonResult(new { success = true, message = "Moved" })));
 
         var result = await client.SceneMoveNodeAsync(
-            new SceneMoveNodeRequest("res://scenes/main.tscn", "./Camera", "./Rig", 0));
+            new SceneMoveNodeRequest(new McpProjectFile("res://", "scenes/main.tscn"), "./Camera", "./Rig", 0));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);

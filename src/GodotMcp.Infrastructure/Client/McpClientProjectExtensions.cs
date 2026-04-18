@@ -20,6 +20,7 @@ public static class McpClientProjectExtensions
             "create_godot_project",
             new Dictionary<string, object?>
             {
+                ["projectPath"] = request.ProjectRootPath,
                 ["projectName"] = request.ProjectName
             },
             cancellationToken);
@@ -30,11 +31,12 @@ public static class McpClientProjectExtensions
     /// </summary>
     public static Task<ProjectInfo?> GetProjectInfoAsync(
         this IMcpClient client,
+        string projectRootPath = GodotMcpPathDefaults.ResProjectRoot,
         CancellationToken cancellationToken = default)
     {
         return client.SendAsync<ProjectInfo>(
             "get_project_info",
-            new Dictionary<string, object?>(),
+            new Dictionary<string, object?> { ["projectPath"] = projectRootPath },
             cancellationToken);
     }
 
@@ -50,6 +52,7 @@ public static class McpClientProjectExtensions
             "configure_autoload",
             new Dictionary<string, object?>
             {
+                ["projectPath"] = request.ProjectRootPath,
                 ["key"] = request.Key,
                 ["value"] = request.Value,
                 ["enabled"] = request.Enabled
@@ -69,6 +72,7 @@ public static class McpClientProjectExtensions
             "add_plugin",
             new Dictionary<string, object?>
             {
+                ["projectPath"] = request.ProjectRootPath,
                 ["pluginName"] = request.PluginName
             },
             cancellationToken);

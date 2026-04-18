@@ -349,21 +349,24 @@ public class ModelTests
     public void ResourceRequestRecords_ShouldCreateWithExpectedValues()
     {
         var list = new ResourceListRequest("res://materials", "StandardMaterial3D");
-        var read = new ResourceReadRequest("res://materials/mat.tres");
+        var read = new ResourceReadRequest(new McpProjectFile("res://", "materials/mat.tres"));
         var update = new ResourceUpdateRequest(
-            "res://materials/mat.tres",
+            new McpProjectFile("res://", "materials/mat.tres"),
             new Dictionary<string, object?> { ["metallic"] = 0.8 });
         var create = new ResourceCreateRequest(
-            "res://materials/new_mat.tres",
+            new McpProjectFile("res://", "materials/new_mat.tres"),
             "StandardMaterial3D",
             new Dictionary<string, object?> { ["roughness"] = 0.2 });
 
         Assert.Equal("res://materials", list.Directory);
         Assert.Equal("StandardMaterial3D", list.ResourceType);
-        Assert.Equal("res://materials/mat.tres", read.ResourcePath);
-        Assert.Equal("res://materials/mat.tres", update.ResourcePath);
+        Assert.Equal("res://", read.Resource.ProjectPath);
+        Assert.Equal("materials/mat.tres", read.Resource.FileName);
+        Assert.Equal("res://", update.Resource.ProjectPath);
+        Assert.Equal("materials/mat.tres", update.Resource.FileName);
         Assert.Single(update.Properties);
-        Assert.Equal("res://materials/new_mat.tres", create.ResourcePath);
+        Assert.Equal("res://", create.Resource.ProjectPath);
+        Assert.Equal("materials/new_mat.tres", create.Resource.FileName);
         Assert.Equal("StandardMaterial3D", create.ResourceType);
         Assert.Single(create.Properties);
     }
@@ -371,27 +374,30 @@ public class ModelTests
     [Fact]
     public void ControlInfo_AndUiRequests_ShouldCreateWithExpectedValues()
     {
+        var uiScene = new McpProjectFile("res://", "scenes/ui.tscn");
         var control = new ControlInfo("RootPanel", ".", "Panel", null);
-        var list = new UiListControlsRequest("res://scenes/ui.tscn");
-        var create = new UiCreateControlRequest("res://scenes/ui.tscn", ".", "PlayButton", "Button");
+        var list = new UiListControlsRequest(uiScene);
+        var create = new UiCreateControlRequest(uiScene, ".", "PlayButton", "Button");
         var update = new UiUpdateControlRequest(
-            "res://scenes/ui.tscn",
+            uiScene,
             "./PlayButton",
             new Dictionary<string, object?> { ["text"] = "Play" });
-        var preset = new UiApplyLayoutPresetRequest("res://scenes/ui.tscn", "./RootPanel", "full_rect");
+        var preset = new UiApplyLayoutPresetRequest(uiScene, "./RootPanel", "full_rect");
         var presetResult = new UiLayoutPresetResult(true, "Applied");
-        var listThemes = new UiListThemesRequest("res://scenes/ui.tscn");
-        var applyTheme = new UiApplyThemeRequest("res://scenes/ui.tscn", "./RootPanel", "dark_flat");
+        var listThemes = new UiListThemesRequest(uiScene);
+        var applyTheme = new UiApplyThemeRequest(uiScene, "./RootPanel", "dark_flat");
         var themeResult = new UiThemeResult(true, "Theme applied", "dark_flat");
 
         Assert.Equal("Panel", control.ControlType);
-        Assert.Equal("res://scenes/ui.tscn", list.ScenePath);
+        Assert.Equal("res://", list.Scene.ProjectPath);
+        Assert.Equal("scenes/ui.tscn", list.Scene.FileName);
         Assert.Equal("PlayButton", create.ControlName);
-        Assert.Equal("./PlayButton", update.ControlPath);
+        Assert.Equal("./PlayButton", update.ControlNodePath);
         Assert.Single(update.Properties);
-        Assert.Equal("full_rect", preset.PresetName);
+        Assert.Equal("full_rect", preset.Preset);
         Assert.True(presetResult.Success);
-        Assert.Equal("res://scenes/ui.tscn", listThemes.ScenePath);
+        Assert.Equal("res://", listThemes.Scene.ProjectPath);
+        Assert.Equal("scenes/ui.tscn", listThemes.Scene.FileName);
         Assert.Equal("dark_flat", applyTheme.ThemeName);
         Assert.Equal("dark_flat", themeResult.AppliedTheme);
     }
@@ -399,34 +405,36 @@ public class ModelTests
     [Fact]
     public void LightInfo_AndLightingRequests_ShouldCreateWithExpectedValues()
     {
+        var mainScene = new McpProjectFile("res://", "scenes/main.tscn");
         var light = new LightInfo("Sun", "./Sun", "DirectionalLight3D", true);
-        var list = new LightListRequest("res://scenes/main.tscn");
-        var create = new LightCreateRequest("res://scenes/main.tscn", ".", "Fill", "OmniLight3D");
+        var list = new LightListRequest("res://");
+        var create = new LightCreateRequest(mainScene, ".", "Fill", "OmniLight3D");
         var update = new LightUpdateRequest(
-            "res://scenes/main.tscn",
+            mainScene,
             "./Fill",
             new Dictionary<string, object?> { ["energy"] = 2.0 });
-        var validate = new LightValidateRequest("res://scenes/main.tscn");
+        var validate = new LightValidateRequest("res://");
         var validateResult = new LightValidationResult(true, "Lighting valid");
         var tune = new LightTuneRequest(
-            "res://scenes/main.tscn",
+            mainScene,
             "./Sun",
             new Dictionary<string, object?> { ["energy"] = 2.5 });
 
         Assert.Equal("DirectionalLight3D", light.LightType);
-        Assert.Equal("res://scenes/main.tscn", list.ScenePath);
-        Assert.Equal("Fill", create.LightName);
-        Assert.Equal("./Fill", update.LightPath);
+        Assert.Equal("res://", list.ProjectPath);
+        Assert.Equal("Fill", create.NodeName);
+        Assert.Equal("./Fill", update.NodePath);
         Assert.Single(update.Properties);
-        Assert.Equal("res://scenes/main.tscn", validate.ScenePath);
+        Assert.Equal("res://", validate.ProjectPath);
         Assert.True(validateResult.Success);
-        Assert.Equal("./Sun", tune.LightPath);
+        Assert.Equal("./Sun", tune.NodePath);
         Assert.Single(tune.Properties);
     }
 
     [Fact]
     public void PhysicsModels_AndRequests_ShouldCreateWithExpectedValues()
     {
+        var mainScene = new McpProjectFile("res://", "scenes/main.tscn");
         var body = new PhysicsBodyInfo("PlayerBody", "./Player", "CharacterBody3D", true);
         var shape = new PhysicsShapeInfo(
             "Capsule",
@@ -434,14 +442,14 @@ public class ModelTests
             "CapsuleShape3D",
             new Dictionary<string, object?> { ["radius"] = 0.4 });
         var create = new PhysicsCreateShapeRequest(
-            "res://scenes/main.tscn",
+            mainScene,
             "./Player",
             "Capsule",
             "CapsuleShape3D",
             new Dictionary<string, object?> { ["height"] = 1.8 });
         var validate = new PhysicsValidationResult(true, "Physics valid");
-        var setLayers = new PhysicsSetLayersRequest("res://scenes/main.tscn", "./Player", 2, 5);
-        var runChecks = new PhysicsRunChecksRequest("res://scenes/main.tscn", "./Player");
+        var setLayers = new PhysicsSetLayersRequest(mainScene, "./Player", 2, 5);
+        var runChecks = new PhysicsRunChecksRequest(mainScene, "./Player");
         var layerResult = new PhysicsLayerResult(true, "Updated", 2, 5);
         var checkResult = new PhysicsCheckResult(true, "No issues", Array.Empty<string>());
 
@@ -459,15 +467,16 @@ public class ModelTests
     [Fact]
     public void NavigationLintAndPresetModels_ShouldCreateWithExpectedValues()
     {
+        var mainScene = new McpProjectFile("res://", "scenes/main.tscn");
         var nav = new NavigationRegionInfo("RegionA", "./RegionA", true);
-        var navCreate = new NavigationCreateRegionRequest("res://scenes/main.tscn", ".", "RegionA");
+        var navCreate = new NavigationCreateRegionRequest(mainScene, ".", "RegionA");
         var navResult = new NavigationResult(true, "Baked");
 
         var issue = new LintIssue("L001", "warning", "Unused node", "./Temp");
         var lintResult = new LintResult(new[] { issue }, true);
         var lintProject = new LintProjectRequest("res://");
 
-        var presetReq = new PresetApplyRequest("res://scenes/main.tscn", "./Player", "player_default");
+        var presetReq = new PresetApplyRequest(mainScene, "./Player", "player_default");
         var presetResult = new PresetResult(true, "Applied", "./Player");
 
         Assert.Equal("RegionA", nav.Name);
@@ -494,10 +503,11 @@ public class ModelTests
             "Perspective",
             true);
 
+        var mainScene = new McpProjectFile("res://", "scenes/main.tscn");
         var list = new CameraListRequest("res://");
-        var create = new CameraCreateRequest("res://scenes/main.tscn", "./MainCamera", "3d", "cinematic");
+        var create = new CameraCreateRequest(mainScene, "./MainCamera", "3d", "cinematic");
         var update = new CameraUpdateRequest(
-            "res://scenes/main.tscn",
+            mainScene,
             "./MainCamera",
             new Dictionary<string, object?> { ["fov"] = 75.0 });
         var validate = new CameraValidateRequest("res://");
@@ -512,30 +522,33 @@ public class ModelTests
 
         Assert.Equal("Camera3D", camera.Type);
         Assert.True(camera.Current);
-        Assert.Equal("res://", list.ProjectRootPath);
+        Assert.Equal("res://", list.ProjectPath);
         Assert.Equal("cinematic", create.Preset);
         Assert.Equal("./MainCamera", update.NodePath);
-        Assert.Equal("res://", validate.ProjectRootPath);
+        Assert.Equal("res://", validate.ProjectPath);
         Assert.Equal("camera_fov_range", issue.Rule);
     }
 
     [Fact]
     public void ScriptAndImportModels_ShouldCreateWithExpectedValues()
     {
-        var scriptCreate = new ScriptCreateRequest("res://scripts/player.cs", "CSharp", "Node3D", "PlayerController");
-        var scriptAttach = new ScriptAttachRequest("res://scenes/main.tscn", "Player", "res://scripts/player.cs");
-        var scriptValidate = new ScriptValidateRequest("res://scripts/player.cs", true);
+        var mainScene = new McpProjectFile("res://", "scenes/main.tscn");
+        var playerScript = new McpProjectFile("res://", "scripts/player.cs");
+        var scriptCreate = new ScriptCreateRequest(playerScript, "CSharp", "Node3D", "PlayerController");
+        var scriptAttach = new ScriptAttachRequest(mainScene, "Player", playerScript);
+        var scriptValidate = new ScriptValidateRequest(playerScript, true);
         var scriptInfo = new ScriptInfo("res://scripts/player.cs", "CSharp", "Node3D", "PlayerController");
         var scriptValidation = new ScriptValidationResult(true, "OK", Array.Empty<string>(), new[] { "warning" });
 
+        var heroPng = new McpProjectFile("res://", "assets/hero.png");
         var importGenerate = new GenerateImportFileRequest(
-            "res://assets/hero.png",
+            heroPng,
             "texture",
             "CompressedTexture2D",
             new Dictionary<string, object?> { ["compress/mode"] = 2 });
-        var importTexture = new CreateTextureRequest("res://assets/hero.png");
-        var importAudio = new CreateAudioRequest("res://assets/music.ogg");
-        var reimport = new ReimportAssetRequest("res://assets/hero.png");
+        var importTexture = new CreateTextureRequest(heroPng);
+        var importAudio = new CreateAudioRequest(new McpProjectFile("res://", "assets/music.ogg"));
+        var reimport = new ReimportAssetRequest(heroPng);
         var importResult = new ImportOperationResult(true, "Generated", "res://assets/hero.png", "res://assets/hero.png.import");
 
         Assert.Equal("PlayerController", scriptCreate.ClassName);
@@ -545,9 +558,12 @@ public class ModelTests
         Assert.Single(scriptValidation.Warnings!);
 
         Assert.Equal("texture", importGenerate.Importer);
-        Assert.Equal("res://assets/hero.png", importTexture.TexturePath);
-        Assert.Equal("res://assets/music.ogg", importAudio.AudioPath);
-        Assert.Equal("res://assets/hero.png", reimport.AssetPath);
+        Assert.Equal("res://", importTexture.Texture.ProjectPath);
+        Assert.Equal("assets/hero.png", importTexture.Texture.FileName);
+        Assert.Equal("res://", importAudio.Audio.ProjectPath);
+        Assert.Equal("assets/music.ogg", importAudio.Audio.FileName);
+        Assert.Equal("res://", reimport.Asset.ProjectPath);
+        Assert.Equal("assets/hero.png", reimport.Asset.FileName);
         Assert.Equal("res://assets/hero.png.import", importResult.ImportPath);
     }
 

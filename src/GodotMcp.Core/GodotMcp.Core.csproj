@@ -8,7 +8,7 @@
     <NoWarn>$(NoWarn);SYSLIB1030</NoWarn>
     <RootNamespace>GodotMcp.Core</RootNamespace>
     <PackageId>GodotMcp.Core</PackageId>
-    <Version>1.4.0</Version>
+    <Version>1.5.0</Version>
     <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 

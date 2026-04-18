@@ -52,7 +52,8 @@ public class McpClientResourceExtensionsTests
                     }
                 }));
 
-        var result = await _client.ResourceReadAsync(new ResourceReadRequest("res://materials/mat.tres"));
+        var result = await _client.ResourceReadAsync(
+            new ResourceReadRequest(new McpProjectFile("res://", "materials/mat.tres")));
 
         Assert.NotNull(result);
         Assert.Equal("res://materials/mat.tres", result!.Path);
@@ -61,7 +62,9 @@ public class McpClientResourceExtensionsTests
 
         await _client.Received(1).InvokeToolAsync(
             "resource.read",
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["resourcePath"], "res://materials/mat.tres")),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "materials/mat.tres")),
             Arg.Any<CancellationToken>());
     }
 
@@ -82,7 +85,8 @@ public class McpClientResourceExtensionsTests
                     properties = new Dictionary<string, object?> { ["metallic"] = 0.8 }
                 }));
 
-        var result = await _client.ResourceUpdateAsync(new ResourceUpdateRequest("res://materials/mat.tres", properties));
+        var result = await _client.ResourceUpdateAsync(
+            new ResourceUpdateRequest(new McpProjectFile("res://", "materials/mat.tres"), properties));
 
         Assert.NotNull(result);
         Assert.Equal("res://materials/mat.tres", result!.Path);
@@ -90,9 +94,9 @@ public class McpClientResourceExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "resource.update_properties",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["resourcePath"], "res://materials/mat.tres") &&
-                Equals(d["path"], "res://materials/mat.tres") &&
-                ReferenceEquals(d["properties"], properties)),
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "materials/mat.tres") &&
+                ((Dictionary<string, string>)d["properties"]!).ContainsKey("metallic")),
             Arg.Any<CancellationToken>());
     }
 
@@ -115,7 +119,7 @@ public class McpClientResourceExtensionsTests
                 }));
 
         var result = await _client.ResourceCreateAsync(
-            new ResourceCreateRequest("res://textures/new_texture.tres", "ImageTexture", properties));
+            new ResourceCreateRequest(new McpProjectFile("res://", "textures/new_texture.tres"), "ImageTexture", properties));
 
         Assert.NotNull(result);
         Assert.Equal("new_texture", result!.Name);
@@ -123,11 +127,10 @@ public class McpClientResourceExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "create_resource",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["resourcePath"], "res://textures/new_texture.tres") &&
-                Equals(d["path"], "res://textures/new_texture.tres") &&
-                Equals(d["resourceType"], "ImageTexture") &&
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "textures/new_texture.tres") &&
                 Equals(d["type"], "ImageTexture") &&
-                ReferenceEquals(d["properties"], properties)),
+                Equals(((Dictionary<string, string>)d["properties"]!)["size"], "512")),
             Arg.Any<CancellationToken>());
     }
 
@@ -152,7 +155,8 @@ public class McpClientResourceExtensionsTests
                     properties = new Dictionary<string, object?> { ["metallic"] = 0.8 }
                 }));
 
-        var result = await _client.ResourceUpdateAsync(new ResourceUpdateRequest("res://materials/mat.tres", properties));
+        var result = await _client.ResourceUpdateAsync(
+            new ResourceUpdateRequest(new McpProjectFile("res://", "materials/mat.tres"), properties));
 
         Assert.NotNull(result);
         Assert.Equal("res://materials/mat.tres", result!.Path);
@@ -183,7 +187,7 @@ public class McpClientResourceExtensionsTests
                 }));
 
         var result = await _client.ResourceCreateAsync(
-            new ResourceCreateRequest("res://textures/new_texture.tres", "ImageTexture", properties));
+            new ResourceCreateRequest(new McpProjectFile("res://", "textures/new_texture.tres"), "ImageTexture", properties));
 
         Assert.NotNull(result);
         Assert.Equal("new_texture", result!.Name);

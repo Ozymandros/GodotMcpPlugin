@@ -28,7 +28,7 @@ public class McpClientImportExtensionsTests
                 }));
 
         var result = await _client.GenerateImportFileAsync(
-            new GenerateImportFileRequest("res://assets/hero.png", "texture", "CompressedTexture2D", parameters));
+            new GenerateImportFileRequest(new McpProjectFile("res://", "assets/hero.png"), "texture", "CompressedTexture2D", parameters));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -37,7 +37,8 @@ public class McpClientImportExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "generate_import_file",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["assetPath"], "res://assets/hero.png") &&
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "assets/hero.png") &&
                 Equals(d["importer"], "texture") &&
                 Equals(d["type"], "CompressedTexture2D") &&
                 ReferenceEquals(d["parameters"], parameters)),
@@ -60,14 +61,16 @@ public class McpClientImportExtensionsTests
                     exists = true
                 }));
 
-        var result = await _client.CreateTextureAsync(new CreateTextureRequest("res://assets/hero.png"));
+        var result = await _client.CreateTextureAsync(new CreateTextureRequest(new McpProjectFile("res://", "assets/hero.png")));
 
         Assert.NotNull(result);
         Assert.Equal("hero", result!.Name);
 
         await _client.Received(1).InvokeToolAsync(
             "create_texture",
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["texturePath"], "res://assets/hero.png")),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "assets/hero.png")),
             Arg.Any<CancellationToken>());
     }
 
@@ -87,14 +90,16 @@ public class McpClientImportExtensionsTests
                     exists = true
                 }));
 
-        var result = await _client.CreateAudioAsync(new CreateAudioRequest("res://assets/music.ogg"));
+        var result = await _client.CreateAudioAsync(new CreateAudioRequest(new McpProjectFile("res://", "assets/music.ogg")));
 
         Assert.NotNull(result);
         Assert.Equal("AudioStream", result!.Type);
 
         await _client.Received(1).InvokeToolAsync(
             "create_audio",
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["audioPath"], "res://assets/music.ogg")),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "assets/music.ogg")),
             Arg.Any<CancellationToken>());
     }
 
@@ -113,14 +118,16 @@ public class McpClientImportExtensionsTests
                     assetPath = "res://assets/hero.png"
                 }));
 
-        var result = await _client.ReimportAssetAsync(new ReimportAssetRequest("res://assets/hero.png"));
+        var result = await _client.ReimportAssetAsync(new ReimportAssetRequest(new McpProjectFile("res://", "assets/hero.png")));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
 
         await _client.Received(1).InvokeToolAsync(
             "reimport_asset",
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["assetPath"], "res://assets/hero.png")),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "assets/hero.png")),
             Arg.Any<CancellationToken>());
     }
 }

@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using GodotMcp.Core.Models;
 using GodotMcp.Plugin.Extensions;
 using GodotMcp.Plugin.Validation;
 
@@ -260,18 +261,25 @@ public sealed partial class GodotPlugin(
     /// <summary>
     /// Gets Godot/server version information through the MCP server.
     /// </summary>
+    /// <param name="projectPath">Project root path (<c>res://</c> or absolute path under the project).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Version payload returned by the <c>get_godot_version</c> tool.</returns>
+    /// <returns>Payload returned by the <c>get_server_info</c> tool.</returns>
     [KernelFunction("get_godot_version")]
-    [Description("Gets Godot and MCP server version information from the connected server.")]
-    public async Task<object?> GetGodotVersionAsync(CancellationToken cancellationToken = default)
+    [Description("Gets Godot MCP server version and working directory from the connected server (get_server_info).")]
+    public async Task<object?> GetGodotVersionAsync(
+        [Description("Project root path (res:// or absolute path under the project).")] string? projectPath = null,
+        CancellationToken cancellationToken = default)
     {
         if (_mcpClient.State == ConnectionState.Disconnected)
         {
             await _mcpClient.ConnectAsync(cancellationToken);
         }
 
-        var response = await _mcpClient.InvokeToolAsync("get_godot_version", new Dictionary<string, object?>(), cancellationToken);
+        var path = string.IsNullOrWhiteSpace(projectPath) ? GodotMcpPathDefaults.ResProjectRoot : projectPath;
+        var response = await _mcpClient.InvokeToolAsync(
+            "get_server_info",
+            new Dictionary<string, object?> { ["projectPath"] = path },
+            cancellationToken);
         return response.Result;
     }
 

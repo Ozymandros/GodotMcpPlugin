@@ -33,11 +33,17 @@ public class KernelSkillRegistrationTests
         Assert.NotNull(kernel.Plugins["preset"]);
 
         var sceneFunc = kernel.Plugins["scene"]["list_nodes"];
-        await kernel.InvokeAsync(sceneFunc, new KernelArguments { ["scenePath"] = "res://scenes/main.tscn" });
+        await kernel.InvokeAsync(sceneFunc, new KernelArguments
+        {
+            ["projectPath"] = "res://",
+            ["fileName"] = "scenes/main.tscn"
+        });
 
         await mcp.Received(1).InvokeToolAsync(
             "scene.list_nodes",
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["scenePath"], "res://scenes/main.tscn")),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], "res://") &&
+                Equals(d["fileName"], "scenes/main.tscn")),
             Arg.Any<CancellationToken>());
     }
 }
