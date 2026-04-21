@@ -33,6 +33,7 @@ public static class GodotMcpKernelExtensions
         kernel.Plugins.AddFromObject(new NavigationSkill(mcpClient), "nav");
         kernel.Plugins.AddFromObject(new AdvancedLintSkill(mcpClient), "lint");
         kernel.Plugins.AddFromObject(new PresetSkill(mcpClient), "preset");
+        kernel.Plugins.AddFromObject(new DocumentationSkill(mcpClient), "docs");
     }
 
     /// <summary>

@@ -237,6 +237,46 @@ public sealed partial class GodotPlugin(
     }
 
     /// <summary>
+    /// Updates the Godot project root used as the MCP server's working directory, reconnecting
+    /// the <c>godot-mcp</c> process when the path differs from the current configuration.
+    /// </summary>
+    /// <remarks>
+    /// Must be called before <see cref="InvokeToolAsync"/> on a new project so the MCP server's
+    /// <c>IPathResolver</c> is scoped to the correct directory. This is required for
+    /// GodotMCP.Server 1.5+, which validates every <c>projectPath</c> tool argument against the
+    /// server's working directory. No-op when <paramref name="projectRoot"/> is null or unchanged.
+    /// </remarks>
+    /// <param name="projectRoot">Absolute path to the Godot project root directory.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task ApplyProjectRootAsync(string? projectRoot, CancellationToken cancellationToken = default)
+    {
+        var normalized = string.IsNullOrWhiteSpace(projectRoot) ? null : projectRoot.Trim();
+
+        // Apply the requested project root to the underlying MCP client which will
+        // reconnect the godot-mcp process with the updated working directory.
+        await _mcpClient.ApplyProjectRootAsync(normalized, cancellationToken).ConfigureAwait(false);
+
+        // After reconnecting, re-discover available tools and refresh the function
+        // mapper registrations so cached kernels or previous registrations do not
+        // hold stale tool definitions for the new working directory.
+        try
+        {
+            var tools = await _mcpClient.ListToolsAsync(cancellationToken).ConfigureAwait(false);
+            await _functionMapper.RegisterToolsAsync(tools, cancellationToken).ConfigureAwait(false);
+            _logger.LogInformation("Refreshed Godot MCP tool registrations after project-root change; discovered {ToolCount} tools.", tools.Count);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Non-fatal: continue with existing registrations but log the issue.
+            _logger.LogWarning(ex, "Failed to refresh Godot MCP tools after project-root change; continuing with existing registrations.");
+        }
+    }
+
+    /// <summary>
     /// Validates whether the provided path looks like a Godot project root.
     /// </summary>
     /// <param name="projectPath">Path to check.</param>

@@ -1,3 +1,4 @@
+using GodotMcp.Core.Models;
 using GodotMcp.Infrastructure.Client;
 using GodotMcp.Plugin.Extensions;
 using Microsoft.SemanticKernel;
@@ -15,6 +16,11 @@ public class KernelSkillRegistrationTests
         var mcp = Substitute.For<IMcpClient>();
         mcp.InvokeToolAsync("scene.list_nodes", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse("1", true, Array.Empty<object>()));
+        mcp.InvokeToolAsync("query_system_documentation", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse(
+                "doc-1",
+                true,
+                new QuerySystemDocumentationMcpResponse { Success = true, RepositoryRoot = @"C:\McpRepo" }));
 
         var kernel = Kernel.CreateBuilder().Build();
         kernel.AddGodotMcpSkills(mcp);
@@ -31,6 +37,7 @@ public class KernelSkillRegistrationTests
         Assert.NotNull(kernel.Plugins["nav"]);
         Assert.NotNull(kernel.Plugins["lint"]);
         Assert.NotNull(kernel.Plugins["preset"]);
+        Assert.NotNull(kernel.Plugins["docs"]);
 
         var sceneFunc = kernel.Plugins["scene"]["list_nodes"];
         await kernel.InvokeAsync(sceneFunc, new KernelArguments
@@ -44,6 +51,24 @@ public class KernelSkillRegistrationTests
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
                 Equals(d["projectPath"], Root) &&
                 Equals(d["fileName"], "scenes/main.tscn")),
+            Arg.Any<CancellationToken>());
+
+        var docsFunc = kernel.Plugins["docs"]["query_system_documentation"];
+        await kernel.InvokeAsync(docsFunc, new KernelArguments
+        {
+            ["projectPath"] = Root,
+            ["query"] = "",
+            ["repositoryRoot"] = null,
+            ["source"] = "both"
+        });
+
+        await mcp.Received(1).InvokeToolAsync(
+            "query_system_documentation",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], Root) &&
+                Equals(d["query"], "") &&
+                d["repositoryRoot"] == null &&
+                Equals(d["source"], "both")),
             Arg.Any<CancellationToken>());
     }
 }

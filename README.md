@@ -151,6 +151,16 @@ Camera module (`camera.*`):
 - `camera.update`
 - `camera.validate`
 
+Documentation module (`docs.*`):
+- `query_system_documentation` — search this repository’s DocFX output (`_site/manifest.json`) and/or Markdown under `docs/` (same parameters as the Godot MCP server tool).
+- `query_godot_engine_documentation` — search official Godot Engine docs via Read the Docs (HTTPS to `docs.godotengine.org`; requires outbound network on the MCP server).
+
+**Local system documentation:** the server needs `docs/docfx.json` in the Godot MCP git repo. For manifest search, build the site first (for example `dotnet docfx docs/docfx.json`), which produces `_site/manifest.json`. If `godot-mcp` runs as a global tool outside the repo, set `GODOT_MCP_REPO_ROOT` to the repository root (folder containing `docs/docfx.json`) so the server can resolve paths.
+
+**Godot Engine documentation:** works from any machine where the MCP server can reach `https://docs.godotengine.org` (Read the Docs JSON API).
+
+Typed results use `GodotMcpDocumentationToolResult<T>` in C#, mapping MCP fields `success`, `message`, optional `suggestedRemediation`, and structured payload data for reliable parsing in agents.
+
 These typed surfaces are additive: if a server does not expose a given command, dynamic discovery still provides the authoritative runtime list.
 
 ### Typed Module Quick Examples

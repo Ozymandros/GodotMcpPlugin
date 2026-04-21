@@ -17,9 +17,10 @@ public static class McpClientResourceExtensions
         CancellationToken cancellationToken = default)
     {
         return await client.SendAsync<IReadOnlyList<ResourceInfo>>(
-            "resource.list",
+            "list_resources",
             new Dictionary<string, object?>
             {
+                ["projectPath"] = request.Directory, // Directory is used as projectPath for server compatibility
                 ["directory"] = request.Directory,
                 ["resourceType"] = request.ResourceType
             },
@@ -70,10 +71,9 @@ public static class McpClientResourceExtensions
         d["type"] = request.ResourceType;
         d["properties"] = ToStringPropertyMap(request.Properties);
 
-        return InvokeResourceWithFallbackAsync<ResourceInfo>(
-            client,
+        // Use only 'create_resource' as the server does not support 'resource.create' anymore
+        return client.SendAsync<ResourceInfo>(
             "create_resource",
-            "resource.create",
             d,
             cancellationToken);
     }

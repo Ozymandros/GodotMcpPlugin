@@ -374,6 +374,24 @@ public sealed partial class StdioMcpClient : IMcpClient
         }
     }
 
+    /// <inheritdoc />
+    public async Task ApplyProjectRootAsync(string? projectRoot, CancellationToken cancellationToken = default)
+    {
+        var normalized = string.IsNullOrWhiteSpace(projectRoot) ? null : projectRoot.Trim();
+
+        // No-op when the requested path matches what the server is already running with.
+        if (string.Equals(_options.ProjectPath, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        LogProjectRootChanging(_options.ProjectPath ?? "(none)", normalized ?? "(none)");
+        _options.ProjectPath = normalized;
+
+        // Force a full reconnect so the new godot-mcp process starts with the updated WorkingDirectory.
+        await ConnectAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     private async Task EnsureConnectedAsync(CancellationToken cancellationToken)
     {
         if (_state != ConnectionState.Connected || _session is null)
@@ -450,4 +468,7 @@ public sealed partial class StdioMcpClient : IMcpClient
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error in health check loop")]
     partial void LogHealthCheckError(Exception ex);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Godot project root changing from '{OldPath}' to '{NewPath}' — reconnecting godot-mcp process")]
+    partial void LogProjectRootChanging(string oldPath, string newPath);
 }

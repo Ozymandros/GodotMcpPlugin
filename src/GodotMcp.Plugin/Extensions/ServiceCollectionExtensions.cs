@@ -170,6 +170,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<NavigationSkill>();
         services.AddSingleton<AdvancedLintSkill>();
         services.AddSingleton<PresetSkill>();
+        services.AddSingleton<DocumentationSkill>();
     }
 
     /// <summary>
@@ -245,5 +246,7 @@ public static class ServiceCollectionExtensions
             new AdvancedLintSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
         services.AddKeyedSingleton<PresetSkill>(serviceKey, (sp, key) =>
             new PresetSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
+        services.AddKeyedSingleton<DocumentationSkill>(serviceKey, (sp, key) =>
+            new DocumentationSkill(sp.GetRequiredKeyedService<IMcpClient>(key)));
     }
 }
