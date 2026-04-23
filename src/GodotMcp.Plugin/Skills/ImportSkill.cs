@@ -11,6 +11,9 @@ public sealed class ImportSkill(IMcpClient mcp)
 {
     private readonly IMcpClient _mcp = mcp;
 
+    /// <summary>
+    /// Generates a Godot .import file for a source asset.
+    /// </summary>
     [KernelFunction("generate_import_file")]
     [Description("Generates a Godot .import file for a source asset.")]
     public Task<ImportOperationResult?> GenerateImportFileAsync(
@@ -24,6 +27,9 @@ public sealed class ImportSkill(IMcpClient mcp)
             new GenerateImportFileRequest(new McpProjectFile(projectPath, fileName), importer, type, parameters),
             cancellationToken);
 
+    /// <summary>
+    /// Creates texture import/resource metadata for the specified file.
+    /// </summary>
     [KernelFunction("create_texture")]
     [Description("Creates texture import/resource metadata.")]
     public Task<ResourceInfo?> CreateTextureAsync(
@@ -32,6 +38,9 @@ public sealed class ImportSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.CreateTextureAsync(new CreateTextureRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
 
+    /// <summary>
+    /// Creates audio import/resource metadata for the specified file.
+    /// </summary>
     [KernelFunction("create_audio")]
     [Description("Creates audio import/resource metadata.")]
     public Task<ResourceInfo?> CreateAudioAsync(
@@ -40,6 +49,9 @@ public sealed class ImportSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.CreateAudioAsync(new CreateAudioRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
 
+    /// <summary>
+    /// Reimports an existing asset and returns the import operation result.
+    /// </summary>
     [KernelFunction("reimport_asset")]
     [Description("Reimports an existing asset.")]
     public Task<ImportOperationResult?> ReimportAssetAsync(

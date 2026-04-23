@@ -11,6 +11,9 @@ public sealed class ResourceSkill(IMcpClient mcp)
 {
     private readonly IMcpClient _mcp = mcp;
 
+    /// <summary>
+    /// Lists resources, optionally filtering by directory or type.
+    /// </summary>
     [KernelFunction("list")]
     [Description("Lists resources.")]
     public Task<IReadOnlyList<ResourceInfo>> ListAsync(
@@ -19,6 +22,9 @@ public sealed class ResourceSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.ResourceListAsync(new ResourceListRequest(directory, resourceType), cancellationToken);
 
+    /// <summary>
+    /// Reads the specified resource file and returns its data.
+    /// </summary>
     [KernelFunction("read")]
     [Description("Reads a resource.")]
     public Task<ResourceData?> ReadAsync(
@@ -27,6 +33,9 @@ public sealed class ResourceSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.ResourceReadAsync(new ResourceReadRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
 
+    /// <summary>
+    /// Updates properties of the specified resource.
+    /// </summary>
     [KernelFunction("update")]
     [Description("Updates a resource.")]
     public Task<ResourceData?> UpdateAsync(
@@ -36,6 +45,9 @@ public sealed class ResourceSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.ResourceUpdateAsync(new ResourceUpdateRequest(new McpProjectFile(projectPath, fileName), properties), cancellationToken);
 
+    /// <summary>
+    /// Creates a new resource with the provided type and properties.
+    /// </summary>
     [KernelFunction("create")]
     [Description("Creates a resource.")]
     public Task<ResourceInfo?> CreateAsync(

@@ -11,6 +11,9 @@ public sealed class PhysicsSkill(IMcpClient mcp)
 {
     private readonly IMcpClient _mcp = mcp;
 
+    /// <summary>
+    /// Lists physics bodies under the specified project root path.
+    /// </summary>
     [KernelFunction("list_bodies")]
     [Description("Lists physics bodies under a project root path.")]
     public Task<IReadOnlyList<PhysicsBodyInfo>> ListBodiesAsync(
@@ -18,6 +21,9 @@ public sealed class PhysicsSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.PhysicsListBodiesAsync(new PhysicsListBodiesRequest(projectPath), cancellationToken);
 
+    /// <summary>
+    /// Creates a physics body in the specified scene.
+    /// </summary>
     [KernelFunction("create_body")]
     [Description("Creates a physics body in a scene.")]
     public Task<PhysicsBodyInfo?> CreateBodyAsync(
@@ -32,6 +38,9 @@ public sealed class PhysicsSkill(IMcpClient mcp)
             new PhysicsCreateBodyRequest(new McpProjectFile(projectPath, fileName), parentNodePath, bodyType, nodeName, addCollisionShape),
             cancellationToken);
 
+    /// <summary>
+    /// Updates properties of a physics body in a scene.
+    /// </summary>
     [KernelFunction("update_body")]
     [Description("Updates a physics body.")]
     public Task<PhysicsBodyInfo?> UpdateBodyAsync(
@@ -44,6 +53,9 @@ public sealed class PhysicsSkill(IMcpClient mcp)
             new PhysicsUpdateBodyRequest(new McpProjectFile(projectPath, fileName), nodePath, properties),
             cancellationToken);
 
+    /// <summary>
+    /// Lists physics shapes present in the specified scene.
+    /// </summary>
     [KernelFunction("list_shapes")]
     [Description("Lists physics shapes in a scene.")]
     public Task<IReadOnlyList<PhysicsShapeInfo>> ListShapesAsync(
@@ -52,6 +64,9 @@ public sealed class PhysicsSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.PhysicsListShapesAsync(new PhysicsListShapesRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
 
+    /// <summary>
+    /// Creates a physics shape under the given body node in a scene.
+    /// </summary>
     [KernelFunction("create_shape")]
     [Description("Creates a physics shape.")]
     public Task<PhysicsShapeInfo?> CreateShapeAsync(
@@ -66,6 +81,9 @@ public sealed class PhysicsSkill(IMcpClient mcp)
             new PhysicsCreateShapeRequest(new McpProjectFile(projectPath, fileName), bodyPath, shapeName, shapeType, properties),
             cancellationToken);
 
+    /// <summary>
+    /// Updates properties of an existing physics shape in a scene.
+    /// </summary>
     [KernelFunction("update_shape")]
     [Description("Updates a physics shape.")]
     public Task<PhysicsShapeInfo?> UpdateShapeAsync(
@@ -78,6 +96,9 @@ public sealed class PhysicsSkill(IMcpClient mcp)
             new PhysicsUpdateShapeRequest(new McpProjectFile(projectPath, fileName), shapePath, properties),
             cancellationToken);
 
+    /// <summary>
+    /// Validates the physics setup under the specified project root path.
+    /// </summary>
     [KernelFunction("validate")]
     [Description("Validates physics setup under a project root path.")]
     public Task<PhysicsValidationResult?> ValidateAsync(
@@ -85,6 +106,9 @@ public sealed class PhysicsSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.PhysicsValidateAsync(new PhysicsValidateRequest(projectPath), cancellationToken);
 
+    /// <summary>
+    /// Sets collision layer and mask values for a physics body.
+    /// </summary>
     [KernelFunction("set_layers")]
     [Description("Sets collision layer and mask for a physics body.")]
     public Task<PhysicsLayerResult?> SetLayersAsync(
@@ -98,6 +122,9 @@ public sealed class PhysicsSkill(IMcpClient mcp)
             new PhysicsSetLayersRequest(new McpProjectFile(projectPath, fileName), bodyPath, collisionLayer, collisionMask),
             cancellationToken);
 
+    /// <summary>
+    /// Runs physics checks in the specified scene and returns results.
+    /// </summary>
     [KernelFunction("run_checks")]
     [Description("Runs physics checks in a scene.")]
     public Task<PhysicsCheckResult?> RunChecksAsync(

@@ -187,6 +187,28 @@ public sealed partial class StdioMcpClient : IMcpClient
             return JsonSerializer.Deserialize<object>(structured.GetRawText());
         }
 
+        // Newer ModelContextProtocol versions (godot-mcp v1.7.1+) may include a
+        // RawContent field. We must handle it gracefully while remaining
+        // compatible with older SDKs. Use reflection to detect and read the
+        // property when available.
+        try
+        {
+            var rawProp = result.GetType().GetProperty("RawContent", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+            if (rawProp is not null)
+            {
+                var rawVal = rawProp.GetValue(result);
+                var parsed = ParsePotentialRawContent(rawVal);
+                if (parsed is not null)
+                {
+                    return parsed;
+                }
+            }
+        }
+        catch
+        {
+            // Ignore reflection failures and fall back to legacy handling below
+        }
+
         if (result.Content is null || result.Content.Count == 0)
         {
             return null;
@@ -203,6 +225,86 @@ public sealed partial class StdioMcpClient : IMcpClient
                 catch (JsonException)
                 {
                     return text.Text;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static object? ParsePotentialRawContent(object? rawVal)
+    {
+        if (rawVal is null)
+        {
+            return null;
+        }
+
+        // If the runtime exposes a JsonElement-like structured value
+        if (rawVal is JsonElement je && je.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
+        {
+            return JsonSerializer.Deserialize<object>(je.GetRawText());
+        }
+
+        // If it's a plain string, try to parse JSON, otherwise return the string
+        if (rawVal is string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<object>(s);
+            }
+            catch (JsonException)
+            {
+                return s;
+            }
+        }
+
+        // If it's an enumerable of content blocks (or similar), try to extract text
+        if (rawVal is System.Collections.IEnumerable enumerableObj && rawVal is not string)
+        {
+            foreach (var item in enumerableObj)
+            {
+                if (item is null) continue;
+
+                if (item is TextContentBlock tcb && !string.IsNullOrEmpty(tcb.Text))
+                {
+                    try
+                    {
+                        return JsonSerializer.Deserialize<object>(tcb.Text);
+                    }
+                    catch (JsonException)
+                    {
+                        return tcb.Text;
+                    }
+                }
+
+                // Some SDKs may provide anonymous block types; try reflection for a Text property
+                try
+                {
+                    var textProp = item.GetType().GetProperty("Text", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+                    if (textProp is not null)
+                    {
+                        var textVal = textProp.GetValue(item) as string;
+                        if (!string.IsNullOrEmpty(textVal))
+                        {
+                            try
+                            {
+                                return JsonSerializer.Deserialize<object>(textVal);
+                            }
+                            catch (JsonException)
+                            {
+                                return textVal;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore and continue
                 }
             }
         }

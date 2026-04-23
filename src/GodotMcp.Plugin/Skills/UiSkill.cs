@@ -11,6 +11,9 @@ public sealed class UiSkill(IMcpClient mcp)
 {
     private readonly IMcpClient _mcp = mcp;
 
+    /// <summary>
+    /// Lists UI controls present in the specified scene.
+    /// </summary>
     [KernelFunction("list_controls")]
     [Description("Lists UI controls in a scene.")]
     public Task<IReadOnlyList<ControlInfo>> ListControlsAsync(
@@ -19,6 +22,9 @@ public sealed class UiSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.UiListControlsAsync(new UiListControlsRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
 
+    /// <summary>
+    /// Creates a UI control in the specified scene under the given parent node.
+    /// </summary>
     [KernelFunction("create_control")]
     [Description("Creates a UI control in a scene.")]
     public Task<ControlInfo?> CreateControlAsync(
@@ -32,6 +38,9 @@ public sealed class UiSkill(IMcpClient mcp)
             new UiCreateControlRequest(new McpProjectFile(projectPath, fileName), parentNodePath, controlName, controlType),
             cancellationToken);
 
+    /// <summary>
+    /// Updates properties of a UI control node in a scene.
+    /// </summary>
     [KernelFunction("update_control")]
     [Description("Updates a UI control in a scene.")]
     public Task<ControlInfo?> UpdateControlAsync(
@@ -44,6 +53,9 @@ public sealed class UiSkill(IMcpClient mcp)
             new UiUpdateControlRequest(new McpProjectFile(projectPath, fileName), controlNodePath, properties),
             cancellationToken);
 
+    /// <summary>
+    /// Applies a predefined layout preset to a UI control node.
+    /// </summary>
     [KernelFunction("apply_layout_preset")]
     [Description("Applies a layout preset to a UI control.")]
     public Task<UiLayoutPresetResult?> ApplyLayoutPresetAsync(
@@ -56,6 +68,9 @@ public sealed class UiSkill(IMcpClient mcp)
             new UiApplyLayoutPresetRequest(new McpProjectFile(projectPath, fileName), controlNodePath, preset),
             cancellationToken);
 
+    /// <summary>
+    /// Lists available UI themes referenced by the specified scene.
+    /// </summary>
     [KernelFunction("list_themes")]
     [Description("Lists available UI themes in a scene.")]
     public Task<IReadOnlyList<string>> ListThemesAsync(
@@ -64,6 +79,9 @@ public sealed class UiSkill(IMcpClient mcp)
         CancellationToken cancellationToken = default) =>
         _mcp.UiListThemesAsync(new UiListThemesRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
 
+    /// <summary>
+    /// Applies a UI theme to a control node in the specified scene.
+    /// </summary>
     [KernelFunction("apply_theme")]
     [Description("Applies a UI theme to a control.")]
     public Task<UiThemeResult?> ApplyThemeAsync(

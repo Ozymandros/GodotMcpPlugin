@@ -9,7 +9,7 @@
 
 		<!-- NuGet Package Metadata -->
 		<PackageId>GodotMcp.SemanticKernel.Plugin</PackageId>
-		<Version>1.6.0</Version>
+		<Version>1.6.1</Version>
 		<Authors>Godot MCP Contributors</Authors>
 		<Description>A Semantic Kernel plugin that bridges SK applications with Godot Editor automation through the Model Context Protocol (MCP). Enables AI agents to interact with Godot environments via stdio transport.</Description>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>

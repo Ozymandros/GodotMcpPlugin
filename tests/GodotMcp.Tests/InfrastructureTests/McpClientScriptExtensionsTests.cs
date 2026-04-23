@@ -43,6 +43,33 @@ public class McpClientScriptExtensionsTests
     }
 
     [Fact]
+    public async Task ScriptCreateAsync_IncludesRawContent_WhenProvided()
+    {
+        var raw = "// hello world\nprint(\"hi\")";
+        _client
+            .InvokeToolAsync("create_script", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse(
+                "req-4",
+                true,
+                new
+                {
+                    path = Combine("scripts", "generated.gd"),
+                    language = "gd",
+                    baseType = "Node",
+                }));
+
+        var result = await _client.ScriptCreateAsync(
+            new ScriptCreateRequest(new McpProjectFile(Root, "scripts/generated.gd"), "gd", "Node", null, raw));
+
+        Assert.NotNull(result);
+
+        await _client.Received(1).InvokeToolAsync(
+            "create_script",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["rawContent"], raw)),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task ScriptAttachAsync_MapsPayloadAndReturnsCommandResult()
     {
         _client

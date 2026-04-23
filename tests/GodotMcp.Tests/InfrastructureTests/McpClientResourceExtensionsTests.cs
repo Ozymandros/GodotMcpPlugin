@@ -14,7 +14,7 @@ public class McpClientResourceExtensionsTests
     {
         var matTres = Combine("materials", "mat.tres");
         _client
-            .InvokeToolAsync("resource.list", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .InvokeToolAsync("list_resources", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse(
                 "req-1",
                 true,
@@ -28,7 +28,7 @@ public class McpClientResourceExtensionsTests
         Assert.Equal("StandardMaterial3D", result[0].Type);
 
         await _client.Received(1).InvokeToolAsync(
-            "resource.list",
+            "list_resources",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
                 Equals(d["directory"], materialsDir) &&
                 Equals(d["resourceType"], "StandardMaterial3D")),
@@ -178,25 +178,66 @@ public class McpClientResourceExtensionsTests
             .InvokeToolAsync("create_resource", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns<Task<McpResponse>>(_ => throw new McpServerException("Unknown tool", -32601));
 
+        await Assert.ThrowsAsync<McpServerException>(async () =>
+            await _client.ResourceCreateAsync(
+                new ResourceCreateRequest(new McpProjectFile(Root, "textures/new_texture.tres"), "ImageTexture", properties)));
+    }
+
+    [Fact]
+    public async Task ResourceCreateAsync_ForwardsRawContentFromProperties()
+    {
+        var properties = new Dictionary<string, object?> { ["rawContent"] = "binary-or-text-content" };
+
         _client
-            .InvokeToolAsync("resource.create", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .InvokeToolAsync("create_resource", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse(
-                "req-6",
+                "req-7",
                 true,
                 new
                 {
-                    path = Combine("textures", "new_texture.tres"),
+                    path = Combine("textures", "uploaded.tres"),
                     type = "ImageTexture",
-                    name = "new_texture",
+                    name = "uploaded",
                     exists = true
                 }));
 
         var result = await _client.ResourceCreateAsync(
-            new ResourceCreateRequest(new McpProjectFile(Root, "textures/new_texture.tres"), "ImageTexture", properties));
+            new ResourceCreateRequest(new McpProjectFile(Root, "textures/uploaded.tres"), "ImageTexture", properties));
 
         Assert.NotNull(result);
-        Assert.Equal("new_texture", result!.Name);
 
-        await _client.Received(1).InvokeToolAsync("resource.create", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>());
+        await _client.Received(1).InvokeToolAsync(
+            "create_resource",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["rawContent"], "binary-or-text-content") && d.ContainsKey("properties")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ResourceUpdateAsync_ForwardsRawContentFromProperties()
+    {
+        var properties = new Dictionary<string, object?> { ["rawContent"] = "updated content" };
+        var matTres = Combine("materials", "mat.tres");
+
+        _client
+            .InvokeToolAsync("resource.update_properties", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse(
+                "req-8",
+                true,
+                new
+                {
+                    path = matTres,
+                    type = "StandardMaterial3D",
+                    properties = new Dictionary<string, object?> { ["rawContent"] = "updated content" }
+                }));
+
+        var result = await _client.ResourceUpdateAsync(
+            new ResourceUpdateRequest(new McpProjectFile(Root, "materials/mat.tres"), properties));
+
+        Assert.NotNull(result);
+
+        await _client.Received(1).InvokeToolAsync(
+            "resource.update_properties",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["rawContent"], "updated content") && d.ContainsKey("properties")),
+            Arg.Any<CancellationToken>());
     }
 }

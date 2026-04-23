@@ -50,7 +50,13 @@ public static class McpClientResourceExtensions
         CancellationToken cancellationToken = default)
     {
         var d = McpProjectFilePayload.ToDictionary(request.Resource);
-        d["properties"] = ToStringPropertyMap(request.Properties);
+        // Extract rawContent if present in properties and forward it as top-level field
+        var (rawContent, remaining) = ExtractRawContent(request.Properties);
+        if (rawContent is not null)
+        {
+            d["rawContent"] = rawContent;
+        }
+        d["properties"] = ToStringPropertyMap(remaining);
         return InvokeResourceWithFallbackAsync<ResourceData>(
             client,
             "resource.update_properties",
@@ -69,13 +75,55 @@ public static class McpClientResourceExtensions
     {
         var d = McpProjectFilePayload.ToDictionary(request.Resource);
         d["type"] = request.ResourceType;
-        d["properties"] = ToStringPropertyMap(request.Properties);
+        // Extract rawContent if present in properties and forward it as top-level field
+        var (rawContentCreate, remainingCreate) = ExtractRawContent(request.Properties);
+        if (rawContentCreate is not null)
+        {
+            d["rawContent"] = rawContentCreate;
+        }
+        d["properties"] = ToStringPropertyMap(remainingCreate);
 
         // Use only 'create_resource' as the server does not support 'resource.create' anymore
         return client.SendAsync<ResourceInfo>(
             "create_resource",
             d,
             cancellationToken);
+    }
+
+    private static (string? rawContent, IReadOnlyDictionary<string, object?> remaining) ExtractRawContent(IReadOnlyDictionary<string, object?>? properties)
+    {
+        if (properties == null || properties.Count == 0)
+        {
+            return (null, new Dictionary<string, object?>(StringComparer.Ordinal));
+        }
+
+        string? raw = null;
+        var remaining = new Dictionary<string, object?>(StringComparer.Ordinal);
+        foreach (var (k, v) in properties)
+        {
+            if (string.Equals(k, "rawContent", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(k, "content", StringComparison.OrdinalIgnoreCase))
+            {
+                if (v is string s)
+                {
+                    raw = s;
+                }
+                else if (v is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.String)
+                {
+                    raw = je.GetString();
+                }
+                else if (v != null)
+                {
+                    raw = v.ToString();
+                }
+            }
+            else
+            {
+                remaining[k] = v;
+            }
+        }
+
+        return (raw, remaining);
     }
 
     private static Dictionary<string, string> ToStringPropertyMap(IReadOnlyDictionary<string, object?> properties)

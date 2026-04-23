@@ -20,6 +20,10 @@ public static class McpClientScriptExtensions
         d["language"] = request.Language;
         d["baseType"] = request.BaseType;
         d["className"] = request.ClassName;
+        if (!string.IsNullOrEmpty(request.RawContent))
+        {
+            d["rawContent"] = request.RawContent;
+        }
         return client.SendAsync<ScriptInfo>("create_script", d, cancellationToken);
     }
 

@@ -7,7 +7,8 @@ public sealed record ScriptCreateRequest(
     McpProjectFile Script,
     string Language,
     string BaseType,
-    string? ClassName = null);
+    string? ClassName = null,
+    string? RawContent = null);
 
 /// <summary>
 /// Script command request for attaching a script to a scene node.

@@ -483,4 +483,30 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
 
         await client.ConnectAsync();
     }
+
+    [Fact]
+    public void ParsePotentialRawContent_WithJsonElement_ParsesCorrectly()
+    {
+        var je = JsonDocument.Parse("{\"status\":\"ok\"}").RootElement;
+
+        var mi = typeof(StdioMcpClient).GetMethod("ParsePotentialRawContent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(mi);
+
+        var result = mi!.Invoke(null, new object?[] { je });
+        var serialized = JsonSerializer.Serialize(result);
+        Assert.Contains("\"status\":\"ok\"", serialized);
+    }
+
+    [Fact]
+    public void ParsePotentialRawContent_WithString_ParsesCorrectly()
+    {
+        var rawJson = "{\"value\":123}";
+
+        var mi = typeof(StdioMcpClient).GetMethod("ParsePotentialRawContent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(mi);
+
+        var result = mi!.Invoke(null, new object?[] { rawJson });
+        var serialized = JsonSerializer.Serialize(result);
+        Assert.Contains("\"value\":123", serialized);
+    }
 }
