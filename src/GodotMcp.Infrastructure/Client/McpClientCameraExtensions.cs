@@ -16,9 +16,10 @@ public static class McpClientCameraExtensions
         CameraListRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         return await client.SendAsync<IReadOnlyList<CameraInfo>>(
             "camera.list",
-            new Dictionary<string, object?> { ["projectPath"] = request.ProjectPath },
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<CameraInfo>();
     }
 
@@ -59,9 +60,10 @@ public static class McpClientCameraExtensions
         CameraValidateRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         return await client.SendAsync<IReadOnlyList<CameraValidationIssue>>(
             "camera.validate",
-            new Dictionary<string, object?> { ["projectPath"] = request.ProjectPath },
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<CameraValidationIssue>();
     }
 }

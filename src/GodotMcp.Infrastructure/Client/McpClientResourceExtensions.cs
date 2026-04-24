@@ -16,11 +16,14 @@ public static class McpClientResourceExtensions
         ResourceListRequest request,
         CancellationToken cancellationToken = default)
     {
+        var dir = string.IsNullOrWhiteSpace(request.Directory) ? GodotMcpPathDefaults.DefaultProjectRootPath : request.Directory!;
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(dir);
+
         return await client.SendAsync<IReadOnlyList<ResourceInfo>>(
             "list_resources",
             new Dictionary<string, object?>
             {
-                ["projectPath"] = request.Directory, // Directory is used as projectPath for server compatibility
+                ["projectPath"] = projectPath, // Directory is used as projectPath for server compatibility
                 ["directory"] = request.Directory,
                 ["resourceType"] = request.ResourceType
             },

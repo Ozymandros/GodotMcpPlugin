@@ -16,9 +16,10 @@ public static class McpClientPhysicsExtensions
         PhysicsListBodiesRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         return await client.SendAsync<IReadOnlyList<PhysicsBodyInfo>>(
             "physics.list_bodies",
-            new Dictionary<string, object?> { ["projectPath"] = request.ProjectPath },
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<PhysicsBodyInfo>();
     }
 
@@ -104,9 +105,10 @@ public static class McpClientPhysicsExtensions
         PhysicsValidateRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         return client.SendAsync<PhysicsValidationResult>(
             "physics.validate",
-            new Dictionary<string, object?> { ["projectPath"] = request.ProjectPath },
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken);
     }
 

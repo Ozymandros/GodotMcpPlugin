@@ -30,9 +30,11 @@ public static class McpClientAdvancedLintExtensions
         LintProjectAdvancedRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
+
         return client.SendAsync<LintResult>(
             "lint.project_advanced",
-            new Dictionary<string, object?> { ["projectPath"] = request.ProjectPath },
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken);
     }
 
@@ -44,7 +46,8 @@ public static class McpClientAdvancedLintExtensions
         LintProjectRequest request,
         CancellationToken cancellationToken = default)
     {
-        var payload = new Dictionary<string, object?> { ["projectPath"] = request.ProjectPath };
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
+        var payload = new Dictionary<string, object?> { ["projectPath"] = projectPath };
 
         try
         {

@@ -16,9 +16,10 @@ public static class McpClientLightingExtensions
         LightListRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         return await client.SendAsync<IReadOnlyList<LightInfo>>(
             "light.list",
-            new Dictionary<string, object?> { ["projectPath"] = request.ProjectPath },
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<LightInfo>();
     }
 
@@ -60,9 +61,10 @@ public static class McpClientLightingExtensions
         LightValidateRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         return client.SendAsync<LightValidationResult>(
             "light.validate",
-            new Dictionary<string, object?> { ["projectPath"] = request.ProjectPath },
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken);
     }
 

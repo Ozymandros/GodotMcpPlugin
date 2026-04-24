@@ -316,9 +316,10 @@ public sealed partial class GodotPlugin(
         }
 
         var path = string.IsNullOrWhiteSpace(projectPath) ? GodotMcpPathDefaults.DefaultProjectRootPath : projectPath;
+        var projectPathNormalized = GodotMcpPathNormalization.NormalizeProjectDirectory(path);
         var response = await _mcpClient.InvokeToolAsync(
             "get_server_info",
-            new Dictionary<string, object?> { ["projectPath"] = path },
+            new Dictionary<string, object?> { ["projectPath"] = projectPathNormalized },
             cancellationToken);
         return response.Result;
     }
