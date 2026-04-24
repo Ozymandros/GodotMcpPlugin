@@ -32,10 +32,10 @@ public static class McpClientProjectExtensions
     /// </summary>
     public static Task<ProjectInfo?> GetProjectInfoAsync(
         this IMcpClient client,
-        string projectRootPath = GodotMcpPathDefaults.DefaultProjectRootPath,
+        string? projectRootPath = null,
         CancellationToken cancellationToken = default)
     {
-        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(projectRootPath);
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath);
         return client.SendAsync<ProjectInfo>(
             "get_project_info",
             new Dictionary<string, object?> { ["projectPath"] = projectPath },
