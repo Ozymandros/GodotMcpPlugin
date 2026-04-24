@@ -33,7 +33,7 @@ try
     var isGodotProject = await plugin.ValidateGodotProjectAsync(Environment.CurrentDirectory, CancellationToken.None);
     logger.LogInformation("Project validation for '{Path}': {IsValid}", Environment.CurrentDirectory, isGodotProject);
 
-    var versionInfo = await plugin.GetGodotVersionAsync(CancellationToken.None);
+    var versionInfo = await plugin.GetGodotVersionAsync(Environment.CurrentDirectory, CancellationToken.None);
     logger.LogInformation("Version info: {VersionInfo}", versionInfo);
 
     // Step 3: Create a scene with the current GD_MCP contract.
