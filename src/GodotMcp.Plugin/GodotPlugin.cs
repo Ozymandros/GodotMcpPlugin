@@ -32,13 +32,13 @@ namespace GodotMcp.Plugin;
 ///     options.ConnectionTimeoutSeconds = 30;
 ///     options.RequestTimeoutSeconds = 60;
 /// });
-/// 
+///
 /// var serviceProvider = services.BuildServiceProvider();
-/// 
+///
 /// // Get the plugin and initialize
 /// var plugin = serviceProvider.GetRequiredService&lt;GodotPlugin&gt;();
 /// await plugin.InitializeAsync();
-/// 
+///
 /// // Invoke a Godot tool
 /// var result = await plugin.InvokeToolAsync(
 ///     "Godot_create_scene",
@@ -48,12 +48,12 @@ namespace GodotMcp.Plugin;
 ///         ["addToHierarchy"] = true
 ///     });
 /// </code>
-/// 
+///
 /// <para><strong>Using with Semantic Kernel:</strong></para>
 /// <code>
 /// // Create a kernel with Godot functions registered
 /// var kernel = await GodotPlugin.CreateKernelWithGodotAsync(serviceProvider);
-/// 
+///
 /// // Use Godot functions in prompts
 /// var result = await kernel.InvokePromptAsync(
 ///     "Create a new Godot scene called {{$sceneName}} and add a cube at position (0, 1, 0)",
@@ -62,7 +62,7 @@ namespace GodotMcp.Plugin;
 ///         ["sceneName"] = "DemoScene"
 ///     });
 /// </code>
-/// 
+///
 /// <para><strong>Manual Tool Invocation:</strong></para>
 /// <code>
 /// // Invoke specific Godot tools directly
@@ -74,12 +74,12 @@ namespace GodotMcp.Plugin;
 ///         ["position"] = new { x = 0, y = 0, z = 0 },
 ///         ["components"] = new[] { "Rigidbody", "BoxCollider" }
 ///     });
-/// 
+///
 /// var sceneInfo = await plugin.InvokeToolAsync(
 ///     "Godot_get_scene_info",
 ///     new Dictionary&lt;string, object?&gt;());
 /// </code>
-/// 
+///
 /// <para><strong>Error Handling:</strong></para>
 /// <code>
 /// try
@@ -179,7 +179,7 @@ public sealed partial class GodotPlugin(
     ///         ["scale"] = new { x = 1, y = 1, z = 1 }
     ///     });
     /// </code>
-    /// 
+    ///
     /// <para><strong>Creating a Scene:</strong></para>
     /// <code>
     /// var sceneResult = await plugin.InvokeToolAsync(
@@ -190,7 +190,7 @@ public sealed partial class GodotPlugin(
     ///         ["addToHierarchy"] = true
     ///     });
     /// </code>
-    /// 
+    ///
     /// <para><strong>Querying Scene Information:</strong></para>
     /// <code>
     /// var sceneInfo = await plugin.InvokeToolAsync(
@@ -348,7 +348,7 @@ public sealed partial class GodotPlugin(
     /// <example>
     /// <code>
     /// var kernel = await GodotPlugin.CreateKernelWithGodotAsync(serviceProvider);
-    /// 
+    ///
     /// // Each tool is now a distinct function the LLM can call
     /// var func = kernel.Plugins["Godot"]["Godot_create_scene"];
     /// var result = await kernel.InvokeAsync(func, new KernelArguments

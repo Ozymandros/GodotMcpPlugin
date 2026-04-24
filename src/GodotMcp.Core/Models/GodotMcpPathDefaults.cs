@@ -10,5 +10,6 @@ public static class GodotMcpPathDefaults
     /// Placeholder root for development; production integrations should pass a real project directory.
     /// </summary>
     public static readonly string DefaultProjectRootPath =
-        Path.TrimEndingDirectorySeparator(Path.GetFullPath(@"C:\GodotProjects\McpDefaultProject"));
+        Path.TrimEndingDirectorySeparator(
+            Path.GetFullPath(Path.Combine(Path.GetTempPath(), "GodotMcp", "McpDefaultProject")));
 }
