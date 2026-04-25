@@ -69,7 +69,7 @@ internal static class McpPathNormalizer
         // Normalize separator style to forward slashes for FileName
         return relative.Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/');
     }
- 
+
 
     private static bool IsWithinRoot(string normalizedRoot, string fullCandidate)
     {
