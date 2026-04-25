@@ -74,7 +74,7 @@ catch (ConfigurationException ex)
 {
     // Handle configuration errors
     // These occur when the plugin is misconfigured
-    logger.LogError(ex, "Configuration error: {Message}. Parameter: {Parameter}", 
+    logger.LogError(ex, "Configuration error: {Message}. Parameter: {Parameter}",
         ex.Message, ex.ParameterName);
     logger.LogError("Please check your appsettings.json configuration");
     return 1;
@@ -83,7 +83,7 @@ catch (ProcessException ex)
 {
     // Handle process management errors
     // These occur when the godot-mcp process cannot be started or managed
-    logger.LogError(ex, "Process error: {Message}. Process ID: {ProcessId}", 
+    logger.LogError(ex, "Process error: {Message}. Process ID: {ProcessId}",
         ex.Message, ex.ProcessId);
     logger.LogError("Ensure godot-mcp is installed and accessible in your PATH");
     logger.LogError("Install with: dotnet tool install -g godot-mcp");
@@ -93,7 +93,7 @@ catch (NetworkException ex)
 {
     // Handle network/communication errors
     // These occur when communication with godot-mcp fails
-    logger.LogError(ex, "Network error: {Message}. Endpoint: {Endpoint}", 
+    logger.LogError(ex, "Network error: {Message}. Endpoint: {Endpoint}",
         ex.Message, ex.Endpoint);
     logger.LogError("Check if godot-mcp process is running and responsive");
     return 3;
@@ -102,7 +102,7 @@ catch (GodotMcp.Core.Exceptions.TimeoutException ex)
 {
     // Handle timeout errors
     // These occur when operations take too long
-    logger.LogError(ex, "Timeout error: {Message}. Operation: {Operation}, Timeout: {Timeout}", 
+    logger.LogError(ex, "Timeout error: {Message}. Operation: {Operation}, Timeout: {Timeout}",
         ex.Message, ex.Operation, ex.Timeout);
     logger.LogError("Consider increasing timeout values in configuration");
     return 4;
@@ -111,7 +111,7 @@ catch (McpServerException ex)
 {
     // Handle godot-mcp server errors
     // These occur when the Godot server returns an error
-    logger.LogError(ex, "Godot MCP server error: {Message}. Error code: {ErrorCode}", 
+    logger.LogError(ex, "Godot MCP server error: {Message}. Error code: {ErrorCode}",
         ex.Message, ex.ErrorCode);
     if (ex.ErrorData != null)
     {

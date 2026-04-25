@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 namespace GodotMcp.Core.Models;
 
 /// <summary>
@@ -25,52 +27,49 @@ internal static class McpPathNormalizer
         }
 
         var normalizedRoot = NormalizeProjectRoot(projectRoot);
-        var nativeInput = fileName.Trim()
-            .Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar)
-            .Replace('/', Path.DirectorySeparatorChar)
-            .Replace('\\', Path.DirectorySeparatorChar);
 
-        // Resolve to a full path while supporting partial paths that may start with a separator.
-        var fullCandidate = ResolveFilePathCandidate(normalizedRoot, nativeInput);
+        // Work on a copy of the incoming path
+        var input = fileName.Trim();
 
-        var relative = Path.GetRelativePath(normalizedRoot, fullCandidate);
-        var relativeParts = relative.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries);
+        // Normalize separators to the OS-native separator for consistent processing
+        input = input.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
 
-        if (relativeParts.Length == 0 || relativeParts.Any(static p => p == ".."))
+        // On Windows: if the input starts with a directory separator but does not contain a drive letter,
+        // treat it as relative to the project root by trimming leading separators.
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            && input.Length > 0
+            && (input[0] == Path.DirectorySeparatorChar || input[0] == Path.AltDirectorySeparatorChar)
+            && !(input.Length > 1 && input[1] == Path.VolumeSeparatorChar))
         {
-            throw new ArgumentException(
-                $"File path '{fileName}' resolves outside project root '{normalizedRoot}'.",
-                nameof(fileName));
+            input = input.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
 
-        return string.Join('/', relativeParts);
+        // Resolve absolute vs relative
+        string fullPath;
+        if (Path.IsPathRooted(input) && (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                                         ? (input.Length > 1 && input[1] == Path.VolumeSeparatorChar)
+                                         : input.StartsWith(Path.DirectorySeparatorChar)))
+        {
+            // An absolute path with drive letter (Windows) or a rooted absolute path (non-Windows)
+            fullPath = Path.GetFullPath(input);
+        }
+        else
+        {
+            // Relative — combine with project root then normalize
+            fullPath = Path.GetFullPath(Path.Combine(normalizedRoot, input));
+        }
+
+        // Ensure file is inside project root
+        var relative = Path.GetRelativePath(normalizedRoot, fullPath);
+        if (relative.StartsWith("..", StringComparison.Ordinal) || (Path.IsPathRooted(relative) && !string.Equals(Path.GetFullPath(Path.Combine(normalizedRoot, relative)), fullPath, StringComparison.OrdinalIgnoreCase)))
+        {
+            throw new ArgumentException($"File path '{fileName}' resolves outside project root '{normalizedRoot}'.", nameof(fileName));
+        }
+
+        // Normalize separator style to forward slashes for FileName
+        return relative.Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/');
     }
-
-    private static string ResolveFilePathCandidate(string normalizedRoot, string nativeInput)
-    {
-        if (!Path.IsPathRooted(nativeInput))
-        {
-            return Path.GetFullPath(Path.Combine(normalizedRoot, nativeInput));
-        }
-
-        var rootedCandidate = Path.GetFullPath(nativeInput);
-        if (IsWithinRoot(normalizedRoot, rootedCandidate))
-        {
-            return rootedCandidate;
-        }
-
-        // If the path starts with a single separator and points outside the project root,
-        // treat it as a partial project-relative input and strip that leading separator.
-        var directorySeparator = Path.DirectorySeparatorChar.ToString();
-        var isSingleLeadingSeparator =
-            nativeInput.StartsWith(directorySeparator, StringComparison.Ordinal)
-            && !nativeInput.StartsWith(new string(Path.DirectorySeparatorChar, 2), StringComparison.Ordinal)
-            && !(nativeInput.Length >= 2 && nativeInput[1] == ':');
-
-        return isSingleLeadingSeparator
-            ? Path.GetFullPath(Path.Combine(normalizedRoot, nativeInput.TrimStart(Path.DirectorySeparatorChar)))
-            : rootedCandidate;
-    }
+ 
 
     private static bool IsWithinRoot(string normalizedRoot, string fullCandidate)
     {
