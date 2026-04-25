@@ -31,17 +31,27 @@ internal static class McpPathNormalizer
         // Work on a copy of the incoming path
         var input = fileName.Trim();
 
-        // Normalize separators to the OS-native separator for consistent processing
-        input = input.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        // Remember whether the original input used a leading backslash (Windows-style Godot path).
+        // We need this before normalization, because on Linux '\' becomes '/' after the replace below,
+        // making it indistinguishable from a true Unix absolute path.
+        var hadLeadingBackslash = input.Length > 0 && input[0] == '\\';
 
-        // On Windows: if the input starts with a directory separator but does not contain a drive letter,
-        // treat it as relative to the project root by trimming leading separators.
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            && input.Length > 0
-            && (input[0] == Path.DirectorySeparatorChar || input[0] == Path.AltDirectorySeparatorChar)
-            && !(input.Length > 1 && input[1] == Path.VolumeSeparatorChar))
+        // Normalize separators to the OS-native separator for consistent cross-platform processing.
+        // Explicitly handle '\' in addition to Path.AltDirectorySeparatorChar so that Windows-style
+        // paths work correctly on Linux (where AltDirectorySeparatorChar == DirectorySeparatorChar == '/').
+        input = input.Replace('\\', Path.DirectorySeparatorChar)
+                     .Replace('/', Path.DirectorySeparatorChar);
+
+        // Strip a leading directory separator when the path is not truly absolute:
+        //   • On Windows a path like \scenes has no drive letter and is not fully qualified.
+        //   • Cross-platform: a path whose original input started with '\' is a Windows-style
+        //     project-relative path; after normalization it may start with '/' on Linux, but it
+        //     should still be treated as relative to the project root.
+        if (input.Length > 0
+            && input[0] == Path.DirectorySeparatorChar
+            && (hadLeadingBackslash || !Path.IsPathFullyQualified(input)))
         {
-            input = input.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            input = input.TrimStart(Path.DirectorySeparatorChar);
         }
 
         // Resolve absolute vs relative
