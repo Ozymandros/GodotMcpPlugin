@@ -15,7 +15,7 @@ public class McpClientPhysicsExtensionsTests
         _client.InvokeToolAsync("physics.list_bodies", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse("1", true, new[] { new { name = "PlayerBody", path = "./Player", bodyType = "CharacterBody3D", enabled = true } }));
 
-        var result = await _client.PhysicsListBodiesAsync(new PhysicsListBodiesRequest("res://scenes/main.tscn"));
+        var result = await _client.PhysicsListBodiesAsync(new PhysicsListBodiesRequest(Root));
 
         Assert.Single(result);
         Assert.Equal("CharacterBody3D", result[0].BodyType);
@@ -23,8 +23,7 @@ public class McpClientPhysicsExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "physics.list_bodies",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["projectRootPath"], "res://scenes/main.tscn") &&
-                Equals(d["scenePath"], "res://scenes/main.tscn")),
+                Equals(d["projectPath"], Root)),
             Arg.Any<CancellationToken>());
     }
 
@@ -35,7 +34,7 @@ public class McpClientPhysicsExtensionsTests
             .Returns(new McpResponse("body-1", true, new { name = "Player", path = "./Player", bodyType = "CharacterBody3D", enabled = true }));
 
         var result = await _client.PhysicsCreateBodyAsync(
-            new PhysicsCreateBodyRequest("res://scenes/main.tscn", ".", "CharacterBody3D", "Player", true));
+            new PhysicsCreateBodyRequest(new McpProjectFile(Root, "scenes/main.tscn"), ".", "CharacterBody3D", "Player", true));
 
         Assert.NotNull(result);
         Assert.Equal("Player", result!.Name);
@@ -48,7 +47,10 @@ public class McpClientPhysicsExtensionsTests
             .Returns(new McpResponse("body-2", true, new { name = "Player", path = "./Player", bodyType = "CharacterBody3D", enabled = true }));
 
         var result = await _client.PhysicsUpdateBodyAsync(
-            new PhysicsUpdateBodyRequest("res://scenes/main.tscn", "./Player", new Dictionary<string, object?> { ["collision_layer"] = 2 }));
+            new PhysicsUpdateBodyRequest(
+                new McpProjectFile(Root, "scenes/main.tscn"),
+                "./Player",
+                new Dictionary<string, object?> { ["collision_layer"] = 2 }));
 
         Assert.NotNull(result);
         Assert.Equal("CharacterBody3D", result!.BodyType);
@@ -60,7 +62,7 @@ public class McpClientPhysicsExtensionsTests
         _client.InvokeToolAsync("physics.validate", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse("2", true, new { success = true, message = "Physics valid" }));
 
-        var result = await _client.PhysicsValidateAsync(new PhysicsValidateRequest("res://scenes/main.tscn"));
+        var result = await _client.PhysicsValidateAsync(new PhysicsValidateRequest(Root));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -69,8 +71,7 @@ public class McpClientPhysicsExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "physics.validate",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["projectRootPath"], "res://scenes/main.tscn") &&
-                Equals(d["scenePath"], "res://scenes/main.tscn")),
+                Equals(d["projectPath"], Root)),
             Arg.Any<CancellationToken>());
     }
 
@@ -80,7 +81,8 @@ public class McpClientPhysicsExtensionsTests
         _client.InvokeToolAsync("physics.set_layers", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse("3", true, new { success = true, message = "Layers updated", collisionLayer = 2, collisionMask = 5 }));
 
-        var result = await _client.PhysicsSetLayersAsync(new PhysicsSetLayersRequest("res://scenes/main.tscn", "./Player", 2, 5));
+        var result = await _client.PhysicsSetLayersAsync(
+            new PhysicsSetLayersRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./Player", 2, 5));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -94,7 +96,8 @@ public class McpClientPhysicsExtensionsTests
         _client.InvokeToolAsync("physics.run_checks", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse("4", true, new { success = true, message = "No issues", issues = new string[0] }));
 
-        var result = await _client.PhysicsRunChecksAsync(new PhysicsRunChecksRequest("res://scenes/main.tscn"));
+        var result = await _client.PhysicsRunChecksAsync(
+            new PhysicsRunChecksRequest(new McpProjectFile(Root, "scenes/main.tscn")));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);

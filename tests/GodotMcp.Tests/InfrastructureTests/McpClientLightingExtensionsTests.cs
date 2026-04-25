@@ -19,14 +19,14 @@ public class McpClientLightingExtensionsTests
                 true,
                 new[] { new { name = "Sun", path = "./Sun", lightType = "DirectionalLight3D", enabled = true } }));
 
-        var result = await _client.LightListAsync(new LightListRequest("res://scenes/main.tscn"));
+        var result = await _client.LightListAsync(new LightListRequest(Root));
 
         Assert.Single(result);
         Assert.Equal("DirectionalLight3D", result[0].LightType);
 
         await _client.Received(1).InvokeToolAsync(
             "light.list",
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["scenePath"], "res://scenes/main.tscn")),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["projectPath"], Root)),
             Arg.Any<CancellationToken>());
     }
 
@@ -41,7 +41,7 @@ public class McpClientLightingExtensionsTests
                 new { name = "Fill", path = "./Fill", lightType = "OmniLight3D", enabled = true }));
 
         var result = await _client.LightCreateAsync(
-            new LightCreateRequest("res://scenes/main.tscn", ".", "Fill", "OmniLight3D"));
+            new LightCreateRequest(new McpProjectFile(Root, "scenes/main.tscn"), ".", "Fill", "OmniLight3D"));
 
         Assert.NotNull(result);
         Assert.Equal("Fill", result!.Name);
@@ -49,10 +49,12 @@ public class McpClientLightingExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "light.create",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["scenePath"], "res://scenes/main.tscn") &&
-                Equals(d["parentPath"], ".") &&
-                Equals(d["lightName"], "Fill") &&
-                Equals(d["lightType"], "OmniLight3D")),
+                Equals(d["projectPath"], Root) &&
+                Equals(d["fileName"], "scenes/main.tscn") &&
+                Equals(d["parentNodePath"], ".") &&
+                Equals(d["nodeName"], "Fill") &&
+                Equals(d["lightType"], "OmniLight3D") &&
+                d["preset"] == null),
             Arg.Any<CancellationToken>());
     }
 
@@ -63,7 +65,7 @@ public class McpClientLightingExtensionsTests
             .InvokeToolAsync("light.validate", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse("req-3", true, new { success = true, message = "Lighting valid" }));
 
-        var result = await _client.LightValidateAsync(new LightValidateRequest("res://scenes/main.tscn"));
+        var result = await _client.LightValidateAsync(new LightValidateRequest(Root));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -74,7 +76,7 @@ public class McpClientLightingExtensionsTests
     public async Task LightTuneAsync_MapsPayloadAndReturnsTunedLight()
     {
         _client
-            .InvokeToolAsync("light.tune", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .InvokeToolAsync("light.update", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse(
                 "req-4",
                 true,
@@ -82,7 +84,7 @@ public class McpClientLightingExtensionsTests
 
         var result = await _client.LightTuneAsync(
             new LightTuneRequest(
-                "res://scenes/main.tscn",
+                new McpProjectFile(Root, "scenes/main.tscn"),
                 "./Sun",
                 new Dictionary<string, object?> { ["energy"] = 3.2 }));
 

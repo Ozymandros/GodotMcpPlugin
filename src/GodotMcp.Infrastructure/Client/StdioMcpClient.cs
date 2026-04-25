@@ -5,7 +5,7 @@ using ModelContextProtocol.Protocol;
 namespace GodotMcp.Infrastructure.Client;
 
 /// <summary>
-/// MCP client using stdio transport and the official Model Context Protocol .NET SDK (compatible with GodotMCP.Server 1.2+).
+/// MCP client using stdio transport and the official Model Context Protocol .NET SDK (compatible with GodotMCP.Server 1.5+).
 /// </summary>
 public sealed partial class StdioMcpClient : IMcpClient
 {
@@ -187,6 +187,28 @@ public sealed partial class StdioMcpClient : IMcpClient
             return JsonSerializer.Deserialize<object>(structured.GetRawText());
         }
 
+        // Newer ModelContextProtocol versions (godot-mcp v1.7.1+) may include a
+        // RawContent field. We must handle it gracefully while remaining
+        // compatible with older SDKs. Use reflection to detect and read the
+        // property when available.
+        try
+        {
+            var rawProp = result.GetType().GetProperty("RawContent", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+            if (rawProp is not null)
+            {
+                var rawVal = rawProp.GetValue(result);
+                var parsed = ParsePotentialRawContent(rawVal);
+                if (parsed is not null)
+                {
+                    return parsed;
+                }
+            }
+        }
+        catch
+        {
+            // Ignore reflection failures and fall back to legacy handling below
+        }
+
         if (result.Content is null || result.Content.Count == 0)
         {
             return null;
@@ -203,6 +225,86 @@ public sealed partial class StdioMcpClient : IMcpClient
                 catch (JsonException)
                 {
                     return text.Text;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private static object? ParsePotentialRawContent(object? rawVal)
+    {
+        if (rawVal is null)
+        {
+            return null;
+        }
+
+        // If the runtime exposes a JsonElement-like structured value
+        if (rawVal is JsonElement je && je.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined)
+        {
+            return JsonSerializer.Deserialize<object>(je.GetRawText());
+        }
+
+        // If it's a plain string, try to parse JSON, otherwise return the string
+        if (rawVal is string s)
+        {
+            if (string.IsNullOrWhiteSpace(s))
+            {
+                return null;
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<object>(s);
+            }
+            catch (JsonException)
+            {
+                return s;
+            }
+        }
+
+        // If it's an enumerable of content blocks (or similar), try to extract text
+        if (rawVal is System.Collections.IEnumerable enumerableObj && rawVal is not string)
+        {
+            foreach (var item in enumerableObj)
+            {
+                if (item is null) continue;
+
+                if (item is TextContentBlock tcb && !string.IsNullOrEmpty(tcb.Text))
+                {
+                    try
+                    {
+                        return JsonSerializer.Deserialize<object>(tcb.Text);
+                    }
+                    catch (JsonException)
+                    {
+                        return tcb.Text;
+                    }
+                }
+
+                // Some SDKs may provide anonymous block types; try reflection for a Text property
+                try
+                {
+                    var textProp = item.GetType().GetProperty("Text", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.IgnoreCase);
+                    if (textProp is not null)
+                    {
+                        var textVal = textProp.GetValue(item) as string;
+                        if (!string.IsNullOrEmpty(textVal))
+                        {
+                            try
+                            {
+                                return JsonSerializer.Deserialize<object>(textVal);
+                            }
+                            catch (JsonException)
+                            {
+                                return textVal;
+                            }
+                        }
+                    }
+                }
+                catch
+                {
+                    // ignore and continue
                 }
             }
         }
@@ -374,6 +476,24 @@ public sealed partial class StdioMcpClient : IMcpClient
         }
     }
 
+    /// <inheritdoc />
+    public async Task ApplyProjectRootAsync(string? projectRoot, CancellationToken cancellationToken = default)
+    {
+        var normalized = string.IsNullOrWhiteSpace(projectRoot) ? null : projectRoot.Trim();
+
+        // No-op when the requested path matches what the server is already running with.
+        if (string.Equals(_options.ProjectPath, normalized, StringComparison.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        LogProjectRootChanging(_options.ProjectPath ?? "(none)", normalized ?? "(none)");
+        _options.ProjectPath = normalized;
+
+        // Force a full reconnect so the new godot-mcp process starts with the updated WorkingDirectory.
+        await ConnectAsync(cancellationToken).ConfigureAwait(false);
+    }
+
     private async Task EnsureConnectedAsync(CancellationToken cancellationToken)
     {
         if (_state != ConnectionState.Connected || _session is null)
@@ -450,4 +570,7 @@ public sealed partial class StdioMcpClient : IMcpClient
 
     [LoggerMessage(Level = LogLevel.Error, Message = "Error in health check loop")]
     partial void LogHealthCheckError(Exception ex);
+
+    [LoggerMessage(Level = LogLevel.Information, Message = "Godot project root changing from '{OldPath}' to '{NewPath}' — reconnecting godot-mcp process")]
+    partial void LogProjectRootChanging(string oldPath, string newPath);
 }

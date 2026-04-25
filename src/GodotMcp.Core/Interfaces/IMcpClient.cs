@@ -44,4 +44,18 @@ public interface IMcpClient : IAsyncDisposable
     /// </summary>
     /// <value>The current state of the MCP connection lifecycle.</value>
     ConnectionState State { get; }
+
+    /// <summary>
+    /// Updates the active Godot project root used as the server working directory and reconnects
+    /// the <c>godot-mcp</c> process when the path has changed.
+    /// </summary>
+    /// <remarks>
+    /// GodotMCP.Server 1.5+ validates every <c>projectPath</c> tool argument against the server's
+    /// working directory (CWD). Calling this method before a turn ensures the server process is
+    /// scoped to the correct project, so absolute <c>projectPath</c> values pass the boundary check.
+    /// If <paramref name="projectRoot"/> is the same as the currently configured path, this is a no-op.
+    /// </remarks>
+    /// <param name="projectRoot">Absolute path to the Godot project root, or <see langword="null"/> to keep the current configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task ApplyProjectRootAsync(string? projectRoot, CancellationToken cancellationToken = default);
 }

@@ -16,16 +16,11 @@ public static class McpClientImportExtensions
         GenerateImportFileRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<ImportOperationResult>(
-            "generate_import_file",
-            new Dictionary<string, object?>
-            {
-                ["assetPath"] = request.AssetPath,
-                ["importer"] = request.Importer,
-                ["type"] = request.Type,
-                ["parameters"] = request.Parameters
-            },
-            cancellationToken);
+        var d = McpProjectFilePayload.ToDictionary(request.Asset);
+        d["importer"] = request.Importer;
+        d["type"] = request.Type;
+        d["parameters"] = request.Parameters;
+        return client.SendAsync<ImportOperationResult>("generate_import_file", d, cancellationToken);
     }
 
     /// <summary>
@@ -38,10 +33,7 @@ public static class McpClientImportExtensions
     {
         return client.SendAsync<ResourceInfo>(
             "create_texture",
-            new Dictionary<string, object?>
-            {
-                ["texturePath"] = request.TexturePath
-            },
+            McpProjectFilePayload.ToDictionary(request.Texture),
             cancellationToken);
     }
 
@@ -55,10 +47,7 @@ public static class McpClientImportExtensions
     {
         return client.SendAsync<ResourceInfo>(
             "create_audio",
-            new Dictionary<string, object?>
-            {
-                ["audioPath"] = request.AudioPath
-            },
+            McpProjectFilePayload.ToDictionary(request.Audio),
             cancellationToken);
     }
 
@@ -72,10 +61,7 @@ public static class McpClientImportExtensions
     {
         return client.SendAsync<ImportOperationResult>(
             "reimport_asset",
-            new Dictionary<string, object?>
-            {
-                ["assetPath"] = request.AssetPath
-            },
+            McpProjectFilePayload.ToDictionary(request.Asset),
             cancellationToken);
     }
 }

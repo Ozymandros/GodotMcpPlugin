@@ -41,7 +41,7 @@ var result = await plugin.InvokeToolAsync(
     "create_scene",
     new Dictionary<string, object?>
     {
-        ["scenePath"] = "res://Scenes/Main.tscn",
+        ["scenePath"] = @"C:\GodotProjects\MyGame\Scenes\Main.tscn",
         ["rootNodeName"] = "Main",
         ["rootNodeType"] = "Node2D"
     });
@@ -151,21 +151,32 @@ Camera module (`camera.*`):
 - `camera.update`
 - `camera.validate`
 
+Documentation module (`docs.*`):
+- `query_system_documentation` — search this repository’s DocFX output (`_site/manifest.json`) and/or Markdown under `docs/` (same parameters as the Godot MCP server tool).
+- `query_godot_engine_documentation` — search official Godot Engine docs via Read the Docs (HTTPS to `docs.godotengine.org`; requires outbound network on the MCP server).
+
+**Local system documentation:** the server needs `docs/docfx.json` in the Godot MCP git repo. For manifest search, build the site first (for example `dotnet docfx docs/docfx.json`), which produces `_site/manifest.json`. If `godot-mcp` runs as a global tool outside the repo, set `GODOT_MCP_REPO_ROOT` to the repository root (folder containing `docs/docfx.json`) so the server can resolve paths.
+
+**Godot Engine documentation:** works from any machine where the MCP server can reach `https://docs.godotengine.org` (Read the Docs JSON API).
+
+Typed results use `GodotMcpDocumentationToolResult<T>` in C#, mapping MCP fields `success`, `message`, optional `suggestedRemediation`, and structured payload data for reliable parsing in agents.
+
 These typed surfaces are additive: if a server does not expose a given command, dynamic discovery still provides the authoritative runtime list.
 
 ### Typed Module Quick Examples
 
 ```csharp
 var mcpClient = host.Services.GetRequiredService<IMcpClient>();
+const string projectRoot = @"C:\GodotProjects\MyGame";
 
 // UI: apply a theme to a control
 var uiTheme = await mcpClient.UiApplyThemeAsync(
-  new UiApplyThemeRequest("res://scenes/ui.tscn", "./RootPanel", "dark_flat"));
+  new UiApplyThemeRequest(new McpProjectFile(projectRoot, "scenes/ui.tscn"), "./RootPanel", "dark_flat"));
 
 // Lighting: tune an existing light
 var tunedLight = await mcpClient.LightTuneAsync(
   new LightTuneRequest(
-    "res://scenes/main.tscn",
+    new McpProjectFile(projectRoot, "scenes/main.tscn"),
     "./Sun",
     new Dictionary<string, object?>
     {
@@ -175,10 +186,10 @@ var tunedLight = await mcpClient.LightTuneAsync(
 
 // Physics: set layers and run checks
 var layerResult = await mcpClient.PhysicsSetLayersAsync(
-  new PhysicsSetLayersRequest("res://scenes/main.tscn", "./Player", collisionLayer: 2, collisionMask: 5));
+  new PhysicsSetLayersRequest(new McpProjectFile(projectRoot, "scenes/main.tscn"), "./Player", collisionLayer: 2, collisionMask: 5));
 
 var checks = await mcpClient.PhysicsRunChecksAsync(
-  new PhysicsRunChecksRequest("res://scenes/main.tscn", "./Player"));
+  new PhysicsRunChecksRequest(new McpProjectFile(projectRoot, "scenes/main.tscn"), "./Player"));
 ```
 
 ## Documentation

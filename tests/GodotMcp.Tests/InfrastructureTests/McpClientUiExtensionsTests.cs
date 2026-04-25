@@ -19,14 +19,17 @@ public class McpClientUiExtensionsTests
                 true,
                 new[] { new { name = "RootPanel", path = ".", controlType = "Panel", parentPath = (string?)null } }));
 
-        var result = await _client.UiListControlsAsync(new UiListControlsRequest("res://scenes/ui.tscn"));
+        var result = await _client.UiListControlsAsync(
+            new UiListControlsRequest(new McpProjectFile(Root, "scenes/ui.tscn")));
 
         Assert.Single(result);
         Assert.Equal("Panel", result[0].ControlType);
 
         await _client.Received(1).InvokeToolAsync(
             "ui.list_controls",
-            Arg.Is<IReadOnlyDictionary<string, object?>>(d => Equals(d["scenePath"], "res://scenes/ui.tscn")),
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], Root) &&
+                Equals(d["fileName"], "scenes/ui.tscn")),
             Arg.Any<CancellationToken>());
     }
 
@@ -41,7 +44,7 @@ public class McpClientUiExtensionsTests
                 new { name = "StartButton", path = "./StartButton", controlType = "Button", parentPath = "." }));
 
         var result = await _client.UiCreateControlAsync(
-            new UiCreateControlRequest("res://scenes/ui.tscn", ".", "StartButton", "Button"));
+            new UiCreateControlRequest(new McpProjectFile(Root, "scenes/ui.tscn"), ".", "StartButton", "Button"));
 
         Assert.NotNull(result);
         Assert.Equal("StartButton", result!.Name);
@@ -49,7 +52,8 @@ public class McpClientUiExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "ui.add_control",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["scenePath"], "res://scenes/ui.tscn") &&
+                Equals(d["projectPath"], Root) &&
+                Equals(d["fileName"], "scenes/ui.tscn") &&
                 Equals(d["parentNodePath"], ".") &&
                 Equals(d["controlName"], "StartButton") &&
                 Equals(d["controlType"], "Button")),
@@ -64,7 +68,7 @@ public class McpClientUiExtensionsTests
             .Returns(new McpResponse("req-3", true, new { success = true, message = "Applied" }));
 
         var result = await _client.UiApplyLayoutPresetAsync(
-            new UiApplyLayoutPresetRequest("res://scenes/ui.tscn", "./RootPanel", "full_rect"));
+            new UiApplyLayoutPresetRequest(new McpProjectFile(Root, "scenes/ui.tscn"), "./RootPanel", "full_rect"));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -78,7 +82,7 @@ public class McpClientUiExtensionsTests
             .InvokeToolAsync("ui.list_themes", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
             .Returns(new McpResponse("req-4", true, new[] { "dark_flat", "light_modern" }));
 
-        var result = await _client.UiListThemesAsync(new UiListThemesRequest("res://scenes/ui.tscn"));
+        var result = await _client.UiListThemesAsync(new UiListThemesRequest(new McpProjectFile(Root, "scenes/ui.tscn")));
 
         Assert.Equal(2, result.Count);
         Assert.Equal("dark_flat", result[0]);
@@ -92,7 +96,7 @@ public class McpClientUiExtensionsTests
             .Returns(new McpResponse("req-5", true, new { success = true, message = "Theme applied", appliedTheme = "dark_flat" }));
 
         var result = await _client.UiApplyThemeAsync(
-            new UiApplyThemeRequest("res://scenes/ui.tscn", "./RootPanel", "dark_flat"));
+            new UiApplyThemeRequest(new McpProjectFile(Root, "scenes/ui.tscn"), "./RootPanel", "dark_flat"));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);

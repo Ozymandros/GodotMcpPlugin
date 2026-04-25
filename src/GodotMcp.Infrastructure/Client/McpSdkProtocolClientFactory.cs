@@ -41,10 +41,18 @@ public sealed class McpSdkProtocolClientFactory : IMcpProtocolClientFactory
             envVars = new Dictionary<string, string?> { ["GODOT_PATH"] = options.GodotExecutablePath };
         }
 
+        // GodotMCP.Server 1.5+ validates every projectPath parameter against its working directory
+        // via IPathResolver. Setting WorkingDirectory ensures the server's path sandbox is rooted at
+        // the configured Godot project, so absolute projectPath values injected by callers resolve correctly.
+        var workingDirectory = string.IsNullOrWhiteSpace(options.ProjectPath)
+            ? null
+            : options.ProjectPath;
+
         return new StdioClientTransport(new StdioClientTransportOptions
         {
             Name = "Godot MCP",
             Command = command,
+            WorkingDirectory = workingDirectory,
             EnvironmentVariables = envVars
         });
     }

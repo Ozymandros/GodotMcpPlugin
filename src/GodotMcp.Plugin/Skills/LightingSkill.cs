@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using GodotMcp.Core.Models;
 using GodotMcp.Infrastructure.Client;
 
 namespace GodotMcp.Plugin.Skills;
@@ -11,81 +12,69 @@ public sealed class LightingSkill(IMcpClient mcp)
     private readonly IMcpClient _mcp = mcp;
 
     /// <summary>
-    /// Lists lights in a scene.
+    /// Lists lights across scenes under a project root.
     /// </summary>
-    /// <param name="scenePath">Scene resource path.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>A read-only list of lights.</returns>
     [KernelFunction("list")]
-    [Description("Lists lights in a scene.")]
+    [Description("Lists lights across scenes under a project root.")]
     public Task<IReadOnlyList<LightInfo>> ListAsync(
-        [Description("Scene resource path.")] string scenePath,
+        [Description("Absolute filesystem path to the Godot project root to scan (folder containing project.godot).")] string projectPath,
         CancellationToken cancellationToken = default) =>
-        _mcp.LightListAsync(new LightListRequest(scenePath), cancellationToken);
+        _mcp.LightListAsync(new LightListRequest(projectPath), cancellationToken);
 
     /// <summary>
     /// Creates a light in a scene.
     /// </summary>
-    /// <param name="scenePath">Scene resource path.</param>
-    /// <param name="parentPath">Parent node path.</param>
-    /// <param name="lightName">Light name.</param>
-    /// <param name="lightType">Light type.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The created light, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("create")]
     [Description("Creates a light in a scene.")]
     public Task<LightInfo?> CreateAsync(
-        [Description("Scene resource path.")] string scenePath,
-        [Description("Parent node path.")] string parentPath,
-        [Description("Light name.")] string lightName,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Parent node path.")] string parentNodePath,
+        [Description("Light node name.")] string nodeName,
         [Description("Light type.")] string lightType,
+        [Description("Optional preset: sun, fill, spot.")] string? preset = null,
         CancellationToken cancellationToken = default) =>
-        _mcp.LightCreateAsync(new LightCreateRequest(scenePath, parentPath, lightName, lightType), cancellationToken);
+        _mcp.LightCreateAsync(
+            new LightCreateRequest(new McpProjectFile(projectPath, fileName), parentNodePath, nodeName, lightType, preset),
+            cancellationToken);
 
     /// <summary>
     /// Updates a light in a scene.
     /// </summary>
-    /// <param name="scenePath">Scene resource path.</param>
-    /// <param name="lightPath">Light node path.</param>
-    /// <param name="properties">Properties to update.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The updated light, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("update")]
     [Description("Updates a light in a scene.")]
     public Task<LightInfo?> UpdateAsync(
-        [Description("Scene resource path.")] string scenePath,
-        [Description("Light node path.")] string lightPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Light node path.")] string nodePath,
         [Description("Properties to update.")] IReadOnlyDictionary<string, object?> properties,
         CancellationToken cancellationToken = default) =>
-        _mcp.LightUpdateAsync(new LightUpdateRequest(scenePath, lightPath, properties), cancellationToken);
+        _mcp.LightUpdateAsync(
+            new LightUpdateRequest(new McpProjectFile(projectPath, fileName), nodePath, properties),
+            cancellationToken);
 
     /// <summary>
-    /// Validates lighting setup in a scene.
+    /// Validates lighting under a project root.
     /// </summary>
-    /// <param name="scenePath">Scene resource path.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The lighting validation result, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("validate")]
-    [Description("Validates lighting setup in a scene.")]
+    [Description("Validates lighting under a project root.")]
     public Task<LightValidationResult?> ValidateAsync(
-        [Description("Scene resource path.")] string scenePath,
+        [Description("Absolute filesystem path to the Godot project root to validate (folder containing project.godot).")] string projectPath,
         CancellationToken cancellationToken = default) =>
-        _mcp.LightValidateAsync(new LightValidateRequest(scenePath), cancellationToken);
+        _mcp.LightValidateAsync(new LightValidateRequest(projectPath), cancellationToken);
 
     /// <summary>
-    /// Tunes an existing light in a scene.
+    /// Tunes an existing light (server: light.update).
     /// </summary>
-    /// <param name="scenePath">Scene resource path.</param>
-    /// <param name="lightPath">Light node path.</param>
-    /// <param name="properties">Properties to tune.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The tuned light, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("tune")]
     [Description("Tunes an existing light in a scene.")]
     public Task<LightInfo?> TuneAsync(
-        [Description("Scene resource path.")] string scenePath,
-        [Description("Light node path.")] string lightPath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Light node path.")] string nodePath,
         [Description("Properties to tune.")] IReadOnlyDictionary<string, object?> properties,
         CancellationToken cancellationToken = default) =>
-        _mcp.LightTuneAsync(new LightTuneRequest(scenePath, lightPath, properties), cancellationToken);
+        _mcp.LightTuneAsync(
+            new LightTuneRequest(new McpProjectFile(projectPath, fileName), nodePath, properties),
+            cancellationToken);
 }

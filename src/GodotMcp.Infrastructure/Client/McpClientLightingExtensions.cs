@@ -9,114 +9,76 @@ namespace GodotMcp.Infrastructure.Client;
 public static class McpClientLightingExtensions
 {
     /// <summary>
-    /// Lists lights in a scene.
+    /// Lists lights under a project root path.
     /// </summary>
-    /// <param name="client">The MCP client instance.</param>
-    /// <param name="request">The light list request payload.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>A read-only list of lights. Returns an empty list when the payload is empty.</returns>
     public static async Task<IReadOnlyList<LightInfo>> LightListAsync(
         this IMcpClient client,
         LightListRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         return await client.SendAsync<IReadOnlyList<LightInfo>>(
             "light.list",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath
-            },
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<LightInfo>();
     }
 
     /// <summary>
     /// Creates a light in a scene.
     /// </summary>
-    /// <param name="client">The MCP client instance.</param>
-    /// <param name="request">The light create request payload.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The created light information, or <c>null</c> when no payload is returned.</returns>
     public static Task<LightInfo?> LightCreateAsync(
         this IMcpClient client,
         LightCreateRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<LightInfo>(
-            "light.create",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath,
-                ["parentPath"] = request.ParentPath,
-                ["lightName"] = request.LightName,
-                ["lightType"] = request.LightType
-            },
-            cancellationToken);
+        var d = McpProjectFilePayload.ToDictionary(request.Scene);
+        d["parentNodePath"] = request.ParentNodePath;
+        d["nodeName"] = request.NodeName;
+        d["lightType"] = request.LightType;
+        d["preset"] = request.Preset;
+        return client.SendAsync<LightInfo>("light.create", d, cancellationToken);
     }
 
     /// <summary>
     /// Updates a light in a scene.
     /// </summary>
-    /// <param name="client">The MCP client instance.</param>
-    /// <param name="request">The light update request payload.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The updated light information, or <c>null</c> when no payload is returned.</returns>
     public static Task<LightInfo?> LightUpdateAsync(
         this IMcpClient client,
         LightUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<LightInfo>(
-            "light.update",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath,
-                ["lightPath"] = request.LightPath,
-                ["properties"] = request.Properties
-            },
-            cancellationToken);
+        var d = McpProjectFilePayload.ToDictionary(request.Scene);
+        d["nodePath"] = request.NodePath;
+        d["properties"] = request.Properties;
+        return client.SendAsync<LightInfo>("light.update", d, cancellationToken);
     }
 
     /// <summary>
-    /// Validates lighting setup for a scene.
+    /// Validates lighting under a project root path.
     /// </summary>
-    /// <param name="client">The MCP client instance.</param>
-    /// <param name="request">The light validate request payload.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The lighting validation result, or <c>null</c> when no payload is returned.</returns>
     public static Task<LightValidationResult?> LightValidateAsync(
         this IMcpClient client,
         LightValidateRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         return client.SendAsync<LightValidationResult>(
             "light.validate",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath
-            },
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken);
     }
 
     /// <summary>
-    /// Tunes an existing light in a scene.
+    /// Tunes an existing light (server: <c>light.update</c>).
     /// </summary>
-    /// <param name="client">The MCP client instance.</param>
-    /// <param name="request">The light tune request payload.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The tuned light information, or <c>null</c> when no payload is returned.</returns>
     public static Task<LightInfo?> LightTuneAsync(
         this IMcpClient client,
         LightTuneRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<LightInfo>(
-            "light.tune",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath,
-                ["lightPath"] = request.LightPath,
-                ["properties"] = request.Properties
-            },
-            cancellationToken);
+        var d = McpProjectFilePayload.ToDictionary(request.Scene);
+        d["nodePath"] = request.NodePath;
+        d["properties"] = request.Properties;
+        return client.SendAsync<LightInfo>("light.update", d, cancellationToken);
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using GodotMcp.Infrastructure.Client;
 using GodotMcp.Infrastructure.Configuration;
+using GodotMcp.Tests;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using NSubstitute.ExceptionExtensions;
@@ -283,7 +284,7 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
                 new { name = "Camera", path = "./Camera", type = "Camera3D", parentPath = (string?)".", isInternal = false }
             })));
 
-        var result = await client.SceneListNodesAsync(new SceneListNodesRequest("res://scenes/main.tscn"));
+        var result = await client.SceneListNodesAsync(new SceneListNodesRequest(new McpProjectFile(TestPaths.Root, "scenes/main.tscn")));
 
         Assert.Equal(2, result.Count);
         Assert.Equal("Root", result[0].Name);
@@ -291,8 +292,8 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
         await _mockSession.Received(1).CallToolAsync(
             "scene.list_nodes",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                d.ContainsKey("scenePath") &&
-                string.Equals(d["scenePath"] as string, "res://scenes/main.tscn", StringComparison.Ordinal)),
+                Equals(d["projectPath"], TestPaths.Root) &&
+                Equals(d["fileName"], "scenes/main.tscn")),
             Arg.Any<CancellationToken>());
     }
 
@@ -314,7 +315,7 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
             })));
 
         var request = new SceneAddNodeRequest(
-            "res://scenes/main.tscn",
+            new McpProjectFile(TestPaths.Root, "scenes/main.tscn"),
             ".",
             "Player",
             "CharacterBody3D");
@@ -327,8 +328,9 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
         await _mockSession.Received(1).CallToolAsync(
             "scene.add_node",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["scenePath"], "res://scenes/main.tscn") &&
-                Equals(d["parentPath"], ".") &&
+                Equals(d["projectPath"], TestPaths.Root) &&
+                Equals(d["fileName"], "scenes/main.tscn") &&
+                Equals(d["parentNodePath"], ".") &&
                 Equals(d["nodeName"], "Player") &&
                 Equals(d["nodeType"], "CharacterBody3D")),
             Arg.Any<CancellationToken>());
@@ -351,7 +353,7 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
             }));
 
         var result = await client.SceneGetNodePropertiesAsync(
-            new SceneGetNodePropertiesRequest("res://scenes/main.tscn", "./Camera"));
+            new SceneGetNodePropertiesRequest(new McpProjectFile(TestPaths.Root, "scenes/main.tscn"), "./Camera"));
 
         Assert.Equal(2, result.Count);
         Assert.Equal("fov", result[0].Name);
@@ -373,7 +375,7 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
             .Returns(Task.FromResult(JsonResult(new { success = true, message = "Moved" })));
 
         var result = await client.SceneMoveNodeAsync(
-            new SceneMoveNodeRequest("res://scenes/main.tscn", "./Camera", "./Rig", 0));
+            new SceneMoveNodeRequest(new McpProjectFile(TestPaths.Root, "scenes/main.tscn"), "./Camera", "./Rig", 0));
 
         Assert.NotNull(result);
         Assert.True(result!.Success);
@@ -480,5 +482,31 @@ public sealed class StdioMcpClientTests : IAsyncDisposable
             .Returns(Task.FromResult(_mockSession));
 
         await client.ConnectAsync();
+    }
+
+    [Fact]
+    public void ParsePotentialRawContent_WithJsonElement_ParsesCorrectly()
+    {
+        var je = JsonDocument.Parse("{\"status\":\"ok\"}").RootElement;
+
+        var mi = typeof(StdioMcpClient).GetMethod("ParsePotentialRawContent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(mi);
+
+        var result = mi!.Invoke(null, new object?[] { je });
+        var serialized = JsonSerializer.Serialize(result);
+        Assert.Contains("\"status\":\"ok\"", serialized);
+    }
+
+    [Fact]
+    public void ParsePotentialRawContent_WithString_ParsesCorrectly()
+    {
+        var rawJson = "{\"value\":123}";
+
+        var mi = typeof(StdioMcpClient).GetMethod("ParsePotentialRawContent", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+        Assert.NotNull(mi);
+
+        var result = mi!.Invoke(null, new object?[] { rawJson });
+        var serialized = JsonSerializer.Serialize(result);
+        Assert.Contains("\"value\":123", serialized);
     }
 }

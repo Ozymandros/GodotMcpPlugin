@@ -34,7 +34,7 @@ public class McpClientSceneGraphExtensionsTests
                 new { name = "CameraPivot", path = "./CameraPivot", type = "Node3D", parentPath = ".", isInternal = false }));
 
         var result = await _client.SceneRenameNodeAsync(
-            new SceneRenameNodeRequest("res://scenes/main.tscn", "./Camera", "CameraPivot"));
+            new SceneRenameNodeRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./Camera", "CameraPivot"));
 
         Assert.NotNull(result);
         Assert.Equal("CameraPivot", result!.Name);
@@ -42,7 +42,8 @@ public class McpClientSceneGraphExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "scene.rename_node",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["scenePath"], "res://scenes/main.tscn") &&
+                Equals(d["projectPath"], Root) &&
+                Equals(d["fileName"], "scenes/main.tscn") &&
                 Equals(d["nodePath"], "./Camera") &&
                 Equals(d["newName"], "CameraPivot")),
             Arg.Any<CancellationToken>());
@@ -64,7 +65,7 @@ public class McpClientSceneGraphExtensionsTests
                 new[] { new { name = "fov", type = "float", value = 75, readOnly = false } }));
 
         var result = await _client.SceneSetNodePropertiesAsync(
-            new SceneSetNodePropertiesRequest("res://scenes/main.tscn", "./Camera", properties));
+            new SceneSetNodePropertiesRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./Camera", properties));
 
         Assert.Single(result);
         Assert.Equal("fov", result[0].Name);
@@ -72,7 +73,8 @@ public class McpClientSceneGraphExtensionsTests
         await _client.Received(1).InvokeToolAsync(
             "scene.set_node_properties",
             Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
-                Equals(d["scenePath"], "res://scenes/main.tscn") &&
+                Equals(d["projectPath"], Root) &&
+                Equals(d["fileName"], "scenes/main.tscn") &&
                 Equals(d["nodePath"], "./Camera") &&
                 ReferenceEquals(d["properties"], properties)),
             Arg.Any<CancellationToken>());

@@ -218,12 +218,12 @@ public class ParameterConverterTests
     {
         var parameters = new Dictionary<string, object?>
         {
-            ["scene"] = new ResourceReference("res://Scenes/Main.tscn")
+            ["scene"] = new ResourceReference(Combine("Scenes", "Main.tscn"))
         };
 
         var result = _converter.ConvertToMcp(parameters, CreateToolDefinition());
         var value = Assert.IsType<Dictionary<string, object?>>(result["scene"]);
-        Assert.Equal("res://Scenes/Main.tscn", value["path"]);
+        Assert.Equal(Combine("Scenes", "Main.tscn"), value["path"]);
     }
 
     [Fact]

@@ -13,39 +13,33 @@ public sealed class AdvancedLintSkill(IMcpClient mcp)
     /// <summary>
     /// Runs advanced lint checks against a scene.
     /// </summary>
-    /// <param name="scenePath">Scene resource path.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The lint result, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("scene_advanced")]
     [Description("Runs advanced lint checks for a scene.")]
     public Task<LintResult?> SceneAdvancedAsync(
-        [Description("Scene resource path.")] string scenePath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
         CancellationToken cancellationToken = default) =>
-        _mcp.LintSceneAdvancedAsync(new LintSceneAdvancedRequest(scenePath), cancellationToken);
+        _mcp.LintSceneAdvancedAsync(
+            new LintSceneAdvancedRequest(new McpProjectFile(projectPath, fileName)),
+            cancellationToken);
 
     /// <summary>
     /// Runs advanced lint checks against a project.
     /// </summary>
-    /// <param name="projectPath">Project path.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The lint result, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("project_advanced")]
     [Description("Runs advanced lint checks for a project.")]
     public Task<LintResult?> ProjectAdvancedAsync(
-        [Description("Project path.")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root.")] string projectPath,
         CancellationToken cancellationToken = default) =>
         _mcp.LintProjectAdvancedAsync(new LintProjectAdvancedRequest(projectPath), cancellationToken);
 
     /// <summary>
     /// Runs lint checks against a project using the server-default lint contract.
     /// </summary>
-    /// <param name="projectPath">Project path.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The lint result, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("project")]
     [Description("Runs lint checks for a project.")]
     public Task<LintResult?> ProjectAsync(
-        [Description("Project path.")] string projectPath,
+        [Description("Absolute filesystem path to the Godot project root.")] string projectPath,
         CancellationToken cancellationToken = default) =>
         _mcp.LintProjectAsync(new LintProjectRequest(projectPath), cancellationToken);
 }

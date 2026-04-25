@@ -16,14 +16,9 @@ public static class McpClientPresetExtensions
         PresetApplyRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<PresetResult>(
-            "preset.apply",
-            new Dictionary<string, object?>
-            {
-                ["scenePath"] = request.ScenePath,
-                ["nodePath"] = request.NodePath,
-                ["presetName"] = request.PresetName
-            },
-            cancellationToken);
+        var d = McpProjectFilePayload.ToDictionary(request.Scene);
+        d["nodePath"] = request.NodePath;
+        d["presetName"] = request.PresetName;
+        return client.SendAsync<PresetResult>("preset.apply", d, cancellationToken);
     }
 }

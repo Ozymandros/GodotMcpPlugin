@@ -16,10 +16,12 @@ public static class McpClientProjectExtensions
         CreateGodotProjectRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectRootPath);
         return client.SendAsync<ProjectInfo>(
             "create_godot_project",
             new Dictionary<string, object?>
             {
+                ["projectPath"] = projectPath,
                 ["projectName"] = request.ProjectName
             },
             cancellationToken);
@@ -30,11 +32,13 @@ public static class McpClientProjectExtensions
     /// </summary>
     public static Task<ProjectInfo?> GetProjectInfoAsync(
         this IMcpClient client,
+        string? projectRootPath = null,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath);
         return client.SendAsync<ProjectInfo>(
             "get_project_info",
-            new Dictionary<string, object?>(),
+            new Dictionary<string, object?> { ["projectPath"] = projectPath },
             cancellationToken);
     }
 
@@ -46,10 +50,12 @@ public static class McpClientProjectExtensions
         ConfigureAutoloadRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectRootPath);
         return client.SendAsync<ProjectOperationResult>(
             "configure_autoload",
             new Dictionary<string, object?>
             {
+                ["projectPath"] = projectPath,
                 ["key"] = request.Key,
                 ["value"] = request.Value,
                 ["enabled"] = request.Enabled
@@ -65,10 +71,12 @@ public static class McpClientProjectExtensions
         AddPluginRequest request,
         CancellationToken cancellationToken = default)
     {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectRootPath);
         return client.SendAsync<ProjectOperationResult>(
             "add_plugin",
             new Dictionary<string, object?>
             {
+                ["projectPath"] = projectPath,
                 ["pluginName"] = request.PluginName
             },
             cancellationToken);

@@ -21,7 +21,7 @@ public class McpClientCameraExtensionsTests
                 {
                     new
                     {
-                        scenePath = "res://scenes/main.tscn",
+                        scenePath = Combine("scenes", "main.tscn"),
                         nodePath = "./MainCamera",
                         type = "Camera3D",
                         fov = 70.0,
@@ -33,7 +33,7 @@ public class McpClientCameraExtensionsTests
                     }
                 }));
 
-        var result = await _client.CameraListAsync(new CameraListRequest("res://"));
+        var result = await _client.CameraListAsync(new CameraListRequest(Root));
 
         Assert.Single(result);
         Assert.Equal("Camera3D", result[0].Type);
@@ -50,7 +50,7 @@ public class McpClientCameraExtensionsTests
                 true,
                 new
                 {
-                    scenePath = "res://scenes/main.tscn",
+                    scenePath = Combine("scenes", "main.tscn"),
                     nodePath = "./MainCamera",
                     type = "Camera3D",
                     fov = 70.0,
@@ -62,7 +62,7 @@ public class McpClientCameraExtensionsTests
                 }));
 
         var result = await _client.CameraCreateAsync(
-            new CameraCreateRequest("res://scenes/main.tscn", "./MainCamera", "3d", "cinematic"));
+            new CameraCreateRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./MainCamera", "3d", "cinematic"));
 
         Assert.NotNull(result);
         Assert.Equal("Camera3D", result!.Type);
@@ -80,17 +80,17 @@ public class McpClientCameraExtensionsTests
                 {
                     new
                     {
-                        path = "res://scenes/main.tscn",
+                        path = Combine("scenes", "main.tscn"),
                         severity = "warning",
                         message = "FOV out of range",
                         suggestedFix = "Set fov between 1 and 179",
                         rule = "camera_fov_range",
-                        scenePath = "res://scenes/main.tscn",
+                        scenePath = Combine("scenes", "main.tscn"),
                         nodePath = "./MainCamera"
                     }
                 }));
 
-        var result = await _client.CameraValidateAsync(new CameraValidateRequest("res://"));
+        var result = await _client.CameraValidateAsync(new CameraValidateRequest(Root));
 
         Assert.Single(result);
         Assert.Equal("camera_fov_range", result[0].Rule);

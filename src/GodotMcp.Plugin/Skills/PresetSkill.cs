@@ -13,17 +13,15 @@ public sealed class PresetSkill(IMcpClient mcp)
     /// <summary>
     /// Applies a node preset.
     /// </summary>
-    /// <param name="scenePath">Scene resource path.</param>
-    /// <param name="nodePath">Target node path.</param>
-    /// <param name="presetName">Preset name.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The preset result, or <c>null</c> when no payload is returned.</returns>
     [KernelFunction("apply")]
     [Description("Applies a node preset.")]
     public Task<PresetResult?> ApplyAsync(
-        [Description("Scene resource path.")] string scenePath,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
         [Description("Target node path.")] string nodePath,
         [Description("Preset name.")] string presetName,
         CancellationToken cancellationToken = default) =>
-        _mcp.PresetApplyAsync(new PresetApplyRequest(scenePath, nodePath, presetName), cancellationToken);
+        _mcp.PresetApplyAsync(
+            new PresetApplyRequest(new McpProjectFile(projectPath, fileName), nodePath, presetName),
+            cancellationToken);
 }

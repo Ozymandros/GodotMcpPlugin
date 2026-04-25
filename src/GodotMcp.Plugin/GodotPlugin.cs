@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using GodotMcp.Core.Models;
 using GodotMcp.Plugin.Extensions;
 using GodotMcp.Plugin.Validation;
 
@@ -31,13 +32,13 @@ namespace GodotMcp.Plugin;
 ///     options.ConnectionTimeoutSeconds = 30;
 ///     options.RequestTimeoutSeconds = 60;
 /// });
-/// 
+///
 /// var serviceProvider = services.BuildServiceProvider();
-/// 
+///
 /// // Get the plugin and initialize
 /// var plugin = serviceProvider.GetRequiredService&lt;GodotPlugin&gt;();
 /// await plugin.InitializeAsync();
-/// 
+///
 /// // Invoke a Godot tool
 /// var result = await plugin.InvokeToolAsync(
 ///     "Godot_create_scene",
@@ -47,12 +48,12 @@ namespace GodotMcp.Plugin;
 ///         ["addToHierarchy"] = true
 ///     });
 /// </code>
-/// 
+///
 /// <para><strong>Using with Semantic Kernel:</strong></para>
 /// <code>
 /// // Create a kernel with Godot functions registered
 /// var kernel = await GodotPlugin.CreateKernelWithGodotAsync(serviceProvider);
-/// 
+///
 /// // Use Godot functions in prompts
 /// var result = await kernel.InvokePromptAsync(
 ///     "Create a new Godot scene called {{$sceneName}} and add a cube at position (0, 1, 0)",
@@ -61,7 +62,7 @@ namespace GodotMcp.Plugin;
 ///         ["sceneName"] = "DemoScene"
 ///     });
 /// </code>
-/// 
+///
 /// <para><strong>Manual Tool Invocation:</strong></para>
 /// <code>
 /// // Invoke specific Godot tools directly
@@ -73,12 +74,12 @@ namespace GodotMcp.Plugin;
 ///         ["position"] = new { x = 0, y = 0, z = 0 },
 ///         ["components"] = new[] { "Rigidbody", "BoxCollider" }
 ///     });
-/// 
+///
 /// var sceneInfo = await plugin.InvokeToolAsync(
 ///     "Godot_get_scene_info",
 ///     new Dictionary&lt;string, object?&gt;());
 /// </code>
-/// 
+///
 /// <para><strong>Error Handling:</strong></para>
 /// <code>
 /// try
@@ -178,7 +179,7 @@ public sealed partial class GodotPlugin(
     ///         ["scale"] = new { x = 1, y = 1, z = 1 }
     ///     });
     /// </code>
-    /// 
+    ///
     /// <para><strong>Creating a Scene:</strong></para>
     /// <code>
     /// var sceneResult = await plugin.InvokeToolAsync(
@@ -189,7 +190,7 @@ public sealed partial class GodotPlugin(
     ///         ["addToHierarchy"] = true
     ///     });
     /// </code>
-    /// 
+    ///
     /// <para><strong>Querying Scene Information:</strong></para>
     /// <code>
     /// var sceneInfo = await plugin.InvokeToolAsync(
@@ -236,6 +237,46 @@ public sealed partial class GodotPlugin(
     }
 
     /// <summary>
+    /// Updates the Godot project root used as the MCP server's working directory, reconnecting
+    /// the <c>godot-mcp</c> process when the path differs from the current configuration.
+    /// </summary>
+    /// <remarks>
+    /// Must be called before <see cref="InvokeToolAsync"/> on a new project so the MCP server's
+    /// <c>IPathResolver</c> is scoped to the correct directory. This is required for
+    /// GodotMCP.Server 1.5+, which validates every <c>projectPath</c> tool argument against the
+    /// server's working directory. No-op when <paramref name="projectRoot"/> is null or unchanged.
+    /// </remarks>
+    /// <param name="projectRoot">Absolute path to the Godot project root directory.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public async Task ApplyProjectRootAsync(string? projectRoot, CancellationToken cancellationToken = default)
+    {
+        var normalized = string.IsNullOrWhiteSpace(projectRoot) ? null : projectRoot.Trim();
+
+        // Apply the requested project root to the underlying MCP client which will
+        // reconnect the godot-mcp process with the updated working directory.
+        await _mcpClient.ApplyProjectRootAsync(normalized, cancellationToken).ConfigureAwait(false);
+
+        // After reconnecting, re-discover available tools and refresh the function
+        // mapper registrations so cached kernels or previous registrations do not
+        // hold stale tool definitions for the new working directory.
+        try
+        {
+            var tools = await _mcpClient.ListToolsAsync(cancellationToken).ConfigureAwait(false);
+            await _functionMapper.RegisterToolsAsync(tools, cancellationToken).ConfigureAwait(false);
+            _logger.LogInformation("Refreshed Godot MCP tool registrations after project-root change; discovered {ToolCount} tools.", tools.Count);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Non-fatal: continue with existing registrations but log the issue.
+            _logger.LogWarning(ex, "Failed to refresh Godot MCP tools after project-root change; continuing with existing registrations.");
+        }
+    }
+
+    /// <summary>
     /// Validates whether the provided path looks like a Godot project root.
     /// </summary>
     /// <param name="projectPath">Path to check.</param>
@@ -260,18 +301,26 @@ public sealed partial class GodotPlugin(
     /// <summary>
     /// Gets Godot/server version information through the MCP server.
     /// </summary>
+    /// <param name="projectPath">Absolute filesystem path to the Godot project root (folder containing project.godot).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Version payload returned by the <c>get_godot_version</c> tool.</returns>
+    /// <returns>Payload returned by the <c>get_server_info</c> tool.</returns>
     [KernelFunction("get_godot_version")]
-    [Description("Gets Godot and MCP server version information from the connected server.")]
-    public async Task<object?> GetGodotVersionAsync(CancellationToken cancellationToken = default)
+    [Description("Gets Godot MCP server version and working directory from the connected server (get_server_info).")]
+    public async Task<object?> GetGodotVersionAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string? projectPath = null,
+        CancellationToken cancellationToken = default)
     {
         if (_mcpClient.State == ConnectionState.Disconnected)
         {
             await _mcpClient.ConnectAsync(cancellationToken);
         }
 
-        var response = await _mcpClient.InvokeToolAsync("get_godot_version", new Dictionary<string, object?>(), cancellationToken);
+        var path = string.IsNullOrWhiteSpace(projectPath) ? GodotMcpPathDefaults.DefaultProjectRootPath : projectPath;
+        var projectPathNormalized = GodotMcpPathNormalization.NormalizeProjectDirectory(path);
+        var response = await _mcpClient.InvokeToolAsync(
+            "get_server_info",
+            new Dictionary<string, object?> { ["projectPath"] = projectPathNormalized },
+            cancellationToken);
         return response.Result;
     }
 
@@ -299,7 +348,7 @@ public sealed partial class GodotPlugin(
     /// <example>
     /// <code>
     /// var kernel = await GodotPlugin.CreateKernelWithGodotAsync(serviceProvider);
-    /// 
+    ///
     /// // Each tool is now a distinct function the LLM can call
     /// var func = kernel.Plugins["Godot"]["Godot_create_scene"];
     /// var result = await kernel.InvokeAsync(func, new KernelArguments

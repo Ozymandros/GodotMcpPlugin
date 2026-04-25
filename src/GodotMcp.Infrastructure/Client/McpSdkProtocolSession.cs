@@ -5,7 +5,7 @@ using ModelContextProtocol.Protocol;
 namespace GodotMcp.Infrastructure.Client;
 
 /// <summary>
-/// MCP protocol session backed by the official <see cref="McpClient"/> (GodotMCP.Server 1.2+ / MCP tools/call).
+/// MCP protocol session backed by the official <see cref="McpClient"/> (GodotMCP.Server 1.5+ / MCP tools/call).
 /// </summary>
 internal sealed class McpSdkProtocolSession(McpClient client) : IMcpProtocolSession
 {

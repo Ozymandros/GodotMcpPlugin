@@ -11,19 +11,19 @@ public static class McpClientResourceExtensions
     /// <summary>
     /// Lists resources using optional filters.
     /// </summary>
-    /// <param name="client">The MCP client instance.</param>
-    /// <param name="request">The resource list request payload.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>A read-only list of resources. Returns an empty list when the payload is empty.</returns>
     public static async Task<IReadOnlyList<ResourceInfo>> ResourceListAsync(
         this IMcpClient client,
         ResourceListRequest request,
         CancellationToken cancellationToken = default)
     {
+        var dir = string.IsNullOrWhiteSpace(request.Directory) ? GodotMcpPathDefaults.DefaultProjectRootPath : request.Directory!;
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(dir);
+
         return await client.SendAsync<IReadOnlyList<ResourceInfo>>(
-            "resource.list",
+            "list_resources",
             new Dictionary<string, object?>
             {
+                ["projectPath"] = projectPath, // Directory is used as projectPath for server compatibility
                 ["directory"] = request.Directory,
                 ["resourceType"] = request.ResourceType
             },
@@ -33,10 +33,6 @@ public static class McpClientResourceExtensions
     /// <summary>
     /// Reads a resource payload.
     /// </summary>
-    /// <param name="client">The MCP client instance.</param>
-    /// <param name="request">The resource read request payload.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The resource payload, or <c>null</c> when no payload is returned.</returns>
     public static Task<ResourceData?> ResourceReadAsync(
         this IMcpClient client,
         ResourceReadRequest request,
@@ -44,67 +40,104 @@ public static class McpClientResourceExtensions
     {
         return client.SendAsync<ResourceData>(
             "resource.read",
-            new Dictionary<string, object?>
-            {
-                ["resourcePath"] = request.ResourcePath
-            },
+            McpProjectFilePayload.ToDictionary(request.Resource),
             cancellationToken);
     }
 
     /// <summary>
     /// Updates a resource payload.
     /// </summary>
-    /// <param name="client">The MCP client instance.</param>
-    /// <param name="request">The resource update request payload.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>The updated resource payload, or <c>null</c> when no payload is returned.</returns>
     public static Task<ResourceData?> ResourceUpdateAsync(
         this IMcpClient client,
         ResourceUpdateRequest request,
         CancellationToken cancellationToken = default)
     {
-        var payload = new Dictionary<string, object?>
+        var d = McpProjectFilePayload.ToDictionary(request.Resource);
+        // Extract rawContent if present in properties and forward it as top-level field
+        var (rawContent, remaining) = ExtractRawContent(request.Properties);
+        if (rawContent is not null)
         {
-            ["resourcePath"] = request.ResourcePath,
-            ["path"] = request.ResourcePath,
-            ["properties"] = request.Properties
-        };
-
+            d["rawContent"] = rawContent;
+        }
+        d["properties"] = ToStringPropertyMap(remaining);
         return InvokeResourceWithFallbackAsync<ResourceData>(
             client,
             "resource.update_properties",
             "resource.update",
-            payload,
+            d,
             cancellationToken);
     }
 
     /// <summary>
     /// Creates a resource payload.
     /// </summary>
-    /// <param name="client">The MCP client instance.</param>
-    /// <param name="request">The resource create request payload.</param>
-    /// <param name="cancellationToken">Cancellation token for the operation.</param>
-    /// <returns>Information for the created resource, or <c>null</c> when no payload is returned.</returns>
     public static Task<ResourceInfo?> ResourceCreateAsync(
         this IMcpClient client,
         ResourceCreateRequest request,
         CancellationToken cancellationToken = default)
     {
-        var payload = new Dictionary<string, object?>
+        var d = McpProjectFilePayload.ToDictionary(request.Resource);
+        d["type"] = request.ResourceType;
+        // Extract rawContent if present in properties and forward it as top-level field
+        var (rawContentCreate, remainingCreate) = ExtractRawContent(request.Properties);
+        if (rawContentCreate is not null)
         {
-            ["resourcePath"] = request.ResourcePath,
-            ["path"] = request.ResourcePath,
-            ["resourceType"] = request.ResourceType,
-            ["type"] = request.ResourceType,
-            ["properties"] = request.Properties
-        };
+            d["rawContent"] = rawContentCreate;
+        }
+        d["properties"] = ToStringPropertyMap(remainingCreate);
 
-        return InvokeResourceWithFallbackAsync<ResourceInfo>(
-            client,
+        // Use only 'create_resource' as the server does not support 'resource.create' anymore
+        return client.SendAsync<ResourceInfo>(
             "create_resource",
-            "resource.create",
-            payload,
+            d,
             cancellationToken);
+    }
+
+    private static (string? rawContent, IReadOnlyDictionary<string, object?> remaining) ExtractRawContent(IReadOnlyDictionary<string, object?>? properties)
+    {
+        if (properties == null || properties.Count == 0)
+        {
+            return (null, new Dictionary<string, object?>(StringComparer.Ordinal));
+        }
+
+        string? raw = null;
+        var remaining = new Dictionary<string, object?>(StringComparer.Ordinal);
+        foreach (var (k, v) in properties)
+        {
+            if (string.Equals(k, "rawContent", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(k, "content", StringComparison.OrdinalIgnoreCase))
+            {
+                if (v is string s)
+                {
+                    raw = s;
+                }
+                else if (v is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.String)
+                {
+                    raw = je.GetString();
+                }
+                else if (v != null)
+                {
+                    raw = v.ToString();
+                }
+            }
+            else
+            {
+                remaining[k] = v;
+            }
+        }
+
+        return (raw, remaining);
+    }
+
+    private static Dictionary<string, string> ToStringPropertyMap(IReadOnlyDictionary<string, object?> properties)
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (k, v) in properties)
+        {
+            map[k] = v?.ToString() ?? string.Empty;
+        }
+
+        return map;
     }
 
     private static async Task<T?> InvokeResourceWithFallbackAsync<T>(

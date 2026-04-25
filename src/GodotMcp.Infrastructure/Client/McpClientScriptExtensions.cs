@@ -16,16 +16,15 @@ public static class McpClientScriptExtensions
         ScriptCreateRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<ScriptInfo>(
-            "create_script",
-            new Dictionary<string, object?>
-            {
-                ["path"] = request.Path,
-                ["language"] = request.Language,
-                ["baseType"] = request.BaseType,
-                ["className"] = request.ClassName
-            },
-            cancellationToken);
+        var d = McpProjectFilePayload.ToDictionary(request.Script);
+        d["language"] = request.Language;
+        d["baseType"] = request.BaseType;
+        d["className"] = request.ClassName;
+        if (!string.IsNullOrEmpty(request.RawContent))
+        {
+            d["rawContent"] = request.RawContent;
+        }
+        return client.SendAsync<ScriptInfo>("create_script", d, cancellationToken);
     }
 
     /// <summary>
@@ -36,13 +35,19 @@ public static class McpClientScriptExtensions
         ScriptAttachRequest request,
         CancellationToken cancellationToken = default)
     {
+        if (!string.Equals(request.Scene.ProjectPath, request.Script.ProjectPath, StringComparison.Ordinal))
+        {
+            throw new ArgumentException("Scene and script must use the same projectPath (GodotMCP.Server attach_script contract).");
+        }
+
         return client.SendAsync<SceneCommandResult>(
             "attach_script",
             new Dictionary<string, object?>
             {
-                ["scenePath"] = request.ScenePath,
+                ["projectPath"] = request.Scene.ProjectPath,
+                ["fileName"] = request.Scene.FileName,
                 ["nodeName"] = request.NodeName,
-                ["scriptPath"] = request.ScriptPath
+                ["scriptFileName"] = request.Script.FileName
             },
             cancellationToken);
     }
@@ -55,13 +60,8 @@ public static class McpClientScriptExtensions
         ScriptValidateRequest request,
         CancellationToken cancellationToken = default)
     {
-        return client.SendAsync<ScriptValidationResult>(
-            "validate_script",
-            new Dictionary<string, object?>
-            {
-                ["scriptPath"] = request.ScriptPath,
-                ["isCSharp"] = request.IsCSharp
-            },
-            cancellationToken);
+        var d = McpProjectFilePayload.ToDictionary(request.Script);
+        d["isCSharp"] = request.IsCSharp;
+        return client.SendAsync<ScriptValidationResult>("validate_script", d, cancellationToken);
     }
 }
