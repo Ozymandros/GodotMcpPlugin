@@ -37,15 +37,16 @@ try
     logger.LogInformation("Version info: {VersionInfo}", versionInfo);
 
     // Step 3: Create a scene with the current GD_MCP contract.
-    var sampleScenePath = Path.Combine(Environment.CurrentDirectory, "Scenes", "SampleScene.tscn");
+    const string sampleSceneFileName = "SampleScene.tscn";
     logger.LogInformation("Creating a new Godot scene...");
     var createSceneResult = await plugin.InvokeToolAsync(
         "create_scene",
         new Dictionary<string, object?>
         {
-            ["scenePath"] = sampleScenePath,
+            ["projectPath"] = Environment.CurrentDirectory,
+            ["fileName"] = sampleSceneFileName,
             ["rootNodeName"] = "SampleRoot",
-            ["rootNodeType"] = "Node3D"
+            ["root_type"] = "Node3D"
         },
         CancellationToken.None);
     logger.LogInformation("Scene created successfully: {Result}", createSceneResult);
@@ -56,10 +57,12 @@ try
         "add_node",
         new Dictionary<string, object?>
         {
-            ["scenePath"] = sampleScenePath,
+            ["projectPath"] = Environment.CurrentDirectory,
+            ["fileName"] = sampleSceneFileName,
             ["parentPath"] = ".",
             ["nodeName"] = "DemoCamera",
-            ["nodeType"] = "Camera3D"
+            ["nodeType"] = "Camera3D",
+            ["root_type"] = "Node3D"
         },
         CancellationToken.None);
     logger.LogInformation("Node added successfully: {Result}", addNodeResult);

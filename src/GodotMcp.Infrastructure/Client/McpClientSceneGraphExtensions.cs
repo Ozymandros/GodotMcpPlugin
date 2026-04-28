@@ -60,7 +60,7 @@ public static class McpClientSceneGraphExtensions
     {
         return await client.SendAsync<IReadOnlyList<NodeInfo>>(
             "scene.list_nodes",
-            McpProjectFilePayload.ToDictionary(request.Scene),
+            BuildSceneMutationPayload(request.Scene, request.RootType, static _ => { }),
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<NodeInfo>();
     }
 
@@ -73,7 +73,7 @@ public static class McpClientSceneGraphExtensions
         CancellationToken cancellationToken = default) =>
         client.SendAsync<NodeInfo>(
             "scene.add_node",
-            BuildSceneMutationPayload(request.Scene, d =>
+            BuildSceneMutationPayload(request.Scene, request.RootType, d =>
             {
                 d["parentNodePath"] = request.ParentNodePath;
                 d["nodeName"] = request.NodeName;
@@ -90,7 +90,7 @@ public static class McpClientSceneGraphExtensions
         CancellationToken cancellationToken = default) =>
         client.SendAsync<SceneCommandResult>(
             "scene.remove_node",
-            BuildSceneMutationPayload(request.Scene, d => d["nodePath"] = request.NodePath),
+            BuildSceneMutationPayload(request.Scene, request.RootType, d => d["nodePath"] = request.NodePath),
             cancellationToken);
 
     /// <summary>
@@ -102,7 +102,7 @@ public static class McpClientSceneGraphExtensions
         CancellationToken cancellationToken = default) =>
         client.SendAsync<SceneCommandResult>(
             "scene.move_node",
-            BuildSceneMutationPayload(request.Scene, d =>
+            BuildSceneMutationPayload(request.Scene, request.RootType, d =>
             {
                 d["nodePath"] = request.NodePath;
                 d["newParentPath"] = request.NewParentPath;
@@ -118,7 +118,7 @@ public static class McpClientSceneGraphExtensions
         CancellationToken cancellationToken = default) =>
         client.SendAsync<NodeInfo>(
             "scene.rename_node",
-            BuildSceneMutationPayload(request.Scene, d =>
+            BuildSceneMutationPayload(request.Scene, request.RootType, d =>
             {
                 d["nodePath"] = request.NodePath;
                 d["newName"] = request.NewName;
@@ -135,7 +135,7 @@ public static class McpClientSceneGraphExtensions
     {
         return await client.SendAsync<IReadOnlyList<NodePropertyInfo>>(
             "scene.get_node_properties",
-            BuildSceneMutationPayload(request.Scene, d => d["nodePath"] = request.NodePath),
+            BuildSceneMutationPayload(request.Scene, request.RootType, d => d["nodePath"] = request.NodePath),
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<NodePropertyInfo>();
     }
 
@@ -149,7 +149,7 @@ public static class McpClientSceneGraphExtensions
     {
         return await client.SendAsync<IReadOnlyList<NodePropertyInfo>>(
             "scene.set_node_properties",
-            BuildSceneMutationPayload(request.Scene, d =>
+            BuildSceneMutationPayload(request.Scene, request.RootType, d =>
             {
                 d["nodePath"] = request.NodePath;
                 d["properties"] = request.Properties;
@@ -159,9 +159,14 @@ public static class McpClientSceneGraphExtensions
 
     private static Dictionary<string, object?> BuildSceneMutationPayload(
         McpProjectFile scene,
+        string? rootType,
         Action<Dictionary<string, object?>> addFields)
     {
         var d = McpProjectFilePayload.ToDictionary(scene);
+        if (!string.IsNullOrWhiteSpace(rootType))
+        {
+            d["root_type"] = rootType;
+        }
         addFields(d);
         return d;
     }

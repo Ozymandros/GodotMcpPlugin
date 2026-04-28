@@ -3,7 +3,7 @@ namespace GodotMcp.Core.Models;
 /// <summary>
 /// Scene Graph request to list nodes.
 /// </summary>
-public sealed record SceneListNodesRequest(McpProjectFile Scene);
+public sealed record SceneListNodesRequest(McpProjectFile Scene, string? RootType = null);
 
 /// <summary>
 /// Scene Graph request to add a node.
@@ -12,12 +12,13 @@ public sealed record SceneAddNodeRequest(
     McpProjectFile Scene,
     string ParentNodePath,
     string NodeName,
-    string NodeType);
+    string NodeType,
+    string? RootType = null);
 
 /// <summary>
 /// Scene Graph request to remove a node.
 /// </summary>
-public sealed record SceneRemoveNodeRequest(McpProjectFile Scene, string NodePath);
+public sealed record SceneRemoveNodeRequest(McpProjectFile Scene, string NodePath, string? RootType = null);
 
 /// <summary>
 /// Scene Graph request to move a node.
@@ -26,17 +27,18 @@ public sealed record SceneMoveNodeRequest(
     McpProjectFile Scene,
     string NodePath,
     string NewParentPath,
-    int? Index = null);
+    int? Index = null,
+    string? RootType = null);
 
 /// <summary>
 /// Scene Graph request to rename a node.
 /// </summary>
-public sealed record SceneRenameNodeRequest(McpProjectFile Scene, string NodePath, string NewName);
+public sealed record SceneRenameNodeRequest(McpProjectFile Scene, string NodePath, string NewName, string? RootType = null);
 
 /// <summary>
 /// Scene Graph request to get node properties.
 /// </summary>
-public sealed record SceneGetNodePropertiesRequest(McpProjectFile Scene, string NodePath);
+public sealed record SceneGetNodePropertiesRequest(McpProjectFile Scene, string NodePath, string? RootType = null);
 
 /// <summary>
 /// Scene Graph request to set node properties.
@@ -44,4 +46,5 @@ public sealed record SceneGetNodePropertiesRequest(McpProjectFile Scene, string 
 public sealed record SceneSetNodePropertiesRequest(
     McpProjectFile Scene,
     string NodePath,
-    IReadOnlyList<NodePropertyInfo> Properties);
+    IReadOnlyList<NodePropertyInfo> Properties,
+    string? RootType = null);

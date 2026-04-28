@@ -20,12 +20,16 @@ Notes:
 - The plugin exposes typed project wrappers and SK project skill methods for create/info/autoload/plugin workflows.
 
 ## Scene and Node
-- `create_scene(scenePath, rootNodeName, rootNodeType)`
-- `add_node(scenePath, parentPath, nodeName, nodeType)`
-- `set_node_property(scenePath, nodeName, propertyKey, propertyValue)`
-- `remove_node(scenePath, nodeName)`
-- `instantiate_packed_scene(targetScenePath, parentPath, packedScenePath, instanceName)`
-- `save_branch_as_scene(sourceScenePath, nodeName, destinationScenePath)`
+- Scene graph tools use the enforced scene contract: `projectPath + /scenes/ + fileName`.
+- `fileName` is scene-local and must end with `.tscn` (for example `mouse_test.tscn` or `ui/menu.tscn`).
+- Missing scene files may be bootstrapped by the server before node/property operations using `root_type` (default `Node`).
+- `scene.list_nodes(projectPath, fileName, root_type?)`
+- `scene.add_node(projectPath, fileName, parentNodePath, nodeName, nodeType, root_type?)`
+- `scene.remove_node(projectPath, fileName, nodePath, root_type?)`
+- `scene.move_node(projectPath, fileName, nodePath, newParentPath, index?, root_type?)`
+- `scene.rename_node(projectPath, fileName, nodePath, newName, root_type?)`
+- `scene.get_node_properties(projectPath, fileName, nodePath, root_type?)`
+- `scene.set_node_properties(projectPath, fileName, nodePath, properties, root_type?)`
 
 ## Camera (newer server versions)
 Camera tool names are discovered dynamically, and newer releases can expose methods for:

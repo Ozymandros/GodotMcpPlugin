@@ -18,9 +18,10 @@ public sealed class SceneSkill(IMcpClient mcp)
     [Description("Lists nodes in a scene.")]
     public Task<IReadOnlyList<NodeInfo>> ListNodesAsync(
         [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
-        [Description("Scene file path relative to project root (POSIX-style, e.g. scenes/main.tscn).")] string fileName,
+        [Description("Scene file name under scenes/ (e.g. main.tscn or nested/player/main.tscn). Must end with .tscn.")] string fileName,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
         CancellationToken cancellationToken = default) =>
-        _mcp.SceneListNodesAsync(new SceneListNodesRequest(new McpProjectFile(projectPath, fileName)), cancellationToken);
+        _mcp.SceneListNodesAsync(new SceneListNodesRequest(McpProjectFile.ForScene(projectPath, fileName), rootType), cancellationToken);
 
     /// <summary>
     /// Adds a node to a scene.
@@ -29,13 +30,14 @@ public sealed class SceneSkill(IMcpClient mcp)
     [Description("Adds a node to a scene.")]
     public Task<NodeInfo?> AddNodeAsync(
         [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
-        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Scene file name under scenes/ (e.g. main.tscn). Must end with .tscn.")] string fileName,
         [Description("Parent node path.")] string parentNodePath,
         [Description("Node name.")] string nodeName,
         [Description("Node type.")] string nodeType,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
         CancellationToken cancellationToken = default) =>
         _mcp.SceneAddNodeAsync(
-            new SceneAddNodeRequest(new McpProjectFile(projectPath, fileName), parentNodePath, nodeName, nodeType),
+            new SceneAddNodeRequest(McpProjectFile.ForScene(projectPath, fileName), parentNodePath, nodeName, nodeType, rootType),
             cancellationToken);
 
     /// <summary>
@@ -45,10 +47,11 @@ public sealed class SceneSkill(IMcpClient mcp)
     [Description("Removes a node from a scene.")]
     public Task<SceneCommandResult?> RemoveNodeAsync(
         [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
-        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Scene file name under scenes/ (e.g. main.tscn). Must end with .tscn.")] string fileName,
         [Description("Node path to remove.")] string nodePath,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
         CancellationToken cancellationToken = default) =>
-        _mcp.SceneRemoveNodeAsync(new SceneRemoveNodeRequest(new McpProjectFile(projectPath, fileName), nodePath), cancellationToken);
+        _mcp.SceneRemoveNodeAsync(new SceneRemoveNodeRequest(McpProjectFile.ForScene(projectPath, fileName), nodePath, rootType), cancellationToken);
 
     /// <summary>
     /// Moves a node in a scene.
@@ -57,13 +60,14 @@ public sealed class SceneSkill(IMcpClient mcp)
     [Description("Moves a node in a scene.")]
     public Task<SceneCommandResult?> MoveNodeAsync(
         [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
-        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Scene file name under scenes/ (e.g. main.tscn). Must end with .tscn.")] string fileName,
         [Description("Node path to move.")] string nodePath,
         [Description("New parent node path.")] string newParentPath,
         [Description("Optional sibling index under the new parent.")] int? index = null,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
         CancellationToken cancellationToken = default) =>
         _mcp.SceneMoveNodeAsync(
-            new SceneMoveNodeRequest(new McpProjectFile(projectPath, fileName), nodePath, newParentPath, index),
+            new SceneMoveNodeRequest(McpProjectFile.ForScene(projectPath, fileName), nodePath, newParentPath, index, rootType),
             cancellationToken);
 
     /// <summary>
@@ -73,11 +77,12 @@ public sealed class SceneSkill(IMcpClient mcp)
     [Description("Renames a node in a scene.")]
     public Task<NodeInfo?> RenameNodeAsync(
         [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
-        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Scene file name under scenes/ (e.g. main.tscn). Must end with .tscn.")] string fileName,
         [Description("Node path.")] string nodePath,
         [Description("New node name.")] string newName,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
         CancellationToken cancellationToken = default) =>
-        _mcp.SceneRenameNodeAsync(new SceneRenameNodeRequest(new McpProjectFile(projectPath, fileName), nodePath, newName), cancellationToken);
+        _mcp.SceneRenameNodeAsync(new SceneRenameNodeRequest(McpProjectFile.ForScene(projectPath, fileName), nodePath, newName, rootType), cancellationToken);
 
     /// <summary>
     /// Gets scene node properties.
@@ -86,10 +91,11 @@ public sealed class SceneSkill(IMcpClient mcp)
     [Description("Gets scene node properties.")]
     public Task<IReadOnlyList<NodePropertyInfo>> GetNodePropertiesAsync(
         [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
-        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Scene file name under scenes/ (e.g. main.tscn). Must end with .tscn.")] string fileName,
         [Description("Node path.")] string nodePath,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
         CancellationToken cancellationToken = default) =>
-        _mcp.SceneGetNodePropertiesAsync(new SceneGetNodePropertiesRequest(new McpProjectFile(projectPath, fileName), nodePath), cancellationToken);
+        _mcp.SceneGetNodePropertiesAsync(new SceneGetNodePropertiesRequest(McpProjectFile.ForScene(projectPath, fileName), nodePath, rootType), cancellationToken);
 
     /// <summary>
     /// Sets scene node properties.
@@ -98,11 +104,12 @@ public sealed class SceneSkill(IMcpClient mcp)
     [Description("Sets scene node properties.")]
     public Task<IReadOnlyList<NodePropertyInfo>> SetNodePropertiesAsync(
         [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
-        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Scene file name under scenes/ (e.g. main.tscn). Must end with .tscn.")] string fileName,
         [Description("Node path.")] string nodePath,
         [Description("Properties to set.")] IReadOnlyList<NodePropertyInfo> properties,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
         CancellationToken cancellationToken = default) =>
         _mcp.SceneSetNodePropertiesAsync(
-            new SceneSetNodePropertiesRequest(new McpProjectFile(projectPath, fileName), nodePath, properties),
+            new SceneSetNodePropertiesRequest(McpProjectFile.ForScene(projectPath, fileName), nodePath, properties, rootType),
             cancellationToken);
 }

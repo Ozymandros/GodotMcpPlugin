@@ -13,6 +13,17 @@ public readonly record struct McpProjectFile
         FileName = McpPathNormalizer.NormalizeProjectRelativeFileName(ProjectPath, fileName);
     }
 
+    /// <summary>
+    /// Creates a scene file reference following the MCP 1.7.2 scene contract:
+    /// <c>projectPath + /scenes/ + fileName</c>, with strict <c>.tscn</c> validation.
+    /// </summary>
+    public static McpProjectFile ForScene(string projectPath, string fileName)
+    {
+        var normalizedRoot = McpPathNormalizer.NormalizeProjectRoot(projectPath);
+        var normalizedSceneFile = McpPathNormalizer.NormalizeSceneFileName(normalizedRoot, fileName);
+        return new McpProjectFile(normalizedRoot, normalizedSceneFile);
+    }
+
     public string ProjectPath { get; }
 
     public string FileName { get; }
