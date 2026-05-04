@@ -79,4 +79,28 @@ public class McpClientSceneGraphExtensionsTests
                 ReferenceEquals(d["properties"], properties)),
             Arg.Any<CancellationToken>());
     }
+
+    [Fact]
+    public async Task SceneRenameNodeAsync_IncludesRootTypeWhenProvided()
+    {
+        _client
+            .InvokeToolAsync("scene.rename_node", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse(
+                "req-4",
+                true,
+                new { name = "CameraPivot", path = "./CameraPivot", type = "Node3D", parentPath = ".", isInternal = false }));
+
+        _ = await _client.SceneRenameNodeAsync(
+            new SceneRenameNodeRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./Camera", "CameraPivot", "Node2D"));
+
+        await _client.Received(1).InvokeToolAsync(
+            "scene.rename_node",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], Root) &&
+                Equals(d["fileName"], "scenes/main.tscn") &&
+                Equals(d["nodePath"], "./Camera") &&
+                Equals(d["newName"], "CameraPivot") &&
+                Equals(d["root_type"], "Node2D")),
+            Arg.Any<CancellationToken>());
+    }
 }

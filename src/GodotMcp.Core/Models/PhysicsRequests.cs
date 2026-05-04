@@ -88,3 +88,52 @@ public sealed record PhysicsCheckResult(
     bool Success,
     string? Message = null,
     IReadOnlyList<string>? Issues = null);
+
+/// <summary>
+/// Physics command request for removing a shape.
+/// </summary>
+public sealed record PhysicsRemoveShapeRequest(
+    McpProjectFile Scene,
+    string ShapePath);
+
+/// <summary>
+/// Physics command request for adding a collision polygon.
+/// </summary>
+public sealed record PhysicsAddCollisionPolygonRequest(
+    McpProjectFile Scene,
+    string BodyPath,
+    string PolygonName,
+    IReadOnlyList<Vector2> Points);
+
+/// <summary>
+/// Physics command request for updating a collision polygon.
+/// </summary>
+public sealed record PhysicsUpdateCollisionPolygonRequest(
+    McpProjectFile Scene,
+    string PolygonPath,
+    IReadOnlyList<Vector2>? Points = null,
+    IReadOnlyDictionary<string, object?>? Properties = null);
+
+/// <summary>
+/// Physics command request for removing a collision polygon.
+/// </summary>
+public sealed record PhysicsRemoveCollisionPolygonRequest(
+    McpProjectFile Scene,
+    string PolygonPath);
+
+/// <summary>
+/// Physics command request for assigning a shape resource.
+/// </summary>
+public sealed record PhysicsAssignShapeResourceRequest(
+    McpProjectFile Scene,
+    string ShapePath,
+    string ResourcePath);
+
+/// <summary>
+/// Physics command request for setting shape flags.
+/// </summary>
+public sealed record PhysicsSetShapeFlagsRequest(
+    McpProjectFile Scene,
+    string ShapePath,
+    bool? Disabled = null,
+    bool? Trigger = null);

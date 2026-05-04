@@ -59,4 +59,19 @@ public sealed class ResourceSkill(IMcpClient mcp)
         _mcp.ResourceCreateAsync(
             new ResourceCreateRequest(new McpProjectFile(projectPath, fileName), resourceType, properties),
             cancellationToken);
+
+    /// <summary>
+    /// Assigns a texture to a resource property.
+    /// </summary>
+    [KernelFunction("assign_texture")]
+    [Description("Assigns a texture to a resource property.")]
+    public Task<ProjectOperationResult?> AssignTextureAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Resource file path relative to project root.")] string fileName,
+        [Description("Property path on the resource (e.g. 'albedo_texture').")] string propertyPath,
+        [Description("Path to the texture resource.")] string texturePath,
+        CancellationToken cancellationToken = default) =>
+        _mcp.ResourceAssignTextureAsync(
+            new ResourceAssignTextureRequest(new McpProjectFile(projectPath, fileName), propertyPath, texturePath),
+            cancellationToken);
 }

@@ -41,9 +41,10 @@ var result = await plugin.InvokeToolAsync(
     "create_scene",
     new Dictionary<string, object?>
     {
-        ["scenePath"] = @"C:\GodotProjects\MyGame\Scenes\Main.tscn",
+        ["projectPath"] = @"C:\GodotProjects\MyGame",
+        ["fileName"] = "Main.tscn",
         ["rootNodeName"] = "Main",
-        ["rootNodeType"] = "Node2D"
+        ["root_type"] = "Node2D"
     });
 ```
 

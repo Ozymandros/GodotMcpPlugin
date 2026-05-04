@@ -81,4 +81,53 @@ public static class McpClientProjectExtensions
             },
             cancellationToken);
     }
+
+    /// <summary>
+    /// Sets a project config value in project.godot.
+    /// </summary>
+    public static Task<ProjectOperationResult?> SetProjectConfigAsync(
+        this IMcpClient client,
+        SetProjectConfigRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectRootPath);
+        var parameters = new Dictionary<string, object?>
+        {
+            ["projectPath"] = projectPath,
+            ["key"] = request.Key,
+            ["value"] = request.Value
+        };
+        if (!string.IsNullOrWhiteSpace(request.Section))
+        {
+            parameters["section"] = request.Section;
+        }
+        return client.SendAsync<ProjectOperationResult>(
+            "project.set_config_value",
+            parameters,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Removes a project config key from project.godot.
+    /// </summary>
+    public static Task<ProjectOperationResult?> RemoveProjectConfigAsync(
+        this IMcpClient client,
+        RemoveProjectConfigRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectRootPath);
+        var parameters = new Dictionary<string, object?>
+        {
+            ["projectPath"] = projectPath,
+            ["key"] = request.Key
+        };
+        if (!string.IsNullOrWhiteSpace(request.Section))
+        {
+            parameters["section"] = request.Section;
+        }
+        return client.SendAsync<ProjectOperationResult>(
+            "project.remove_config_key",
+            parameters,
+            cancellationToken);
+    }
 }

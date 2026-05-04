@@ -61,4 +61,33 @@ public sealed class ProjectSkill(IMcpClient mcp)
         _mcp.AddPluginAsync(
             new AddPluginRequest(pluginName, projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath),
             cancellationToken);
+
+    /// <summary>
+    /// Sets a project config value in project.godot.
+    /// </summary>
+    [KernelFunction("set_project_config")]
+    [Description("Sets a project config value in project.godot.")]
+    public Task<ProjectOperationResult?> SetProjectConfigAsync(
+        [Description("Config key (e.g. 'application/config/name').")] string key,
+        [Description("Config value to set.")] string value,
+        [Description("Optional config section (e.g. 'application').")] string? section = null,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string? projectRootPath = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.SetProjectConfigAsync(
+            new SetProjectConfigRequest(key, value, section, projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath),
+            cancellationToken);
+
+    /// <summary>
+    /// Removes a project config key from project.godot.
+    /// </summary>
+    [KernelFunction("remove_project_config")]
+    [Description("Removes a project config key from project.godot.")]
+    public Task<ProjectOperationResult?> RemoveProjectConfigAsync(
+        [Description("Config key to remove.")] string key,
+        [Description("Optional config section.")] string? section = null,
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string? projectRootPath = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.RemoveProjectConfigAsync(
+            new RemoveProjectConfigRequest(key, section, projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath),
+            cancellationToken);
 }

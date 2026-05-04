@@ -38,4 +38,24 @@ public class McpProjectFilePathNormalizationTests
 
         Assert.Throws<ArgumentException>(() => new McpProjectFile(Root, escapingPath));
     }
+
+    [Fact]
+    public void ForScene_PrependsScenesFolderAndValidatesTscn()
+    {
+        var scene = McpProjectFile.ForScene(Root, "mouse_test.tscn");
+        Assert.Equal("scenes/mouse_test.tscn", scene.FileName);
+    }
+
+    [Fact]
+    public void ForScene_AcceptsAlreadyScenesRelativePath()
+    {
+        var scene = McpProjectFile.ForScene(Root, "scenes/sub/menu.tscn");
+        Assert.Equal("scenes/sub/menu.tscn", scene.FileName);
+    }
+
+    [Fact]
+    public void ForScene_RejectsNonTscnExtensions()
+    {
+        Assert.Throws<ArgumentException>(() => McpProjectFile.ForScene(Root, "main.scn"));
+    }
 }

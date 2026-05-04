@@ -80,6 +80,26 @@ internal static class McpPathNormalizer
         return relative.Replace(Path.DirectorySeparatorChar, '/').Replace(Path.AltDirectorySeparatorChar, '/');
     }
 
+    public static string NormalizeSceneFileName(string projectRoot, string fileName)
+    {
+        var normalized = NormalizeProjectRelativeFileName(projectRoot, fileName);
+        var relativeToScenes = normalized.StartsWith("scenes/", StringComparison.OrdinalIgnoreCase)
+            ? normalized["scenes/".Length..]
+            : normalized;
+
+        if (string.IsNullOrWhiteSpace(relativeToScenes))
+        {
+            throw new ArgumentException("Scene file name cannot be empty.", nameof(fileName));
+        }
+
+        if (!relativeToScenes.EndsWith(".tscn", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException("Scene file name must end with .tscn.", nameof(fileName));
+        }
+
+        return $"scenes/{relativeToScenes}";
+    }
+
 
     private static bool IsWithinRoot(string normalizedRoot, string fullCandidate)
     {
