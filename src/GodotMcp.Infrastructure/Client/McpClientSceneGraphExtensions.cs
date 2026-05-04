@@ -106,6 +106,10 @@ public static class McpClientSceneGraphExtensions
             {
                 d["nodePath"] = request.NodePath;
                 d["newParentPath"] = request.NewParentPath;
+                if (request.Index.HasValue)
+                {
+                    d["index"] = request.Index.Value;
+                }
             }),
             cancellationToken);
 
@@ -155,6 +159,67 @@ public static class McpClientSceneGraphExtensions
                 d["properties"] = request.Properties;
             }),
             cancellationToken).ConfigureAwait(false) ?? Array.Empty<NodePropertyInfo>();
+    }
+
+    /// <summary>
+    /// Adds a signal connection between nodes in a scene.
+    /// </summary>
+    public static Task<ProjectOperationResult?> SceneConnectionAddAsync(
+        this IMcpClient client,
+        SceneConnectionAddRequest request,
+        CancellationToken cancellationToken = default) =>
+        client.SendAsync<ProjectOperationResult>(
+            "scene.connection_add",
+            BuildSceneMutationPayload(request.Scene, request.RootType, d =>
+            {
+                d["nodePath"] = request.NodePath;
+                d["signal"] = request.Signal;
+                d["targetNodePath"] = request.TargetNodePath;
+                d["method"] = request.Method;
+                d["connected"] = request.Connected;
+                if (request.Flags.HasValue)
+                {
+                    d["flags"] = request.Flags.Value;
+                }
+            }),
+            cancellationToken);
+
+    /// <summary>
+    /// Removes a signal connection between nodes in a scene.
+    /// </summary>
+    public static Task<ProjectOperationResult?> SceneConnectionRemoveAsync(
+        this IMcpClient client,
+        SceneConnectionRemoveRequest request,
+        CancellationToken cancellationToken = default) =>
+        client.SendAsync<ProjectOperationResult>(
+            "scene.connection_remove",
+            BuildSceneMutationPayload(request.Scene, request.RootType, d =>
+            {
+                d["nodePath"] = request.NodePath;
+                d["signal"] = request.Signal;
+                d["targetNodePath"] = request.TargetNodePath;
+                d["method"] = request.Method;
+            }),
+            cancellationToken);
+
+    /// <summary>
+    /// Queries signal connections in a scene.
+    /// </summary>
+    public static async Task<IReadOnlyList<SceneConnectionInfo>> SceneConnectionInfoAsync(
+        this IMcpClient client,
+        SceneConnectionInfoRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        return await client.SendAsync<IReadOnlyList<SceneConnectionInfo>>(
+            "scene.connection_info",
+            BuildSceneMutationPayload(request.Scene, request.RootType, d =>
+            {
+                if (!string.IsNullOrWhiteSpace(request.NodePath))
+                {
+                    d["nodePath"] = request.NodePath;
+                }
+            }),
+            cancellationToken).ConfigureAwait(false) ?? Array.Empty<SceneConnectionInfo>();
     }
 
     private static Dictionary<string, object?> BuildSceneMutationPayload(

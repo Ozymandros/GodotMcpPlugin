@@ -48,3 +48,35 @@ public sealed record SceneSetNodePropertiesRequest(
     string NodePath,
     IReadOnlyList<NodePropertyInfo> Properties,
     string? RootType = null);
+
+/// <summary>
+/// Scene Graph request to add a signal connection.
+/// </summary>
+public sealed record SceneConnectionAddRequest(
+    McpProjectFile Scene,
+    string NodePath,
+    string Signal,
+    string TargetNodePath,
+    string Method,
+    bool Connected = true,
+    int? Flags = null,
+    string? RootType = null);
+
+/// <summary>
+/// Scene Graph request to remove a signal connection.
+/// </summary>
+public sealed record SceneConnectionRemoveRequest(
+    McpProjectFile Scene,
+    string NodePath,
+    string Signal,
+    string TargetNodePath,
+    string Method,
+    string? RootType = null);
+
+/// <summary>
+/// Scene Graph request to query signal connections.
+/// </summary>
+public sealed record SceneConnectionInfoRequest(
+    McpProjectFile Scene,
+    string? NodePath = null,
+    string? RootType = null);

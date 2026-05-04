@@ -26,3 +26,11 @@ public sealed record ResourceCreateRequest(
     McpProjectFile Resource,
     string ResourceType,
     IReadOnlyDictionary<string, object?> Properties);
+
+/// <summary>
+/// Resource command request for assigning a texture to a property.
+/// </summary>
+public sealed record ResourceAssignTextureRequest(
+    McpProjectFile Resource,
+    string PropertyPath,
+    string TexturePath);

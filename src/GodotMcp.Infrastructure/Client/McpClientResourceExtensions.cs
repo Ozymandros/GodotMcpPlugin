@@ -19,15 +19,25 @@ public static class McpClientResourceExtensions
         var dir = string.IsNullOrWhiteSpace(request.Directory) ? GodotMcpPathDefaults.DefaultProjectRootPath : request.Directory!;
         var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(dir);
 
-        return await client.SendAsync<IReadOnlyList<ResourceInfo>>(
-            "list_resources",
-            new Dictionary<string, object?>
-            {
-                ["projectPath"] = projectPath, // Directory is used as projectPath for server compatibility
-                ["directory"] = request.Directory,
-                ["resourceType"] = request.ResourceType
-            },
-            cancellationToken).ConfigureAwait(false) ?? Array.Empty<ResourceInfo>();
+        var parameters = new Dictionary<string, object?>
+        {
+            ["projectPath"] = projectPath,
+            ["directory"] = request.Directory,
+            ["resourceType"] = request.ResourceType
+        };
+
+        try
+        {
+            return await client.SendAsync<IReadOnlyList<ResourceInfo>>("resource.list", parameters, cancellationToken).ConfigureAwait(false) ?? Array.Empty<ResourceInfo>();
+        }
+        catch (McpServerException ex) when (IsToolNotFound(ex))
+        {
+            return await client.SendAsync<IReadOnlyList<ResourceInfo>>("list_resources", parameters, cancellationToken).ConfigureAwait(false) ?? Array.Empty<ResourceInfo>();
+        }
+        catch (NullReferenceException)
+        {
+            return await client.SendAsync<IReadOnlyList<ResourceInfo>>("list_resources", parameters, cancellationToken).ConfigureAwait(false) ?? Array.Empty<ResourceInfo>();
+        }
     }
 
     /// <summary>
@@ -89,6 +99,23 @@ public static class McpClientResourceExtensions
         // Use only 'create_resource' as the server does not support 'resource.create' anymore
         return client.SendAsync<ResourceInfo>(
             "create_resource",
+            d,
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Assigns a texture to a resource property.
+    /// </summary>
+    public static Task<ProjectOperationResult?> ResourceAssignTextureAsync(
+        this IMcpClient client,
+        ResourceAssignTextureRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var d = McpProjectFilePayload.ToDictionary(request.Resource);
+        d["propertyPath"] = request.PropertyPath;
+        d["texturePath"] = request.TexturePath;
+        return client.SendAsync<ProjectOperationResult>(
+            "resource.assign_texture",
             d,
             cancellationToken);
     }

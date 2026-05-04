@@ -112,4 +112,57 @@ public sealed class SceneSkill(IMcpClient mcp)
         _mcp.SceneSetNodePropertiesAsync(
             new SceneSetNodePropertiesRequest(McpProjectFile.ForScene(projectPath, fileName), nodePath, properties, rootType),
             cancellationToken);
+
+    /// <summary>
+    /// Adds a signal connection between nodes in a scene.
+    /// </summary>
+    [KernelFunction("add_connection")]
+    [Description("Adds a signal connection between nodes.")]
+    public Task<ProjectOperationResult?> AddConnectionAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file name under scenes/ (e.g. main.tscn). Must end with .tscn.")] string fileName,
+        [Description("Source node path.")] string nodePath,
+        [Description("Signal name (e.g. 'pressed').")] string signal,
+        [Description("Target node path.")] string targetNodePath,
+        [Description("Method name to call.")] string method,
+        [Description("Whether to connect (true) or disconnect (false).")] bool connected = true,
+        [Description("Optional connection flags.")] int? flags = null,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.SceneConnectionAddAsync(
+            new SceneConnectionAddRequest(McpProjectFile.ForScene(projectPath, fileName), nodePath, signal, targetNodePath, method, connected, flags, rootType),
+            cancellationToken);
+
+    /// <summary>
+    /// Removes a signal connection between nodes in a scene.
+    /// </summary>
+    [KernelFunction("remove_connection")]
+    [Description("Removes a signal connection between nodes.")]
+    public Task<ProjectOperationResult?> RemoveConnectionAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file name under scenes/ (e.g. main.tscn). Must end with .tscn.")] string fileName,
+        [Description("Source node path.")] string nodePath,
+        [Description("Signal name.")] string signal,
+        [Description("Target node path.")] string targetNodePath,
+        [Description("Method name.")] string method,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.SceneConnectionRemoveAsync(
+            new SceneConnectionRemoveRequest(McpProjectFile.ForScene(projectPath, fileName), nodePath, signal, targetNodePath, method, rootType),
+            cancellationToken);
+
+    /// <summary>
+    /// Queries signal connections in a scene.
+    /// </summary>
+    [KernelFunction("list_connections")]
+    [Description("Lists signal connections in a scene.")]
+    public Task<IReadOnlyList<SceneConnectionInfo>> ListConnectionsAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file name under scenes/ (e.g. main.tscn). Must end with .tscn.")] string fileName,
+        [Description("Optional node path filter.")] string? nodePath = null,
+        [Description("Optional root node type used by server bootstrap when the scene file is missing.")] string? rootType = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.SceneConnectionInfoAsync(
+            new SceneConnectionInfoRequest(McpProjectFile.ForScene(projectPath, fileName), nodePath, rootType),
+            cancellationToken);
 }

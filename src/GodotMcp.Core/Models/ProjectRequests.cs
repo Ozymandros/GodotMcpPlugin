@@ -74,3 +74,45 @@ public sealed record AddPluginRequest
 public sealed record ProjectOperationResult(
     bool Success,
     string? Message = null);
+
+/// <summary>
+/// Project command request for setting a project config value.
+/// </summary>
+public sealed record SetProjectConfigRequest
+{
+    public string Key { get; init; }
+    public string Value { get; init; }
+    public string? Section { get; init; }
+
+    private readonly string? _projectRootPath;
+
+    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
+
+    public SetProjectConfigRequest(string key, string value, string? section = null, string? projectRootPath = null)
+    {
+        Key = key;
+        Value = value;
+        Section = section;
+        _projectRootPath = projectRootPath;
+    }
+}
+
+/// <summary>
+/// Project command request for removing a project config key.
+/// </summary>
+public sealed record RemoveProjectConfigRequest
+{
+    public string Key { get; init; }
+    public string? Section { get; init; }
+
+    private readonly string? _projectRootPath;
+
+    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
+
+    public RemoveProjectConfigRequest(string key, string? section = null, string? projectRootPath = null)
+    {
+        Key = key;
+        Section = section;
+        _projectRootPath = projectRootPath;
+    }
+}

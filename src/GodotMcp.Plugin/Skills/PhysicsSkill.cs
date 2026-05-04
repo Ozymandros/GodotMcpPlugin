@@ -133,4 +133,93 @@ public sealed class PhysicsSkill(IMcpClient mcp)
         [Description("Optional body node path filter.")] string? bodyPath = null,
         CancellationToken cancellationToken = default) =>
         _mcp.PhysicsRunChecksAsync(new PhysicsRunChecksRequest(new McpProjectFile(projectPath, fileName), bodyPath), cancellationToken);
+
+    /// <summary>
+    /// Removes a physics shape from a scene.
+    /// </summary>
+    [KernelFunction("remove_shape")]
+    [Description("Removes a physics shape.")]
+    public Task<ProjectOperationResult?> RemoveShapeAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Shape node path.")] string shapePath,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsRemoveShapeAsync(new PhysicsRemoveShapeRequest(new McpProjectFile(projectPath, fileName), shapePath), cancellationToken);
+
+    /// <summary>
+    /// Adds a collision polygon to a physics body.
+    /// </summary>
+    [KernelFunction("add_collision_polygon")]
+    [Description("Adds a collision polygon to a physics body.")]
+    public Task<ProjectOperationResult?> AddCollisionPolygonAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Body node path.")] string bodyPath,
+        [Description("Polygon node name.")] string polygonName,
+        [Description("Polygon points as flat array [x1,y1,x2,y2,...] or array of Vector2.")] IReadOnlyList<Vector2> points,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsAddCollisionPolygonAsync(
+            new PhysicsAddCollisionPolygonRequest(new McpProjectFile(projectPath, fileName), bodyPath, polygonName, points),
+            cancellationToken);
+
+    /// <summary>
+    /// Updates a collision polygon.
+    /// </summary>
+    [KernelFunction("update_collision_polygon")]
+    [Description("Updates a collision polygon.")]
+    public Task<ProjectOperationResult?> UpdateCollisionPolygonAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Polygon node path.")] string polygonPath,
+        [Description("Optional new points.")] IReadOnlyList<Vector2>? points = null,
+        [Description("Optional polygon properties.")] IReadOnlyDictionary<string, object?>? properties = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsUpdateCollisionPolygonAsync(
+            new PhysicsUpdateCollisionPolygonRequest(new McpProjectFile(projectPath, fileName), polygonPath, points, properties),
+            cancellationToken);
+
+    /// <summary>
+    /// Removes a collision polygon.
+    /// </summary>
+    [KernelFunction("remove_collision_polygon")]
+    [Description("Removes a collision polygon.")]
+    public Task<ProjectOperationResult?> RemoveCollisionPolygonAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Polygon node path.")] string polygonPath,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsRemoveCollisionPolygonAsync(
+            new PhysicsRemoveCollisionPolygonRequest(new McpProjectFile(projectPath, fileName), polygonPath),
+            cancellationToken);
+
+    /// <summary>
+    /// Assigns a shape resource to a physics shape.
+    /// </summary>
+    [KernelFunction("assign_shape_resource")]
+    [Description("Assigns a shape resource to a physics shape.")]
+    public Task<ProjectOperationResult?> AssignShapeResourceAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Shape node path.")] string shapePath,
+        [Description("Path to the shape resource (.tres).")] string resourcePath,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsAssignShapeResourceAsync(
+            new PhysicsAssignShapeResourceRequest(new McpProjectFile(projectPath, fileName), shapePath, resourcePath),
+            cancellationToken);
+
+    /// <summary>
+    /// Sets shape flags on a physics shape.
+    /// </summary>
+    [KernelFunction("set_shape_flags")]
+    [Description("Sets shape flags on a physics shape.")]
+    public Task<ProjectOperationResult?> SetShapeFlagsAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Shape node path.")] string shapePath,
+        [Description("Whether the shape is disabled.")] bool? disabled = null,
+        [Description("Whether the shape is a trigger.")] bool? trigger = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsSetShapeFlagsAsync(
+            new PhysicsSetShapeFlagsRequest(new McpProjectFile(projectPath, fileName), shapePath, disabled, trigger),
+            cancellationToken);
 }

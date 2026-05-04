@@ -8,3 +8,13 @@ namespace GodotMcp.Core.Models;
 public sealed record SceneCommandResult(
     bool Success,
     string? Message = null);
+
+/// <summary>
+/// Represents a signal connection between nodes in a scene.
+/// </summary>
+public sealed record SceneConnectionInfo(
+    string SourceNodePath,
+    string Signal,
+    string TargetNodePath,
+    string Method,
+    int Flags);
