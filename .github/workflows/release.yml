@@ -70,34 +70,6 @@ jobs:
         with:
           name: nupkg
 
-      - name: Verify downloaded packages
-        id: resolve-packages
-        shell: bash
-        run: |
-          shopt -s nullglob
-          nupkgs=( $(ls -1t nupkg/*.nupkg 2>/dev/null) )
-          snupkgs=( $(ls -1t nupkg/*.snupkg 2>/dev/null) )
-          if [ ${#nupkgs[@]} -eq 0 ]; then
-            echo "No .nupkg files were downloaded from artifact 'nupkg'."
-            exit 1
-          fi
-          if [ ${#snupkgs[@]} -eq 0 ]; then
-            echo "No .snupkg files were downloaded from artifact 'nupkg'."
-            exit 1
-          fi
-          if [ ${#nupkgs[@]} -gt 1 ]; then
-            echo "Multiple .nupkg files found; selecting newest by modification time:"
-            printf '%s\n' "${nupkgs[@]}"
-          fi
-          if [ ${#snupkgs[@]} -gt 1 ]; then
-            echo "Multiple .snupkg files found; selecting newest by modification time:"
-            printf '%s\n' "${snupkgs[@]}"
-          fi
-          echo "NUPKG_FILE=${nupkgs[0]}" >> "$GITHUB_ENV"
-          echo "SNUPKG_FILE=${snupkgs[0]}" >> "$GITHUB_ENV"
-          echo "Resolved package: ${nupkgs[0]}"
-          echo "Resolved symbols: ${snupkgs[0]}"
-
       - name: Validate NuGet API key
         shell: bash
         run: |
@@ -108,10 +80,10 @@ jobs:
           fi
 
       - name: Push to NuGet
-        run: dotnet nuget push "${{ env.NUPKG_FILE }}" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+        run: dotnet nuget push "nupkg/*.nupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
 
       - name: Push symbols to NuGet
-        run: dotnet nuget push "${{ env.SNUPKG_FILE }}" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
+        run: dotnet nuget push "nupkg/*.snupkg" --api-key "${{ secrets.NUGET_API_KEY }}" --source "https://api.nuget.org/v3/index.json" --skip-duplicate
 
   release-assets:
     name: Attach to GitHub Release
@@ -122,39 +94,11 @@ jobs:
         with:
           name: nupkg
 
-      - name: Verify downloaded packages
-        id: resolve-packages
-        shell: bash
-        run: |
-          shopt -s nullglob
-          nupkgs=( $(ls -1t nupkg/*.nupkg 2>/dev/null) )
-          snupkgs=( $(ls -1t nupkg/*.snupkg 2>/dev/null) )
-          if [ ${#nupkgs[@]} -eq 0 ]; then
-            echo "No .nupkg files were downloaded from artifact 'nupkg'."
-            exit 1
-          fi
-          if [ ${#snupkgs[@]} -eq 0 ]; then
-            echo "No .snupkg files were downloaded from artifact 'nupkg'."
-            exit 1
-          fi
-          if [ ${#nupkgs[@]} -gt 1 ]; then
-            echo "Multiple .nupkg files found; selecting newest by modification time:"
-            printf '%s\n' "${nupkgs[@]}"
-          fi
-          if [ ${#snupkgs[@]} -gt 1 ]; then
-            echo "Multiple .snupkg files found; selecting newest by modification time:"
-            printf '%s\n' "${snupkgs[@]}"
-          fi
-          echo "NUPKG_FILE=${nupkgs[0]}" >> "$GITHUB_ENV"
-          echo "SNUPKG_FILE=${snupkgs[0]}" >> "$GITHUB_ENV"
-          echo "Resolved package: ${nupkgs[0]}"
-          echo "Resolved symbols: ${snupkgs[0]}"
-
       - uses: softprops/action-gh-release@v2
         with:
           files: |
-            ${{ env.NUPKG_FILE }}
-            ${{ env.SNUPKG_FILE }}
+            nupkg/*.nupkg
+            nupkg/*.snupkg
           generate_release_notes: true
           tag_name: ${{ github.event.release.tag_name || github.ref_name }}
         env:
