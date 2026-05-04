@@ -119,12 +119,17 @@ Notes:
 - `physics.remove_collision_polygon(scenePath, polygonPath)` (v1.10.1)
 - `physics.assign_shape_resource(scenePath, shapePath, resourcePath)` (v1.10.1)
 - `physics.set_shape_flags(scenePath, shapePath, disabled?, trigger?)` (v1.10.1)
+- `physics.area_set_monitoring(projectPath, fileName, areaNodePath, monitoring, monitorable?, root_type?)` (v1.11.0)
+- `physics.area_set_priority(projectPath, fileName, areaNodePath, priority, root_type?)` (v1.11.0)
+- `physics.area_set_space_override(projectPath, fileName, areaNodePath, space_override_mode, gravity?, gravity_point_unit_distance?, linear_damp?, angular_damp?, root_type?)` (v1.11.0)
+- `physics.area_set_collision_filters(projectPath, fileName, areaNodePath, collision_layer, collision_mask, root_type?)` (v1.11.0)
 - `physics.set_layers(scenePath, bodyPath, collisionLayer, collisionMask)`
 - `physics.run_checks(scenePath, bodyPath?)`
 - `physics.validate(projectRootPath)`
 
 Notes:
 - The plugin provides typed results for layer updates and physics checks to support collider/layer validation loops.
+- Area tools target `Area2D` / `Area3D` nodes; `space_override_mode` accepts string enum names (`disabled`, `combine`, `combine_replace`, `replace`, `replace_combine`) or numeric `0-4` per server. Optional `root_type` defaults to `Node3D` on the server when omitted.
 - Body commands are aligned with the current GD_MCP-Server tool contracts.
 - For compatibility with older servers, the plugin sends both `projectRootPath` and `scenePath` payload keys for root-scoped physics commands.
 

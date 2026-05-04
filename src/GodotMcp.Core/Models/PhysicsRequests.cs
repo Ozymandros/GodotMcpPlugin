@@ -137,3 +137,45 @@ public sealed record PhysicsSetShapeFlagsRequest(
     string ShapePath,
     bool? Disabled = null,
     bool? Trigger = null);
+
+/// <summary>
+/// Physics command request for Area2D/Area3D monitoring flags (GodotMCP.Server v1.11.0+).
+/// </summary>
+public sealed record PhysicsAreaSetMonitoringRequest(
+    McpProjectFile Scene,
+    string AreaNodePath,
+    bool Monitoring,
+    bool Monitorable = true,
+    string? RootType = null);
+
+/// <summary>
+/// Physics command request for Area2D/Area3D priority (GodotMCP.Server v1.11.0+).
+/// </summary>
+public sealed record PhysicsAreaSetPriorityRequest(
+    McpProjectFile Scene,
+    string AreaNodePath,
+    double Priority,
+    string? RootType = null);
+
+/// <summary>
+/// Physics command request for Area2D/Area3D space override and optional gravity/damping (GodotMCP.Server v1.11.0+).
+/// </summary>
+public sealed record PhysicsAreaSetSpaceOverrideRequest(
+    McpProjectFile Scene,
+    string AreaNodePath,
+    string SpaceOverrideMode,
+    double? Gravity = null,
+    double? GravityPointUnitDistance = null,
+    double? LinearDamp = null,
+    double? AngularDamp = null,
+    string? RootType = null);
+
+/// <summary>
+/// Physics command request for Area2D/Area3D collision layer and mask (GodotMCP.Server v1.11.0+).
+/// </summary>
+public sealed record PhysicsAreaSetCollisionFiltersRequest(
+    McpProjectFile Scene,
+    string AreaNodePath,
+    int CollisionLayer,
+    int CollisionMask,
+    string? RootType = null);

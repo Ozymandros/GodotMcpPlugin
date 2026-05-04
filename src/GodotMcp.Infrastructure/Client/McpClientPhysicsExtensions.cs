@@ -236,4 +236,90 @@ public static class McpClientPhysicsExtensions
         }
         return client.SendAsync<ProjectOperationResult>("physics.set_shape_flags", d, cancellationToken);
     }
+
+    /// <summary>
+    /// Sets monitoring and monitorable on an Area2D/Area3D node.
+    /// </summary>
+    public static Task<ProjectOperationResult?> PhysicsAreaSetMonitoringAsync(
+        this IMcpClient client,
+        PhysicsAreaSetMonitoringRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var d = McpProjectFilePayload.ToDictionary(request.Scene);
+        d["areaNodePath"] = request.AreaNodePath;
+        d["monitoring"] = request.Monitoring;
+        d["monitorable"] = request.Monitorable;
+        AddRootTypeIfPresent(d, request.RootType);
+        return client.SendAsync<ProjectOperationResult>("physics.area_set_monitoring", d, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sets priority on an Area2D/Area3D node.
+    /// </summary>
+    public static Task<ProjectOperationResult?> PhysicsAreaSetPriorityAsync(
+        this IMcpClient client,
+        PhysicsAreaSetPriorityRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var d = McpProjectFilePayload.ToDictionary(request.Scene);
+        d["areaNodePath"] = request.AreaNodePath;
+        d["priority"] = request.Priority;
+        AddRootTypeIfPresent(d, request.RootType);
+        return client.SendAsync<ProjectOperationResult>("physics.area_set_priority", d, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sets space override mode and optional gravity/damping on an Area2D/Area3D node.
+    /// </summary>
+    public static Task<ProjectOperationResult?> PhysicsAreaSetSpaceOverrideAsync(
+        this IMcpClient client,
+        PhysicsAreaSetSpaceOverrideRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var d = McpProjectFilePayload.ToDictionary(request.Scene);
+        d["areaNodePath"] = request.AreaNodePath;
+        d["space_override_mode"] = request.SpaceOverrideMode;
+        if (request.Gravity.HasValue)
+        {
+            d["gravity"] = request.Gravity.Value;
+        }
+        if (request.GravityPointUnitDistance.HasValue)
+        {
+            d["gravity_point_unit_distance"] = request.GravityPointUnitDistance.Value;
+        }
+        if (request.LinearDamp.HasValue)
+        {
+            d["linear_damp"] = request.LinearDamp.Value;
+        }
+        if (request.AngularDamp.HasValue)
+        {
+            d["angular_damp"] = request.AngularDamp.Value;
+        }
+        AddRootTypeIfPresent(d, request.RootType);
+        return client.SendAsync<ProjectOperationResult>("physics.area_set_space_override", d, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sets collision layer and mask on an Area2D/Area3D node.
+    /// </summary>
+    public static Task<ProjectOperationResult?> PhysicsAreaSetCollisionFiltersAsync(
+        this IMcpClient client,
+        PhysicsAreaSetCollisionFiltersRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var d = McpProjectFilePayload.ToDictionary(request.Scene);
+        d["areaNodePath"] = request.AreaNodePath;
+        d["collision_layer"] = request.CollisionLayer;
+        d["collision_mask"] = request.CollisionMask;
+        AddRootTypeIfPresent(d, request.RootType);
+        return client.SendAsync<ProjectOperationResult>("physics.area_set_collision_filters", d, cancellationToken);
+    }
+
+    private static void AddRootTypeIfPresent(Dictionary<string, object?> payload, string? rootType)
+    {
+        if (!string.IsNullOrWhiteSpace(rootType))
+        {
+            payload["root_type"] = rootType;
+        }
+    }
 }

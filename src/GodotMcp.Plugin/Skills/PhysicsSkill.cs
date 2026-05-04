@@ -222,4 +222,82 @@ public sealed class PhysicsSkill(IMcpClient mcp)
         _mcp.PhysicsSetShapeFlagsAsync(
             new PhysicsSetShapeFlagsRequest(new McpProjectFile(projectPath, fileName), shapePath, disabled, trigger),
             cancellationToken);
+
+    /// <summary>
+    /// Sets monitoring and monitorable on an Area2D/Area3D node.
+    /// </summary>
+    [KernelFunction("area_set_monitoring")]
+    [Description("Sets monitoring and monitorable on an Area2D/Area3D node.")]
+    public Task<ProjectOperationResult?> AreaSetMonitoringAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Area2D/Area3D node path.")] string areaNodePath,
+        [Description("Whether the area detects overlaps/signals.")] bool monitoring,
+        [Description("Whether this area can be detected by other areas/bodies.")] bool monitorable = true,
+        [Description("Optional root node type when the scene is bootstrapped (server default Node3D).")] string? rootType = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsAreaSetMonitoringAsync(
+            new PhysicsAreaSetMonitoringRequest(new McpProjectFile(projectPath, fileName), areaNodePath, monitoring, monitorable, rootType),
+            cancellationToken);
+
+    /// <summary>
+    /// Sets priority on an Area2D/Area3D node.
+    /// </summary>
+    [KernelFunction("area_set_priority")]
+    [Description("Sets priority on an Area2D/Area3D node.")]
+    public Task<ProjectOperationResult?> AreaSetPriorityAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Area2D/Area3D node path.")] string areaNodePath,
+        [Description("Priority value.")] double priority,
+        [Description("Optional root node type when the scene is bootstrapped (server default Node3D).")] string? rootType = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsAreaSetPriorityAsync(
+            new PhysicsAreaSetPriorityRequest(new McpProjectFile(projectPath, fileName), areaNodePath, priority, rootType),
+            cancellationToken);
+
+    /// <summary>
+    /// Sets space override mode and optional gravity/damping on an Area2D/Area3D node.
+    /// </summary>
+    [KernelFunction("area_set_space_override")]
+    [Description("Sets space override mode (disabled, combine, combine_replace, replace, replace_combine or 0-4) and optional gravity/damping.")]
+    public Task<ProjectOperationResult?> AreaSetSpaceOverrideAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Area2D/Area3D node path.")] string areaNodePath,
+        [Description("Override mode: disabled, combine, combine_replace, replace, replace_combine (or 0-4).")] string spaceOverrideMode,
+        [Description("Optional gravity override.")] double? gravity = null,
+        [Description("Optional gravity point unit distance.")] double? gravityPointUnitDistance = null,
+        [Description("Optional linear damp override.")] double? linearDamp = null,
+        [Description("Optional angular damp override.")] double? angularDamp = null,
+        [Description("Optional root node type when the scene is bootstrapped (server default Node3D).")] string? rootType = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsAreaSetSpaceOverrideAsync(
+            new PhysicsAreaSetSpaceOverrideRequest(
+                new McpProjectFile(projectPath, fileName),
+                areaNodePath,
+                spaceOverrideMode,
+                gravity,
+                gravityPointUnitDistance,
+                linearDamp,
+                angularDamp,
+                rootType),
+            cancellationToken);
+
+    /// <summary>
+    /// Sets collision layer and mask on an Area2D/Area3D node.
+    /// </summary>
+    [KernelFunction("area_set_collision_filters")]
+    [Description("Sets collision layer and mask on an Area2D/Area3D node (both must be greater than zero on the server).")]
+    public Task<ProjectOperationResult?> AreaSetCollisionFiltersAsync(
+        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string projectPath,
+        [Description("Scene file path relative to project root.")] string fileName,
+        [Description("Area2D/Area3D node path.")] string areaNodePath,
+        [Description("Collision layer bitmask (must be greater than zero).")] int collisionLayer,
+        [Description("Collision mask bitmask (must be greater than zero).")] int collisionMask,
+        [Description("Optional root node type when the scene is bootstrapped (server default Node3D).")] string? rootType = null,
+        CancellationToken cancellationToken = default) =>
+        _mcp.PhysicsAreaSetCollisionFiltersAsync(
+            new PhysicsAreaSetCollisionFiltersRequest(new McpProjectFile(projectPath, fileName), areaNodePath, collisionLayer, collisionMask, rootType),
+            cancellationToken);
 }

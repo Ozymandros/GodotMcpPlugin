@@ -104,4 +104,124 @@ public class McpClientPhysicsExtensionsTests
         Assert.NotNull(result.Issues);
         Assert.Empty(result.Issues);
     }
+
+    [Fact]
+    public async Task PhysicsAreaSetMonitoringAsync_MapsPayload_OmitsRootTypeWhenNull()
+    {
+        _client.InvokeToolAsync("physics.area_set_monitoring", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse("area-1", true, new { success = true, message = "ok" }));
+
+        var result = await _client.PhysicsAreaSetMonitoringAsync(
+            new PhysicsAreaSetMonitoringRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./Area3D", true, false));
+
+        Assert.NotNull(result);
+        Assert.True(result!.Success);
+
+        await _client.Received(1).InvokeToolAsync(
+            "physics.area_set_monitoring",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["projectPath"], Root) &&
+                Equals(d["fileName"], "scenes/main.tscn") &&
+                Equals(d["areaNodePath"], "./Area3D") &&
+                Equals(d["monitoring"], true) &&
+                Equals(d["monitorable"], false) &&
+                !d.ContainsKey("root_type")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PhysicsAreaSetMonitoringAsync_IncludesRootTypeWhenProvided()
+    {
+        _client.InvokeToolAsync("physics.area_set_monitoring", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse("area-2", true, new { success = true, message = "ok" }));
+
+        _ = await _client.PhysicsAreaSetMonitoringAsync(
+            new PhysicsAreaSetMonitoringRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./Area2D", false, true, "Node2D"));
+
+        await _client.Received(1).InvokeToolAsync(
+            "physics.area_set_monitoring",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["root_type"], "Node2D")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PhysicsAreaSetPriorityAsync_MapsPayload()
+    {
+        _client.InvokeToolAsync("physics.area_set_priority", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse("area-3", true, new { success = true, message = "ok" }));
+
+        _ = await _client.PhysicsAreaSetPriorityAsync(
+            new PhysicsAreaSetPriorityRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./Area3D", 10.5));
+
+        await _client.Received(1).InvokeToolAsync(
+            "physics.area_set_priority",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["priority"], 10.5) &&
+                Equals(d["areaNodePath"], "./Area3D")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PhysicsAreaSetSpaceOverrideAsync_MapsPayload_OmitsOptionalDoublesWhenNull()
+    {
+        _client.InvokeToolAsync("physics.area_set_space_override", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse("area-4", true, new { success = true, message = "ok" }));
+
+        _ = await _client.PhysicsAreaSetSpaceOverrideAsync(
+            new PhysicsAreaSetSpaceOverrideRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./Area3D", "combine"));
+
+        await _client.Received(1).InvokeToolAsync(
+            "physics.area_set_space_override",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["space_override_mode"], "combine") &&
+                !d.ContainsKey("gravity") &&
+                !d.ContainsKey("gravity_point_unit_distance") &&
+                !d.ContainsKey("linear_damp") &&
+                !d.ContainsKey("angular_damp")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PhysicsAreaSetSpaceOverrideAsync_IncludesOptionalDoublesWhenSet()
+    {
+        _client.InvokeToolAsync("physics.area_set_space_override", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse("area-5", true, new { success = true, message = "ok" }));
+
+        _ = await _client.PhysicsAreaSetSpaceOverrideAsync(
+            new PhysicsAreaSetSpaceOverrideRequest(
+                new McpProjectFile(Root, "scenes/main.tscn"),
+                "./Area3D",
+                "replace",
+                Gravity: 1.25,
+                GravityPointUnitDistance: 2.0,
+                LinearDamp: 0.1,
+                AngularDamp: 0.2));
+
+        await _client.Received(1).InvokeToolAsync(
+            "physics.area_set_space_override",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["gravity"], 1.25) &&
+                Equals(d["gravity_point_unit_distance"], 2.0) &&
+                Equals(d["linear_damp"], 0.1) &&
+                Equals(d["angular_damp"], 0.2)),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task PhysicsAreaSetCollisionFiltersAsync_MapsPayload()
+    {
+        _client.InvokeToolAsync("physics.area_set_collision_filters", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse("area-6", true, new { success = true, message = "ok" }));
+
+        _ = await _client.PhysicsAreaSetCollisionFiltersAsync(
+            new PhysicsAreaSetCollisionFiltersRequest(new McpProjectFile(Root, "scenes/main.tscn"), "./Area3D", 4, 8));
+
+        await _client.Received(1).InvokeToolAsync(
+            "physics.area_set_collision_filters",
+            Arg.Is<IReadOnlyDictionary<string, object?>>(d =>
+                Equals(d["collision_layer"], 4) &&
+                Equals(d["collision_mask"], 8)),
+            Arg.Any<CancellationToken>());
+    }
 }
