@@ -30,7 +30,7 @@ public static class McpClientResourceExtensions
         {
             return await client.SendAsync<IReadOnlyList<ResourceInfo>>("resource.list", parameters, cancellationToken).ConfigureAwait(false) ?? Array.Empty<ResourceInfo>();
         }
-        catch (McpServerException ex) when (IsToolNotFound(ex))
+        catch (Exception ex) when (IsPrimaryToolUnknownTransportFailure(ex, "resource.list"))
         {
             return await client.SendAsync<IReadOnlyList<ResourceInfo>>("list_resources", parameters, cancellationToken).ConfigureAwait(false) ?? Array.Empty<ResourceInfo>();
         }
@@ -178,14 +178,51 @@ public static class McpClientResourceExtensions
         {
             return await client.SendAsync<T>(primaryCommand, payload, cancellationToken).ConfigureAwait(false);
         }
-        catch (McpServerException ex) when (IsToolNotFound(ex))
+        catch (Exception ex) when (IsPrimaryToolUnknownTransportFailure(ex, primaryCommand))
         {
             return await client.SendAsync<T>(fallbackCommand, payload, cancellationToken).ConfigureAwait(false);
         }
     }
 
+    private static bool IsPrimaryToolUnknownTransportFailure(Exception ex, string primaryToolName)
+    {
+        if (ex is McpServerException mse && IsToolNotFound(mse))
+        {
+            return true;
+        }
+
+        return ex is NetworkException && ExceptionChainIndicatesUnknownTool(ex, primaryToolName);
+    }
+
+    private static bool ExceptionChainIndicatesUnknownTool(Exception ex, string toolName)
+    {
+        var unknownTool = false;
+        var mentionsPrimary = false;
+        for (var e = ex; e != null; e = e.InnerException)
+        {
+            var message = e.Message;
+            if (message.Contains("unknown tool", StringComparison.OrdinalIgnoreCase))
+            {
+                unknownTool = true;
+            }
+
+            if (message.Contains(toolName, StringComparison.OrdinalIgnoreCase))
+            {
+                mentionsPrimary = true;
+            }
+
+            if (unknownTool && mentionsPrimary)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static bool IsToolNotFound(McpServerException ex)
         => ex.ErrorCode == -32601
+           || (ex.ErrorCode == -32602 && ex.Message.Contains("unknown tool", StringComparison.OrdinalIgnoreCase))
            || ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase)
            || ex.Message.Contains("unknown tool", StringComparison.OrdinalIgnoreCase);
 }

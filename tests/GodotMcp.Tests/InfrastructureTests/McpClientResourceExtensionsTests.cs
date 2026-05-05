@@ -36,6 +36,31 @@ public class McpClientResourceExtensionsTests
     }
 
     [Fact]
+    public async Task ResourceListAsync_WhenResourceListThrowsNetworkExceptionForUnknownTool_FallsBackToListResources()
+    {
+        var matTres = Combine("materials", "mat.tres");
+        var inner = new Exception("Unknown tool: 'resource.list' (-32602)");
+        _client
+            .InvokeToolAsync("resource.list", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns<Task<McpResponse>>(_ => Task.FromException<McpResponse>(
+                new NetworkException("Error invoking tool: resource.list", inner)));
+        _client
+            .InvokeToolAsync("list_resources", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>())
+            .Returns(new McpResponse(
+                "req-fb",
+                true,
+                new[] { new { path = matTres, type = "StandardMaterial3D", name = "mat", exists = true } }));
+
+        var materialsDir = Combine("materials");
+        var result = await _client.ResourceListAsync(new ResourceListRequest(materialsDir, "StandardMaterial3D"));
+
+        Assert.Single(result);
+        Assert.Equal(matTres, result[0].Path);
+        await _client.Received(1).InvokeToolAsync("resource.list", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>());
+        await _client.Received(1).InvokeToolAsync("list_resources", Arg.Any<IReadOnlyDictionary<string, object?>>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
     public async Task ResourceReadAsync_MapsPayloadAndReturnsTypedResourceData()
     {
         var matTres = Combine("materials", "mat.tres");

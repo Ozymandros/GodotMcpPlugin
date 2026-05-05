@@ -116,3 +116,134 @@ public sealed record RemoveProjectConfigRequest
         _projectRootPath = projectRootPath;
     }
 }
+
+/// <summary>
+/// Project command request for initializing a project with Main scene structure.
+/// </summary>
+public sealed record InitializeProjectRequest
+{
+    public string ProjectPath { get; init; }
+    public string? ProjectName { get; init; }
+    public string Language { get; init; } = "gd";
+    public string GameType { get; init; } = "2d";
+    public bool IncludeUi { get; init; }
+
+    private readonly string? _projectRootPath;
+
+    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
+
+    public InitializeProjectRequest(
+        string projectPath,
+        string? projectName = null,
+        string language = "gd",
+        string gameType = "2d",
+        bool includeUi = false,
+        string? projectRootPath = null)
+    {
+        ProjectPath = projectPath;
+        ProjectName = projectName;
+        Language = language;
+        GameType = gameType;
+        IncludeUi = includeUi;
+        _projectRootPath = projectRootPath;
+    }
+}
+
+/// <summary>
+/// Project command request for creating an actor scene.
+/// </summary>
+public sealed record CreateActorRequest
+{
+    public string ProjectPath { get; init; }
+    public string ActorName { get; init; }
+    public string Role { get; init; } = "enemy";
+    public string? Language { get; init; }
+    public string? GameType { get; init; }
+    public bool CreateScript { get; init; } = true;
+    public bool AddToMain { get; init; } = true;
+
+    private readonly string? _projectRootPath;
+
+    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
+
+    public CreateActorRequest(
+        string projectPath,
+        string actorName,
+        string role = "enemy",
+        string? language = null,
+        string? gameType = null,
+        bool createScript = true,
+        bool addToMain = true,
+        string? projectRootPath = null)
+    {
+        ProjectPath = projectPath;
+        ActorName = actorName;
+        Role = role;
+        Language = language;
+        GameType = gameType;
+        CreateScript = createScript;
+        AddToMain = addToMain;
+        _projectRootPath = projectRootPath;
+    }
+}
+
+/// <summary>
+/// Project command request for creating a spawnable obstacle scene.
+/// </summary>
+public sealed record CreateSpawnableRequest
+{
+    public string ProjectPath { get; init; }
+    public string SpawnableName { get; init; }
+    public string? Language { get; init; }
+    public string? GameType { get; init; }
+    public bool CreateScript { get; init; } = true;
+    public bool WireToMain { get; init; } = true;
+
+    private readonly string? _projectRootPath;
+
+    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
+
+    public CreateSpawnableRequest(
+        string projectPath,
+        string spawnableName,
+        string? language = null,
+        string? gameType = null,
+        bool createScript = true,
+        bool wireToMain = true,
+        string? projectRootPath = null)
+    {
+        ProjectPath = projectPath;
+        SpawnableName = spawnableName;
+        Language = language;
+        GameType = gameType;
+        CreateScript = createScript;
+        WireToMain = wireToMain;
+        _projectRootPath = projectRootPath;
+    }
+}
+
+/// <summary>
+/// Project command request for setting up UI scaffolding.
+/// </summary>
+public sealed record SetupUiRequest
+{
+    public string ProjectPath { get; init; }
+    public string? Language { get; init; }
+    public string? GameType { get; init; }
+
+    private readonly string? _projectRootPath;
+
+    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
+
+    public SetupUiRequest(
+        string projectPath,
+        string? language = null,
+        string? gameType = null,
+        string? projectRootPath = null)
+    {
+        ProjectPath = projectPath;
+        Language = language;
+        GameType = gameType;
+        _projectRootPath = projectRootPath;
+    }
+}
