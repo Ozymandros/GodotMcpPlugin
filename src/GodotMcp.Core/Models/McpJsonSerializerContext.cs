@@ -10,6 +10,10 @@ namespace GodotMcp.Core.Models;
 [JsonSerializable(typeof(QueryGodotEngineDocumentationMcpResponse))]
 [JsonSerializable(typeof(GodotEngineDocumentationHitMcp))]
 [JsonSerializable(typeof(List<GodotEngineDocumentationHitMcp>))]
+[JsonSerializable(typeof(NodePropertyInfo))]
+[JsonSerializable(typeof(List<NodePropertyInfo>))]
+[JsonSerializable(typeof(NodeInfo))]
+[JsonSerializable(typeof(List<NodeInfo>))]
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,

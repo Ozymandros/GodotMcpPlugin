@@ -120,130 +120,61 @@ public sealed record RemoveProjectConfigRequest
 /// <summary>
 /// Project command request for initializing a project with Main scene structure.
 /// </summary>
-public sealed record InitializeProjectRequest
-{
-    public string ProjectPath { get; init; }
-    public string? ProjectName { get; init; }
-    public string Language { get; init; } = "gd";
-    public string GameType { get; init; } = "2d";
-    public bool IncludeUi { get; init; }
-
-    private readonly string? _projectRootPath;
-
-    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
-
-    public InitializeProjectRequest(
-        string projectPath,
-        string? projectName = null,
-        string language = "gd",
-        string gameType = "2d",
-        bool includeUi = false,
-        string? projectRootPath = null)
-    {
-        ProjectPath = projectPath;
-        ProjectName = projectName;
-        Language = language;
-        GameType = gameType;
-        IncludeUi = includeUi;
-        _projectRootPath = projectRootPath;
-    }
-}
+/// <param name="ProjectPath">Project directory (absolute path or path relative to the configured project root).</param>
+/// <param name="ProjectName">The name of the Godot project.</param>
+/// <param name="Language">Script language (<c>gd</c> or <c>cs</c>). Defaults to <c>gd</c>.</param>
+/// <param name="GameType">Game dimension (<c>2d</c> or <c>3d</c>). Defaults to <c>2d</c>.</param>
+/// <param name="IncludeUi">Whether to include CanvasLayer HUD with score Label and restart Button.</param>
+public sealed record InitializeProjectRequest(
+    string ProjectPath,
+    string? ProjectName = null,
+    string Language = "gd",
+    string GameType = "2d",
+    bool IncludeUi = false);
 
 /// <summary>
 /// Project command request for creating an actor scene.
 /// </summary>
-public sealed record CreateActorRequest
-{
-    public string ProjectPath { get; init; }
-    public string ActorName { get; init; }
-    public string Role { get; init; } = "enemy";
-    public string? Language { get; init; }
-    public string? GameType { get; init; }
-    public bool CreateScript { get; init; } = true;
-    public bool AddToMain { get; init; } = true;
-
-    private readonly string? _projectRootPath;
-
-    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
-
-    public CreateActorRequest(
-        string projectPath,
-        string actorName,
-        string role = "enemy",
-        string? language = null,
-        string? gameType = null,
-        bool createScript = true,
-        bool addToMain = true,
-        string? projectRootPath = null)
-    {
-        ProjectPath = projectPath;
-        ActorName = actorName;
-        Role = role;
-        Language = language;
-        GameType = gameType;
-        CreateScript = createScript;
-        AddToMain = addToMain;
-        _projectRootPath = projectRootPath;
-    }
-}
+/// <param name="ProjectPath">Project directory (absolute path or path relative to the configured project root).</param>
+/// <param name="ActorName">Actor name used for the scene file and node name.</param>
+/// <param name="Role">Actor role: <c>player</c>, <c>enemy</c>, or <c>npc</c>. Defaults to <c>enemy</c>.</param>
+/// <param name="Language">Script language (<c>gd</c> or <c>cs</c>). Defaults to project metadata, then <c>gd</c>.</param>
+/// <param name="GameType">Game dimension (<c>2d</c> or <c>3d</c>). Defaults to project metadata, then <c>2d</c>.</param>
+/// <param name="CreateScript">Whether to create a script for this actor.</param>
+/// <param name="AddToMain">Whether to instantiate this actor into Main.tscn.</param>
+public sealed record CreateActorRequest(
+    string ProjectPath,
+    string ActorName,
+    string Role = "enemy",
+    string? Language = null,
+    string? GameType = null,
+    bool CreateScript = true,
+    bool AddToMain = true);
 
 /// <summary>
 /// Project command request for creating a spawnable obstacle scene.
 /// </summary>
-public sealed record CreateSpawnableRequest
-{
-    public string ProjectPath { get; init; }
-    public string SpawnableName { get; init; }
-    public string? Language { get; init; }
-    public string? GameType { get; init; }
-    public bool CreateScript { get; init; } = true;
-    public bool WireToMain { get; init; } = true;
-
-    private readonly string? _projectRootPath;
-
-    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
-
-    public CreateSpawnableRequest(
-        string projectPath,
-        string spawnableName,
-        string? language = null,
-        string? gameType = null,
-        bool createScript = true,
-        bool wireToMain = true,
-        string? projectRootPath = null)
-    {
-        ProjectPath = projectPath;
-        SpawnableName = spawnableName;
-        Language = language;
-        GameType = gameType;
-        CreateScript = createScript;
-        WireToMain = wireToMain;
-        _projectRootPath = projectRootPath;
-    }
-}
+/// <param name="ProjectPath">Project directory (absolute path or path relative to the configured project root).</param>
+/// <param name="SpawnableName">Spawnable name used for the scene file and export variable.</param>
+/// <param name="Language">Script language (<c>gd</c> or <c>cs</c>). Defaults to project metadata.</param>
+/// <param name="GameType">Game dimension (<c>2d</c> or <c>3d</c>). Defaults to project metadata.</param>
+/// <param name="CreateScript">Whether to create a script for this spawnable.</param>
+/// <param name="WireToMain">Whether to add PackedScene export and signal wiring to the Main script.</param>
+public sealed record CreateSpawnableRequest(
+    string ProjectPath,
+    string SpawnableName,
+    string? Language = null,
+    string? GameType = null,
+    bool CreateScript = true,
+    bool WireToMain = true);
 
 /// <summary>
 /// Project command request for setting up UI scaffolding.
 /// </summary>
-public sealed record SetupUiRequest
-{
-    public string ProjectPath { get; init; }
-    public string? Language { get; init; }
-    public string? GameType { get; init; }
-
-    private readonly string? _projectRootPath;
-
-    public string ProjectRootPath => _projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath;
-
-    public SetupUiRequest(
-        string projectPath,
-        string? language = null,
-        string? gameType = null,
-        string? projectRootPath = null)
-    {
-        ProjectPath = projectPath;
-        Language = language;
-        GameType = gameType;
-        _projectRootPath = projectRootPath;
-    }
-}
+/// <param name="ProjectPath">Project directory (absolute path or path relative to the configured project root).</param>
+/// <param name="Language">Script language (<c>gd</c> or <c>cs</c>). Defaults to project metadata.</param>
+/// <param name="GameType">Game dimension (<c>2d</c> or <c>3d</c>). Defaults to project metadata.</param>
+public sealed record SetupUiRequest(
+    string ProjectPath,
+    string? Language = null,
+    string? GameType = null);

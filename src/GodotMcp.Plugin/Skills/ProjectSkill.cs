@@ -102,10 +102,9 @@ public sealed class ProjectSkill(IMcpClient mcp)
         [Description("Script language ('gd' for GDScript, 'cs' for C#). Defaults to 'gd'.")] string language = "gd",
         [Description("Game dimension ('2d' or '3d'). Defaults to '2d'.")] string gameType = "2d",
         [Description("Include CanvasLayer HUD with score Label and restart Button.")] bool includeUi = false,
-        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string? projectRootPath = null,
         CancellationToken cancellationToken = default) =>
         _mcp.InitializeProjectAsync(
-            new InitializeProjectRequest(projectPath, projectName, language, gameType, includeUi, projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath),
+            new InitializeProjectRequest(projectPath, projectName, language, gameType, includeUi),
             cancellationToken);
 
     /// <summary>
@@ -117,14 +116,13 @@ public sealed class ProjectSkill(IMcpClient mcp)
         [Description("Project directory (absolute path or path relative to the configured project root).")] string projectPath,
         [Description("Actor name (used for scene file and node name).")] string actorName,
         [Description("Actor role: 'player' for player-controlled, 'enemy' for AI, 'npc' for non-player character.")] string role = "enemy",
-        [Description("Script language ('gd' or 'cs'). Defaults to 'gd' or project metadata.")] string? language = null,
-        [Description("Game dimension ('2d' or '3d'). Defaults to '2d' or project metadata.")] string? gameType = null,
+        [Description("Script language ('gd' or 'cs'). Defaults to project metadata, then 'gd'.")] string? language = null,
+        [Description("Game dimension ('2d' or '3d'). Defaults to project metadata, then '2d'.")] string? gameType = null,
         [Description("Whether to create a script for this actor.")] bool createScript = true,
         [Description("Whether to instantiate this actor into Main.tscn.")] bool addToMain = true,
-        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string? projectRootPath = null,
         CancellationToken cancellationToken = default) =>
         _mcp.CreateActorAsync(
-            new CreateActorRequest(projectPath, actorName, role, language, gameType, createScript, addToMain, projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath),
+            new CreateActorRequest(projectPath, actorName, role, language, gameType, createScript, addToMain),
             cancellationToken);
 
     /// <summary>
@@ -139,10 +137,9 @@ public sealed class ProjectSkill(IMcpClient mcp)
         [Description("Game dimension ('2d' or '3d'). Defaults to project metadata.")] string? gameType = null,
         [Description("Whether to create a script for this spawnable.")] bool createScript = true,
         [Description("Whether to add PackedScene export and signal to Main script.")] bool wireToMain = true,
-        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string? projectRootPath = null,
         CancellationToken cancellationToken = default) =>
         _mcp.CreateSpawnableAsync(
-            new CreateSpawnableRequest(projectPath, spawnableName, language, gameType, createScript, wireToMain, projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath),
+            new CreateSpawnableRequest(projectPath, spawnableName, language, gameType, createScript, wireToMain),
             cancellationToken);
 
     /// <summary>
@@ -154,9 +151,8 @@ public sealed class ProjectSkill(IMcpClient mcp)
         [Description("Project directory (absolute path or path relative to the configured project root).")] string projectPath,
         [Description("Script language ('gd' or 'cs'). Defaults to project metadata.")] string? language = null,
         [Description("Game dimension ('2d' or '3d'). Defaults to project metadata.")] string? gameType = null,
-        [Description("Absolute filesystem path to the Godot project root (folder containing project.godot).")] string? projectRootPath = null,
         CancellationToken cancellationToken = default) =>
         _mcp.SetupUiAsync(
-            new SetupUiRequest(projectPath, language, gameType, projectRootPath ?? GodotMcpPathDefaults.DefaultProjectRootPath),
+            new SetupUiRequest(projectPath, language, gameType),
             cancellationToken);
 }

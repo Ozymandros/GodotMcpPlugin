@@ -6,6 +6,17 @@ All notable changes to this project will be documented in this file.
 - Initial repository modernization: add CI, release workflow, license, and basic docs.
  - Adapt `StdioMcpClient` to handle `RawContent` in MCP responses (GodotMCP.Server v1.7.1 compatibility). Added unit tests and documentation updates.
 
+## [1.9.0] - 2026-08-16
+### Added
+- **Main-first blueprints**: Align `initialize_project`, `create_actor`, `create_spawnable`, and `setup_ui` with GodotMCP.Server 1.12.0 (`gd`/`cs`, `2d`/`3d`, metadata defaults)
+
+### Fixed
+- Blueprint tools now send the skill `projectPath` argument to MCP instead of the unused project-root override
+
+### Changed
+- Plugin package version updated to 1.9.0
+- Updated tool-contracts.md with v1.12.0 Main-first blueprint tools
+
 ## [1.8.0] - 2026-05-04
 ### Added
 - **Project config**: Add `set_project_config` and `remove_project_config` for modifying project.godot settings

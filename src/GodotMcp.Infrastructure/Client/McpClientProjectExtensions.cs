@@ -139,7 +139,7 @@ public static class McpClientProjectExtensions
         InitializeProjectRequest request,
         CancellationToken cancellationToken = default)
     {
-        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectRootPath);
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         return client.SendAsync<ProjectOperationResult>(
             "initialize_project",
             new Dictionary<string, object?>
@@ -161,7 +161,7 @@ public static class McpClientProjectExtensions
         CreateActorRequest request,
         CancellationToken cancellationToken = default)
     {
-        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectRootPath);
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         var parameters = new Dictionary<string, object?>
         {
             ["projectPath"] = projectPath,
@@ -192,7 +192,7 @@ public static class McpClientProjectExtensions
         CreateSpawnableRequest request,
         CancellationToken cancellationToken = default)
     {
-        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectRootPath);
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         var parameters = new Dictionary<string, object?>
         {
             ["projectPath"] = projectPath,
@@ -222,7 +222,7 @@ public static class McpClientProjectExtensions
         SetupUiRequest request,
         CancellationToken cancellationToken = default)
     {
-        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectRootPath);
+        var projectPath = GodotMcpPathNormalization.NormalizeProjectDirectory(request.ProjectPath);
         var parameters = new Dictionary<string, object?>
         {
             ["projectPath"] = projectPath

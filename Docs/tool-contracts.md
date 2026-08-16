@@ -21,6 +21,19 @@ The current **GodotMCP.Server** tool names (examples) include:
 Notes:
 - The plugin exposes typed project wrappers and SK project skill methods for create/info/autoload/plugin/set_config/remove_config workflows.
 
+## Main-first blueprints (v1.12.0)
+- `initialize_project(projectPath, projectName?, language?, gameType?, includeUi?)`
+- `create_actor(projectPath, actorName, role?, language?, gameType?, createScript?, addToMain?)`
+- `create_spawnable(projectPath, spawnableName, language?, gameType?, createScript?, wireToMain?)`
+- `setup_ui(projectPath, language?, gameType?)`
+
+Notes:
+- Language values: `gd` (GDScript) or `cs` (C#). Dimension values: `2d` or `3d`.
+- `initialize_project` defaults to `gd` / `2d`, writes `.gdmcp-meta.json`, creates `scenes/Main.tscn` (Main/Level/ObstacleContainer), and sets `run/main_scene`.
+- `create_actor` / `create_spawnable` / `setup_ui` omit empty `language` / `gameType` so the server can apply project metadata defaults.
+- Actor registration into `Main.tscn` uses PackedScene instancing. Spawnables include `VisibleOnScreenNotifier2D` / `VisibleOnScreenNotifier3D` off-screen cleanup.
+- The plugin exposes typed project wrappers and SK project skill methods for these scaffolding workflows. MCP `projectPath` is the skill `projectPath` argument (normalized), not a separate project-root override.
+
 ## Scene and Node
 - Scene graph tools use the enforced scene contract: `projectPath + /scenes/ + fileName`.
 - `fileName` is scene-local and must end with `.tscn` (for example `mouse_test.tscn` or `ui/menu.tscn`).
